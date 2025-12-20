@@ -28,3 +28,5 @@ lerna-debug.log*
 .firebase/
 firebase-debug.log
 .firebaserc
+.env
+.env.local
