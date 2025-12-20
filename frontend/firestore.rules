@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pre-registration collection
+    match /preregistrations/{document} {
+      // Allow reading ONLY for specific admin emails
+      allow read: if request.auth != null && 
+                  request.auth.token.email in ['yongjiexue88@gmail.com', 'xue515953749@gmail.com'];
+      
+      // Allow creating new documents (email signups from website)
+      allow create: if request.resource.data.email is string
+                    && request.resource.data.email.size() > 0
+                    && request.resource.data.source in ['hero', 'final_cta', 'navbar'];
+      
+      // Only admin can update/delete (via Firebase Console)
+      allow update, delete: if false;
+    }
+
+    // Analytics Events collection
+    match /analytics_events/{document} {
+      // Allow reading ONLY for specific admin emails
+      allow read: if request.auth != null && 
+                  request.auth.token.email in ['yongjiexue88@gmail.com', 'xue515953749@gmail.com'];
+      
+      // Allow anyone to create analytics events (public logging)
+      allow create: if true;
+
+      // No updates or deletes allowed
+      allow update, delete: if false;
+    }
+    
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

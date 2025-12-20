@@ -1,0 +1,72 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'backend/**'
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  PROJECT_ID: co-interview-481814
+  REGION: us-central1
+  SERVICE_NAME: co-interview-api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_BACKEND_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          cd backend
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --source . \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --allow-unauthenticated \
+            --set-env-vars "NODE_ENV=production" \
+            --set-env-vars "FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }}" \
+            --set-env-vars "FRONTEND_URL=https://co-interview.com" \
+            --set-env-vars "GEMINI_MASTER_API_KEY=${{ secrets.GEMINI_MASTER_API_KEY }}" \
+            --set-env-vars "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" \
+            --set-env-vars "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
+            --set-env-vars "STRIPE_PRICE_PRO=${{ secrets.STRIPE_PRICE_PRO }}" \
+            --set-env-vars "STRIPE_PRICE_LIFETIME=${{ secrets.STRIPE_PRICE_LIFETIME }}" \
+            --set-env-vars "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \
+            --set-env-vars "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            --set-env-vars "GOOGLE_REDIRECT_URI=https://co-interview.com/api/v1/auth/google/callback" \
+            --set-env-vars "GOOGLE_ANALYTICS_PROPERTY_ID=517086314" \
+            --quiet
+
+      - name: Get Service URL
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --format 'value(status.url)')
+          echo "✅ Deployed to: $URL"
+          echo "🌐 API available at: https://co-interview.com/api/health"
+
+      - name: Health Check
+        run: |
+          sleep 10
+          curl -f https://co-interview.com/api/health || echo "⚠️ Health check failed, but deployment succeeded"
