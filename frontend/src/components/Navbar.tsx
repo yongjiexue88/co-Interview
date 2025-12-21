@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import Button from './ui/Button';
 
 const Navbar: React.FC = () => {
@@ -29,7 +30,7 @@ const Navbar: React.FC = () => {
                         <a href="#pricing" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Pricing</a>
                         <a href="#help" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Help</a>
                         <a href="#blog" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Blog</a>
-                        <a href="#how-it-works" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">How it works</a>
+                        <Link to="/still_working" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">How it works</Link>
                     </div>
 
                     <div className="hidden md:flex items-center space-x-4">
@@ -55,7 +56,7 @@ const Navbar: React.FC = () => {
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                         <a href="#proof" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Proof</a>
                         <a href="#pricing" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Pricing</a>
-                        <a href="#how-it-works" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">How it Works</a>
+                        <Link to="/still_working" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">How it Works</Link>
                         <div className="mt-4 pt-4 border-t border-white/10 flex flex-col space-y-3 px-3">
                             <Button variant="ghost" className="w-full justify-start">Login</Button>
                             <Button variant="white" className="w-full">Download for Free</Button>
