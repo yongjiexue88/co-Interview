@@ -1,54 +1,115 @@
 import React from 'react';
-import { Terminal, Github, Twitter } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Twitter, Instagram, Youtube } from 'lucide-react';
+import { footerLinks } from '../content/siteContent';
+
+const SocialIcon = ({ Icon, href }: { Icon: any, href: string }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-neutral-300 transition-colors">
+        <Icon className="w-5 h-5" />
+    </a>
+);
 
 const Footer: React.FC = () => {
     return (
-        <footer className="bg-black border-t border-white/10 pt-20 pb-10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+        <footer className="mt-2 lg:mt-20 border-t border-white/[0.1] pt-20 bg-neutral-950/88 backdrop-blur-3xl w-full relative overflow-hidden font-sans">
+            <div className="max-w-7xl mx-auto px-8 md:px-8 text-sm text-neutral-500">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-12">
 
-                    <div className="col-span-1 md:col-span-2">
-                        <div className="flex items-center space-x-3 mb-6">
-                            <div className="bg-[#EFCC3A] p-1.5 rounded-lg text-black">
-                                <Terminal className="w-4 h-4 fill-current" />
-                            </div>
-                            <span className="text-lg font-bold text-white">InterviewCoder</span>
+                    {/* Brand Column */}
+                    <div className="space-y-4 max-w-sm">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Link to="/" className="flex items-center gap-2">
+                                <div className="text-yellow-400">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                </div>
+                                <span className="font-bold text-white text-xl">
+                                    Interview Coder
+                                </span>
+                            </Link>
                         </div>
-                        <p className="text-gray-400 text-sm max-w-sm leading-relaxed font-light">
-                            The ultimate AI companion for technical interviews. We help you land your dream job by providing real-time assistance and deep explanations for complex coding problems.
+                        <p className="text-sm text-neutral-300/90 leading-relaxed">
+                            Interview Coder is a desktop app designed to help job seekers ace technical interviews by providing real-time assistance with coding questions.
                         </p>
+                        <div className="flex gap-4 pt-4 mb-6">
+                            <SocialIcon Icon={Twitter} href="https://x.com/InterviewCoder" />
+                            <SocialIcon Icon={Instagram} href="https://www.instagram.com/interviewcoder/" />
+                            <SocialIcon Icon={Youtube} href="https://www.youtube.com/@InterviewCoder-official" />
+                        </div>
+
+                        <a href="https://interviewcoder.tolt.io/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 bg-neutral-900/80 border border-neutral-700/50 hover:border-neutral-600 rounded-lg px-4 py-3 w-fit transition-all duration-300">
+                            <span className="text-neutral-200 text-sm font-medium">Become an Affiliate</span>
+                            <span className="text-neutral-500 text-xs">Earn 40% commission</span>
+                        </a>
+
+                        <div className="mt-7 bg-neutral-900 border border-neutral-800 rounded-full px-3 py-1 flex items-center gap-2 w-fit select-none">
+                            <div className="relative">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
+                            </div>
+                            <span className="text-neutral-400 text-xs">All systems online</span>
+                        </div>
+                        <div className="mt-3 text-[13px] select-none text-neutral-500">
+                            © 2025 Interview Coder. All rights reserved.
+                        </div>
                     </div>
 
-                    <div>
-                        <h4 className="text-white font-bold mb-6">Product</h4>
-                        <ul className="space-y-3 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-[#EFCC3A] transition-colors">Features</a></li>
-                            <li><a href="#" className="hover:text-[#EFCC3A] transition-colors">Pricing</a></li>
-                            <li><a href="#" className="hover:text-[#EFCC3A] transition-colors">Extension</a></li>
-                            <li><a href="#" className="hover:text-[#EFCC3A] transition-colors">Changelog</a></li>
-                        </ul>
+                    {/* Links Columns */}
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-10 w-full lg:w-auto">
+                        <nav aria-label="Legal information">
+                            <h2 className="text-neutral-300 font-bold select-none text-lg mb-4">Legal</h2>
+                            <ul className="space-y-4 text-[15px] text-neutral-300">
+                                {footerLinks.legal.map((item) => (
+                                    <li key={item.name}>
+                                        <Link to={item.href} className="transition-colors hover:text-yellow-400">
+                                            {item.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+
+                        <nav aria-label="Site navigation">
+                            <h2 className="text-neutral-300 font-bold select-none text-lg mb-4">Pages</h2>
+                            <ul className="space-y-4 text-[15px] text-neutral-300">
+                                {footerLinks.pages.slice(0, 6).map((item) => (
+                                    <li key={item.name}>
+                                        {item.href.startsWith('http') ? (
+                                            <a href={item.href} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-yellow-400">
+                                                {item.name}
+                                            </a>
+                                        ) : (
+                                            <Link to={item.href} className="transition-colors hover:text-yellow-400">
+                                                {item.name}
+                                            </Link>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+
+                        <nav aria-label="Platform comparisons">
+                            <h2 className="text-neutral-300 font-bold select-none text-lg mb-4">Compare</h2>
+                            <ul className="space-y-4 text-[15px] text-neutral-300">
+                                {footerLinks.compare.map((item) => (
+                                    <li key={item.name}>
+                                        <Link to={item.href} className="transition-colors hover:text-yellow-400">
+                                            {item.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
                     </div>
 
-                    <div>
-                        <h4 className="text-white font-bold mb-6">Legal</h4>
-                        <ul className="space-y-3 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-[#EFCC3A] transition-colors">Privacy Policy</a></li>
-                            <li><a href="#" className="hover:text-[#EFCC3A] transition-colors">Terms of Service</a></li>
-                            <li><a href="#" className="hover:text-[#EFCC3A] transition-colors">Disclaimer</a></li>
-                            <li><a href="#" className="hover:text-[#EFCC3A] transition-colors">Contact</a></li>
-                        </ul>
-                    </div>
                 </div>
 
-                <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between">
-                    <p className="text-gray-600 text-xs">
-                        © {new Date().getFullYear()} InterviewCoder. All rights reserved. Not affiliated with LeetCode.
-                    </p>
-                    <div className="flex space-x-6 mt-4 md:mt-0">
-                        <a href="#" className="text-gray-500 hover:text-white transition-colors"><Github className="w-5 h-5" /></a>
-                        <a href="#" className="text-gray-500 hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
-                    </div>
-                </div>
+                <h1 className="text-center mt-20 text-[min(10vw,10rem)] font-semibold bg-clip-text text-transparent bg-gradient-to-b from-white/[0.01] to-white/[0.078] lg:-mb-5 select-none whitespace-nowrap tracking-[-0.04em] leading-[90.2%]">
+                    Interview Coder
+                </h1>
             </div>
         </footer>
     );
