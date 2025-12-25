@@ -21,7 +21,8 @@ async function prerender() {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     const browser = await puppeteer.launch({
-        headless: "new"
+        headless: "new",
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     const page = await browser.newPage();
 
