@@ -2,10 +2,13 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import UndetectableFeatures from '../components/UndetectableFeatures';
+import CompetitorComparison from '../components/CompetitorComparison';
 import Testimonials from '../components/Testimonials';
 import Compatibility from '../components/Compatibility';
 import Pricing from '../components/Pricing';
 import FAQ from '../components/FAQ';
+import Podium from '../components/Podium';
+import FinalCTA from '../components/FinalCTA';
 import Footer from '../components/Footer';
 import Banner from '../components/Banner';
 import SEO from '../components/SEO';
@@ -32,10 +35,13 @@ const HomePage: React.FC = () => {
             <main>
                 <Hero />
                 <UndetectableFeatures />
+                <CompetitorComparison />
                 <Testimonials />
                 <Compatibility />
                 <Pricing />
                 <FAQ />
+                <Podium />
+                <FinalCTA />
             </main>
             <Footer />
         </div>
@@ -43,3 +49,4 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
+
