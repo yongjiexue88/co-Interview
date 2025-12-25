@@ -7,9 +7,10 @@ interface SEOProps {
     canonicalUrl: string;
     type?: string;
     name?: string;
+    jsonLd?: Record<string, any>[];
 }
 
-const SEO: React.FC<SEOProps> = ({ title, description, canonicalUrl, type = 'website', name = 'Co-Interview' }) => {
+const SEO: React.FC<SEOProps> = ({ title, description, canonicalUrl, type = 'website', name = 'Co-Interview', jsonLd }) => {
     return (
         <Helmet>
             {/* Standard metadata tags */}
@@ -32,6 +33,13 @@ const SEO: React.FC<SEOProps> = ({ title, description, canonicalUrl, type = 'web
             <meta name="twitter:title" content={title} />
             <meta name="twitter:description" content={description} />
             {/* End of Twitter tags */}
+
+            {/* Schema.org JSON-LD */}
+            {jsonLd && jsonLd.map((schema, index) => (
+                <script key={index} type="application/ld+json">
+                    {JSON.stringify(schema)}
+                </script>
+            ))}
         </Helmet>
     );
 }

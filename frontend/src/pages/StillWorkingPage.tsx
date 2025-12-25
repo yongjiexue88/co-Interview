@@ -196,8 +196,8 @@ const StillWorkingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#161616] text-gray-300 font-sans selection:bg-yellow-500/30 overflow-x-hidden">
             <SEO
-                title="Co-Interview | Still Working"
-                description="Co-Interview is the ultimate undetectable AI interview assistant. It remains invisible to screen sharing and browser monitoring while providing real-time coding help."
+                title="How it Works — Co-Interview AI Assistant"
+                description="See how Co-Interview's undetectable AI features work. From invisible overlays to real-time coding assistance, discover the technology that helps you pass technical interviews."
                 canonicalUrl="https://co-interview.com/still_working"
             />
             <StillWorkingNavbar />
