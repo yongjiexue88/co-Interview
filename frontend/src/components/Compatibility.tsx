@@ -18,7 +18,7 @@ const Compatibility: React.FC = () => {
                         Undetectable on <span className="text-[#FACC15]">Every</span> Interview App
                     </h2>
                     <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-                        Daily testing, real-world checks, and constant monitoring ensure Interview Coder remains undetectable - 100% of the time
+                        Daily testing, real-world checks, and constant monitoring ensure Co-Interview remains undetectable - 100% of the time
                     </p>
                 </div>
 

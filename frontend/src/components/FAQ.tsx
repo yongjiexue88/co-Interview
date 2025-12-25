@@ -50,11 +50,11 @@ const FAQ: React.FC = () => {
                 <div className="mt-12 text-center">
                     <p className="text-gray-400 mb-4">Couldn't find your answer?</p>
                     <a
-                        href="mailto:abdulla@interviewcoder.com"
+                        href="mailto:support@co-interview.com"
                         className="inline-flex items-center gap-2 text-[#FACC15] hover:underline"
                     >
                         <HelpCircle className="w-4 h-4" />
-                        Send us an email at abdulla@interviewcoder.com
+                        Send us an email at support@co-interview.com
                     </a>
                 </div>
             </div>

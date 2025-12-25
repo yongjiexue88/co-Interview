@@ -27,12 +27,12 @@ const Footer: React.FC = () => {
                                     </svg>
                                 </div>
                                 <span className="font-bold text-white text-xl">
-                                    Interview Coder
+                                    Co-Interview
                                 </span>
                             </Link>
                         </div>
                         <p className="text-sm text-neutral-300/90 leading-relaxed">
-                            Interview Coder is a desktop app designed to help job seekers ace technical interviews by providing real-time assistance with coding questions.
+                            Co-Interview is a desktop app designed to help job seekers ace technical interviews by providing real-time assistance with coding questions.
                         </p>
                         <div className="flex gap-4 pt-4 mb-6">
                             <SocialIcon Icon={Twitter} href="https://x.com/InterviewCoder" />
@@ -53,7 +53,7 @@ const Footer: React.FC = () => {
                             <span className="text-neutral-400 text-xs">All systems online</span>
                         </div>
                         <div className="mt-3 text-[13px] select-none text-neutral-500">
-                            © 2025 Interview Coder. All rights reserved.
+                            © 2025 Co-Interview. All rights reserved.
                         </div>
                     </div>
 
@@ -108,7 +108,7 @@ const Footer: React.FC = () => {
                 </div>
 
                 <h1 className="text-center mt-20 text-[min(10vw,10rem)] font-semibold bg-clip-text text-transparent bg-gradient-to-b from-white/[0.01] to-white/[0.078] lg:-mb-5 select-none whitespace-nowrap tracking-[-0.04em] leading-[90.2%]">
-                    Interview Coder
+                    Co-Interview
                 </h1>
             </div>
         </footer>

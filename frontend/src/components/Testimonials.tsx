@@ -9,10 +9,10 @@ const Testimonials: React.FC = () => {
                 {/* Section Header */}
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                        Interview Coder Working on <span className="text-[#FACC15]">Real Interviews</span>
+                        Co-Interview Working on <span className="text-[#FACC15]">Real Interviews</span>
                     </h2>
                     <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-                        See how candidates use Interview Coder to land offers at top tech companies
+                        See how candidates use Co-Interview to land offers at top tech companies
                     </p>
                 </div>
 
@@ -36,7 +36,7 @@ const Testimonials: React.FC = () => {
                         {/* Caption */}
                         <div className="p-6">
                             <p className="text-gray-300">
-                                "I'll show you how I got an offer from Amazon using Interview Coder. Throughout this whole video, you'll see me use Interview Coder for both the OA and the final round."
+                                "I'll show you how I got an offer from Amazon using Co-Interview. Throughout this whole video, you'll see me use Co-Interview for both the OA and the final round."
                             </p>
                             <a href="#" className="inline-flex items-center gap-2 text-[#FACC15] text-sm mt-4 hover:underline">
                                 Full video here →

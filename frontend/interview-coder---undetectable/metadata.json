@@ -1,5 +1,5 @@
 {
-  "name": "Interview Coder - Undetectable",
-  "description": "Explanatory page detailing how Interview Coder maintains undetectability through browser sandboxing and native application architecture.",
+  "name": "Co-Interview - Undetectable",
+  "description": "Explanatory page detailing how Co-Interview maintains undetectability through browser sandboxing and native application architecture.",
   "requestFramePermissions": []
 }

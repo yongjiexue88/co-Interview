@@ -35,8 +35,8 @@ const Hero: React.FC = () => {
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8">
                     <span className="block text-white mb-2">Meet</span>
                     <span className="block text-[#4b5563] relative inline-block">
-                        Interview Coder 2.0
-                        <span className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-b from-white/10 to-transparent blur-[2px]">Interview Coder 2.0</span>
+                        Co-Interview 2.0
+                        <span className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-b from-white/10 to-transparent blur-[2px]">Co-Interview 2.0</span>
                     </span>
                 </h1>
 

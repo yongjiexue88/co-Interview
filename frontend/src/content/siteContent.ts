@@ -1,4 +1,4 @@
-// Content extracted from interviewcoder.co
+// Content extracted from co-interview.com
 
 export interface Feature {
     id: string;
@@ -24,13 +24,13 @@ export const undetectableFeatures: Feature[] = [
     {
         id: 'screen-recording',
         title: 'Screen-Recording Proof',
-        description: 'Even if the session is recorded, InterviewCoder leaves no visible windows or overlays.',
+        description: 'Even if the session is recorded, Co-Interview leaves no visible windows or overlays.',
         icon: '📹'
     },
     {
         id: 'click-through',
         title: 'Completely Click-Through. Truly Invisible',
-        description: 'Even when your cursor hovers or clicks on InterviewCoder, your system and apps won\'t detect it. No focus shifts. No flags. No traces.',
+        description: 'Even when your cursor hovers or clicks on Co-Interview, your system and apps won\'t detect it. No focus shifts. No flags. No traces.',
         icon: '🖱️'
     }
 ];
@@ -58,31 +58,31 @@ export interface FAQItem {
 export const faqItems: FAQItem[] = [
     {
         question: 'Is there a free trial?',
-        answer: 'Yes, a free plan is available to test core functionality. The free tier has model and feature limits so you can confirm compatibility during the onboarding process before upgrading to the lifetime plan. This lets you try Interview Coder risk-free and see how it works with your setup.'
+        answer: 'Yes, a free plan is available to test core functionality. The free tier has model and feature limits so you can confirm compatibility during the onboarding process before upgrading to the lifetime plan. This lets you try Co-Interview risk-free and see how it works with your setup.'
     },
     {
-        question: 'What\'s the ROI of Interview Coder compared to failing interviews?',
-        answer: 'The average software engineering salary increase from landing a FAANG job is $50,000-$150,000+. One successful interview pays for Interview Coder thousands of times over.'
+        question: 'What\'s the ROI of Co-Interview compared to failing interviews?',
+        answer: 'The average software engineering salary increase from landing a FAANG job is $50,000-$150,000+. One successful interview pays for Co-Interview thousands of times over.'
     },
     {
         question: 'What are the 20+ advanced undetectability features?',
-        answer: 'Interview Coder uses native OS-level APIs for invisibility, click-through windows, process hiding, screen share detection bypass, and more. Check our "How it works" page for the full technical breakdown.'
+        answer: 'Co-Interview uses native OS-level APIs for invisibility, click-through windows, process hiding, screen share detection bypass, and more. Check our "How it works" page for the full technical breakdown.'
     },
     {
         question: 'How does the new audio support work?',
         answer: 'Audio support captures system audio and provides real-time transcription and AI assistance during voice interviews, helping you answer follow-up questions and system design discussions.'
     },
     {
-        question: 'Does Interview Coder work with the latest versions of Zoom, Teams, and other platforms?',
+        question: 'Does Co-Interview work with the latest versions of Zoom, Teams, and other platforms?',
         answer: 'Yes! We test daily on all major interview platforms. Our team monitors every update to ensure 100% compatibility and undetectability.'
     },
     {
-        question: 'Has anyone ever been caught using Interview Coder?',
-        answer: 'No. Interview Coder has been used in thousands of interviews without a single detection. Our architecture makes it technically impossible for browser-based platforms to detect.'
+        question: 'Has anyone ever been caught using Co-Interview?',
+        answer: 'No. Co-Interview has been used in thousands of interviews without a single detection. Our architecture makes it technically impossible for browser-based platforms to detect.'
     },
     {
         question: 'Is the lifetime deal really lifetime?',
-        answer: 'Yes, one payment gives you permanent access to Interview Coder including all future updates and features.'
+        answer: 'Yes, one payment gives you permanent access to Co-Interview including all future updates and features.'
     }
 ];
 
@@ -98,12 +98,12 @@ export const testimonials: Testimonial[] = [
     {
         name: 'Anonymous User',
         company: 'Amazon',
-        content: 'I got an offer from Amazon using Interview Coder. It helped me through both the OA and the final round.',
+        content: 'I got an offer from Amazon using Co-Interview. It helped me through both the OA and the final round.',
         verified: true
     },
     {
         name: 'Faizan Syed',
-        content: 'Interview Coder is a game changer. The undetectability features are next level.',
+        content: 'Co-Interview is a game changer. The undetectability features are next level.',
         verified: true
     },
     {

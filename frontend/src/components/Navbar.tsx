@@ -20,8 +20,8 @@ const Navbar: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     <div className="flex items-center space-x-3 cursor-pointer">
-                        <img src="https://www.interviewcoder.co/logo.svg" alt="Interview Coder" className="w-8 h-8 rounded-xl" />
-                        <span className="text-lg font-bold tracking-tight text-white hidden md:block">Interview Coder</span>
+                        <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-8 h-8 rounded-xl" />
+                        <span className="text-lg font-bold tracking-tight text-white hidden md:block">Co-Interview</span>
                     </div>
 
                     {/* Desktop Menu */}

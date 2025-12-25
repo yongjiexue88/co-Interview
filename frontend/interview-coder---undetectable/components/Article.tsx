@@ -36,11 +36,11 @@ const Article: React.FC = () => {
         </div>
         
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight mb-6">
-          How Interview Coder is Still Undetectable
+          How Co-Interview is Still Undetectable
         </h1>
         
         <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-          We've heard the concerns. Trust us, Interview Coder still works. Here's how we know.
+          We've heard the concerns. Trust us, Co-Interview still works. Here's how we know.
         </p>
         
         <p className="mt-4 text-sm text-gray-500">
@@ -119,25 +119,25 @@ if (getRunningApps().includes('SomeApp.exe')) {
         <ul className="list-disc pl-6 space-y-2 text-lg md:text-xl text-gray-300 mt-8 mb-8">
           <li><strong className="text-white">Read Other App Memory:</strong> Accessing the memory of other applications is strictly forbidden by your operating system for security reasons.</li>
           <li><strong className="text-white">Track Your Every Click/Keystroke Globally:</strong> They can only see clicks and keys typed *inside* their own browser tab, not system-wide.</li>
-          <li><strong className="text-white">See Invisible Native Apps During Screen Share:</strong> While screen sharing shows your desktop, applications designed to be hidden (like Interview Coder) won't appear in the shared view or screenshots.</li>
+          <li><strong className="text-white">See Invisible Native Apps During Screen Share:</strong> While screen sharing shows your desktop, applications designed to be hidden (like Co-Interview) won't appear in the shared view or screenshots.</li>
         </ul>
 
         <CannotSeeDiagram />
 
-        <SectionTitle>Why Interview Coder is Different & How It Counters Detection</SectionTitle>
+        <SectionTitle>Why Co-Interview is Different & How It Counters Detection</SectionTitle>
         <Paragraph>
-          Interview Coder isn't a browser extension; it's a separate **native desktop app**. This fundamental difference is key to avoiding detection:
+          Co-Interview isn't a browser extension; it's a separate **native desktop app**. This fundamental difference is key to avoiding detection:
         </Paragraph>
         <ul className="list-disc pl-6 space-y-4 text-lg md:text-xl text-gray-300 mb-8">
-          <li><strong className="text-white">It Lives Outside the Bubble:</strong> The browser running the interview has no connection to Interview Coder and simply cannot see it or interact with it. It doesn't need to read browser memory because it operates independently with its own data.</li>
+          <li><strong className="text-white">It Lives Outside the Bubble:</strong> The browser running the interview has no connection to Co-Interview and simply cannot see it or interact with it. It doesn't need to read browser memory because it operates independently with its own data.</li>
           <li><strong className="text-white">Invisible to Screen Sharing:</strong> The app utilizes specific operating system APIs and window properties that signal the OS window to be excluded from screen captures, recordings, and screen sharing sessions (like Zoom, Meet). This is a standard OS feature used by various overlay or privacy-focused applications, not a browser hack.</li>
-          <li><strong className="text-white">No Focus / Active Tab Change & Global Hotkeys:</strong> When you toggle Interview Coder's visibility (using ⌘+B), it uses standard OS-level global hotkey registration. This is completely separate from the browser's event system. Your mouse cursor focus "stays" in the browser, and the active browser tab *does not change*, bypassing platform checks for these specific actions.</li>
-          <li><strong className="text-white">Webcam / Eye Tracking Counter:</strong> You can use keyboard shortcuts (⌘ + Arrow Keys) to move the Interview Coder window directly over the assessment's coding area. This allows you to view solutions while appearing to look directly at the screen where the code editor is.</li>
-          <li><strong className="text-white">Reasoning Support:</strong> To help you explain your thought process (a common interview check), Interview Coder provides not just code, but also line-by-line comments and high-level reasoning hints, making it easier to articulate the solution naturally.</li>
+          <li><strong className="text-white">No Focus / Active Tab Change & Global Hotkeys:</strong> When you toggle Co-Interview's visibility (using ⌘+B), it uses standard OS-level global hotkey registration. This is completely separate from the browser's event system. Your mouse cursor focus "stays" in the browser, and the active browser tab *does not change*, bypassing platform checks for these specific actions.</li>
+          <li><strong className="text-white">Webcam / Eye Tracking Counter:</strong> You can use keyboard shortcuts (⌘ + Arrow Keys) to move the Co-Interview window directly over the assessment's coding area. This allows you to view solutions while appearing to look directly at the screen where the code editor is.</li>
+          <li><strong className="text-white">Reasoning Support:</strong> To help you explain your thought process (a common interview check), Co-Interview provides not just code, but also line-by-line comments and high-level reasoning hints, making it easier to articulate the solution naturally.</li>
           <li><strong className="text-white">Uses Standard OS Features:</strong> Beyond the specific examples above, it generally works using normal, legitimate operating system functions, leaving no unusual footprint that typical browser-based monitoring could detect.</li>
         </ul>
         <Paragraph>
-          So, while platforms *can* detect simple events like pasting or clicking away from a tab, Interview Coder is architected to sidestep these checks and remain invisible to the monitoring methods available within a browser sandbox or standard screen share.
+          So, while platforms *can* detect simple events like pasting or clicking away from a tab, Co-Interview is architected to sidestep these checks and remain invisible to the monitoring methods available within a browser sandbox or standard screen share.
         </Paragraph>
 
         <SectionTitle>What About Desktop Proctoring Apps?</SectionTitle>
@@ -155,10 +155,10 @@ if (getRunningApps().includes('SomeApp.exe')) {
 
         <SectionTitle>The Bottom Line</SectionTitle>
         <Paragraph>
-          Because coding interviews run in secure browser tabs, and Interview Coder runs as a completely separate native application, standard detection methods simply can't see it. We designed it specifically with browser security limitations in mind.
+          Because coding interviews run in secure browser tabs, and Co-Interview runs as a completely separate native application, standard detection methods simply can't see it. We designed it specifically with browser security limitations in mind.
         </Paragraph>
         <Paragraph>
-          Until the day that companies require you to download and install a separate desktop app, or migrate completely to in-person interviews, Interview Coder will work.
+          Until the day that companies require you to download and install a separate desktop app, or migrate completely to in-person interviews, Co-Interview will work.
         </Paragraph>
 
         <WebEnvDiagram />
@@ -176,9 +176,9 @@ if (getRunningApps().includes('SomeApp.exe')) {
             </div>
           </header>
 
-          <SectionTitle>Interview Coder 2.0: What's New?</SectionTitle>
+          <SectionTitle>Co-Interview 2.0: What's New?</SectionTitle>
           <Paragraph>
-            Interview Coder 2.0 is a complete rewrite from the ground up, focusing on undetectability, performance, and user experience, building even more on the strong undetectability it had in 1.0. Here's a quick overview of the key improvements:
+            Co-Interview 2.0 is a complete rewrite from the ground up, focusing on undetectability, performance, and user experience, building even more on the strong undetectability it had in 1.0. Here's a quick overview of the key improvements:
           </Paragraph>
           <ul className="list-disc pl-6 space-y-4 text-lg md:text-xl text-gray-300 mb-8">
             <li><strong className="text-white">Undetectable by Design:</strong> Built as a native desktop app that leverages OS-level features to remain invisible during screen sharing and avoid detection by browser-based monitoring.</li>
@@ -188,7 +188,7 @@ if (getRunningApps().includes('SomeApp.exe')) {
             <li><strong className="text-white">User-Friendly Interface:</strong> A sleek, modern UI that makes it easy to find and use the features you need during an interview.</li>
           </ul>
           <Paragraph>
-            We're excited about these improvements and believe they make Interview Coder the best tool for coding interviews yet. If you haven't tried it yet, download the app and see for yourself!
+            We're excited about these improvements and believe they make Co-Interview the best tool for coding interviews yet. If you haven't tried it yet, download the app and see for yourself!
           </Paragraph>
 
           <SectionTitle>How Audio Works</SectionTitle>
@@ -212,7 +212,7 @@ if (getRunningApps().includes('SomeApp.exe')) {
           </div>
           
           <Paragraph>
-            Interview Coder 2.0 introduces audio support to help you better understand and articulate solutions during your coding interviews. Here's how it works:
+            Co-Interview 2.0 introduces audio support to help you better understand and articulate solutions during your coding interviews. Here's how it works:
           </Paragraph>
           <ul className="list-disc pl-6 space-y-2 text-lg md:text-xl text-gray-300 mb-8">
             <li><strong className="text-white">Instant Explanations:</strong> The app can provide explanations of code snippets and algorithms, helping you grasp concepts and answer quickly and precisely.</li>
@@ -263,10 +263,10 @@ if (getRunningApps().includes('SomeApp.exe')) {
           </div>
 
           <Paragraph>
-            Interview Coder 2.0 is designed to run in a way that it doesn't appear in your system's task manager or process list. This means that even if someone checks the running applications on your computer, they won't see Interview Coder listed there.
+            Co-Interview 2.0 is designed to run in a way that it doesn't appear in your system's task manager or process list. This means that even if someone checks the running applications on your computer, they won't see Co-Interview listed there.
           </Paragraph>
           <Paragraph>
-            This is achieved through advanced techniques that leverage operating system features to hide the application's presence and change it's name. By not showing up in task managers, Interview Coder adds an extra layer of discretion, ensuring that you can use it without worry about being detected.
+            This is achieved through advanced techniques that leverage operating system features to hide the application's presence and change it's name. By not showing up in task managers, Co-Interview adds an extra layer of discretion, ensuring that you can use it without worry about being detected.
           </Paragraph>
 
           <TaskManagerDiagram />
@@ -277,7 +277,7 @@ if (getRunningApps().includes('SomeApp.exe')) {
             Written by <span className="text-yellow-400 hover:text-yellow-300 underline cursor-pointer">Roy Lee</span>.
           </p>
           
-          <h3 className="text-lg font-medium text-white mb-6">Ready to try Interview Coder?</h3>
+          <h3 className="text-lg font-medium text-white mb-6">Ready to try Co-Interview?</h3>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-scale">
               <button className="flex items-center justify-center gap-2 bg-[#FACC15] hover:bg-yellow-400 text-black px-6 py-2.5 rounded-lg font-medium transition-colors min-w-[160px]">
