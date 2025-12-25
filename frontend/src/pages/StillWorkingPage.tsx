@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Youtube, Instagram, Twitter } from 'lucide-react';
 import Article from '../components/Article';
+import SEO from '../components/SEO';
 
 // Navbar Component (matching demo style)
 const StillWorkingNavbar: React.FC = () => {
@@ -194,6 +195,11 @@ const StillWorkingFooter: React.FC = () => {
 const StillWorkingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#161616] text-gray-300 font-sans selection:bg-yellow-500/30 overflow-x-hidden">
+            <SEO
+                title="Co-Interview | Still Working"
+                description="Co-Interview is the ultimate undetectable AI interview assistant. It remains invisible to screen sharing and browser monitoring while providing real-time coding help."
+                canonicalUrl="https://co-interview.com/still_working"
+            />
             <StillWorkingNavbar />
             <main className="relative z-10">
                 <Article />
