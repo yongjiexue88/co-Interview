@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import Button from './ui/Button';
+import PreRegisterForm from './PreRegisterForm';
 
 // Simple Icons as SVG components
 const AppleIcon = () => (
@@ -45,6 +46,13 @@ const Hero: React.FC = () => {
                     features to keep you invisible across every interview check.
                 </p>
 
+                {/* === PRE-REGISTRATION (REMOVE WHEN PRODUCT LAUNCHES) === */}
+                <div className="flex justify-center mb-24">
+                    <PreRegisterForm source="hero" />
+                </div>
+                {/* === END PRE-REGISTRATION === */}
+
+                {/* === DOWNLOAD BUTTONS (UNCOMMENT WHEN PRODUCT LAUNCHES) ===
                 <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-24">
                     <Button variant="primary" size="lg" className="w-full sm:w-auto min-w-[200px] space-x-3">
                         <AppleIcon />
@@ -55,6 +63,7 @@ const Hero: React.FC = () => {
                         <span>Get for Windows</span>
                     </Button>
                 </div>
+                === END DOWNLOAD BUTTONS === */}
 
                 {/* Mock Interface */}
                 <div className="relative max-w-6xl mx-auto perspective-1000">

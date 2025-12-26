@@ -1,6 +1,7 @@
 // Firebase configuration for co-interview
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,5 +16,9 @@ const firebaseConfig = {
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 
+// Initialize Firestore
+export const db = getFirestore(app);
+
 // Initialize Analytics (only in browser environment)
 export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null);
+

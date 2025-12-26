@@ -35,7 +35,11 @@ const Navbar: React.FC = () => {
 
                     <div className="hidden md:flex items-center space-x-4">
                         <Button variant="ghost" size="sm">Login</Button>
-                        <Button variant="white" size="sm" className="shadow-none">Download for Free</Button>
+                        {/* === PRE-REGISTRATION (CHANGE TO "Download for Free" WHEN PRODUCT LAUNCHES) === */}
+                        <a href="#download" className="px-4 py-2 text-sm font-semibold text-black bg-white hover:bg-gray-100 rounded-full transition-all shadow-none">
+                            Join Waitlist
+                        </a>
+                        {/* === END PRE-REGISTRATION === */}
                     </div>
 
                     {/* Mobile Toggle */}
@@ -59,7 +63,11 @@ const Navbar: React.FC = () => {
                         <Link to="/still_working" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">How it Works</Link>
                         <div className="mt-4 pt-4 border-t border-white/10 flex flex-col space-y-3 px-3">
                             <Button variant="ghost" className="w-full justify-start">Login</Button>
-                            <Button variant="white" className="w-full">Download for Free</Button>
+                            {/* === PRE-REGISTRATION (CHANGE TO "Download for Free" WHEN PRODUCT LAUNCHES) === */}
+                            <a href="#download" className="w-full py-2 text-center text-sm font-semibold text-black bg-white rounded-full">
+                                Join Waitlist
+                            </a>
+                            {/* === END PRE-REGISTRATION === */}
                         </div>
                     </div>
                 </div>
