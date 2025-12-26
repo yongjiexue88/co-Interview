@@ -16,6 +16,19 @@ service cloud.firestore {
       // Only admin can update/delete (via Firebase Console)
       allow update, delete: if false;
     }
+
+    // Analytics Events collection
+    match /analytics_events/{document} {
+      // Allow reading ONLY for specific admin emails
+      allow read: if request.auth != null && 
+                  request.auth.token.email in ['yongjiexue88@gmail.com', 'xue515953749@gmail.com'];
+      
+      // Allow anyone to create analytics events (public logging)
+      allow create: if true;
+
+      // No updates or deletes allowed
+      allow update, delete: if false;
+    }
     
     // Deny all other access by default
     match /{document=**} {

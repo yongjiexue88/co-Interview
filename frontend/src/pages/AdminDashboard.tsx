@@ -19,7 +19,9 @@ import {
     Users,
     LogOut,
     TrendingUp,
-    Calendar
+    Calendar,
+    MousePointer,
+    Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,9 +32,17 @@ interface UserData {
     createdAt: Timestamp;
 }
 
+interface AnalyticsEvent {
+    id: string;
+    eventName: string;
+    params: any;
+    createdAt: Timestamp;
+}
+
 const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState<UserData[]>([]);
+    const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [stats, setStats] = useState({
@@ -55,7 +65,16 @@ const AdminDashboard: React.FC = () => {
                 ...doc.data()
             })) as UserData[];
 
+            // Fetch Analytics Events
+            const analyticsQ = query(collection(db, 'analytics_events'), orderBy('createdAt', 'desc'));
+            const analyticsSnapshot = await getDocs(analyticsQ);
+            const analyticsData = analyticsSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as AnalyticsEvent[];
+
             setUsers(data);
+            setAnalyticsEvents(analyticsData);
             calculateStats(data);
             setLoading(false);
         } catch (error) {
@@ -143,6 +162,52 @@ const AdminDashboard: React.FC = () => {
 
         return Object.entries(dailyCounts).map(([name, count]) => ({ name, count }));
     };
+
+    const getAnalyticsStats = () => {
+        // Interest Heatmap (Nav Clicks)
+        const navClicks: Record<string, number> = {};
+        analyticsEvents
+            .filter(e => e.eventName === 'nav_click' || e.eventName === 'mobile_nav_click')
+            .forEach(e => {
+                const label = e.params?.label || 'Unknown';
+                navClicks[label] = (navClicks[label] || 0) + 1;
+            });
+
+        // Conversion Funnel
+        const pageViews = analyticsEvents.filter(e => e.eventName === 'page_view').length;
+        const signups = users.length;
+        const conversionRate = pageViews > 0 ? ((signups / pageViews) * 100).toFixed(1) : '0';
+
+        // Engagement Metrics
+        const pageLeaves = analyticsEvents.filter(e => e.eventName === 'page_leave');
+        const totalDuration = pageLeaves.reduce((acc, curr) => acc + (curr.params?.duration_seconds || 0), 0);
+        const avgDuration = pageLeaves.length > 0 ? Math.round(totalDuration / pageLeaves.length) : 0;
+
+        // Scroll Depth Distribution
+        const scrollDepths: Record<string, number> = { '25%': 0, '50%': 0, '75%': 0, '100%': 0 };
+        analyticsEvents
+            .filter(e => e.eventName === 'scroll_depth')
+            .forEach(e => {
+                const p = e.params?.percentage;
+                if (p === 25) scrollDepths['25%']++;
+                if (p === 50) scrollDepths['50%']++;
+                if (p === 75) scrollDepths['75%']++;
+                if (p === 90 || p === 100) scrollDepths['100%']++;
+            });
+
+        return {
+            navClicks: Object.entries(navClicks).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
+            funnel: [
+                { name: 'Page Views', value: pageViews, fill: '#8884d8' },
+                { name: 'Signups', value: signups, fill: '#82ca9d' }
+            ],
+            conversionRate,
+            avgDuration,
+            scrollDepths: Object.entries(scrollDepths).map(([name, value]) => ({ name, value }))
+        };
+    };
+
+    const analyticsStats = getAnalyticsStats();
 
     const filteredUsers = users.filter(user =>
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -269,6 +334,54 @@ const AdminDashboard: React.FC = () => {
                                     <Bar dataKey="value" fill="#FACC15" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Analytics Section */}
+                <div>
+                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <Activity className="w-6 h-6 text-[#FACC15]" />
+                        User Behavior Analytics
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Interest Heatmap */}
+                        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
+                            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                                <MousePointer className="w-5 h-5 text-blue-400" />
+                                Top Interests (Nav Clicks)
+                            </h3>
+                            <div style={{ width: '100%', height: 300 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={analyticsStats.navClicks} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#333" horizontal={false} />
+                                        <XAxis type="number" stroke="#666" fontSize={12} tickLine={false} />
+                                        <YAxis dataKey="name" type="category" stroke="#999" fontSize={12} tickLine={false} width={100} />
+                                        <Tooltip
+                                            cursor={{ fill: '#33333333' }}
+                                            contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '8px' }}
+                                        />
+                                        <Bar dataKey="value" fill="#60A5FA" radius={[0, 4, 4, 0]} barSize={20} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Conversion Funnel Card */}
+                        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 flex flex-col justify-center items-center text-center">
+                            <h3 className="text-lg font-bold mb-2 text-gray-400">Conversion Rate</h3>
+                            <div className="text-6xl font-bold text-green-500 mb-4">{analyticsStats.conversionRate}%</div>
+                            <div className="flex gap-8 text-sm">
+                                <div>
+                                    <div className="text-2xl font-bold text-white mb-1">{analyticsStats.funnel[0].value}</div>
+                                    <div className="text-gray-500">Page Views</div>
+                                </div>
+                                <div className="text-gray-600 text-2xl">→</div>
+                                <div>
+                                    <div className="text-2xl font-bold text-white mb-1">{analyticsStats.funnel[1].value}</div>
+                                    <div className="text-gray-500">Signups</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

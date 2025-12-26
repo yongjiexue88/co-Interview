@@ -41,6 +41,15 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
             });
 
             setFormState('success');
+
+            // Track successful signup
+            import('../lib/analytics').then(({ trackEvent }) => {
+                trackEvent('sign_up', {
+                    method: 'email',
+                    source: source
+                });
+            });
+
             setEmail('');
         } catch (error) {
             console.error('Error adding pre-registration:', error);

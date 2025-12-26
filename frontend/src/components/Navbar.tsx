@@ -26,11 +26,11 @@ const Navbar: React.FC = () => {
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex items-center space-x-8">
-                        <a href="/#proof" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Proof</a>
-                        <a href="/#pricing" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Pricing</a>
-                        <a href="/#help" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Help</a>
-                        <a href="/#blog" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Blog</a>
-                        <Link to="/still_working" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">How it works</Link>
+                        <a href="/#proof" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Proof' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Proof</a>
+                        <a href="/#pricing" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Pricing' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Pricing</a>
+                        <a href="/#help" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Help' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Help</a>
+                        <a href="/#blog" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Blog' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Blog</a>
+                        <Link to="/still_working" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'How it works' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">How it works</Link>
                     </div>
 
                     <div className="hidden md:flex items-center space-x-4">
@@ -58,9 +58,9 @@ const Navbar: React.FC = () => {
             {isMobileMenuOpen && (
                 <div className="md:hidden bg-[#111] border-b border-white/10">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        <a href="/#proof" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Proof</a>
-                        <a href="/#pricing" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Pricing</a>
-                        <Link to="/still_working" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">How it Works</Link>
+                        <a href="/#proof" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Proof' }))} className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Proof</a>
+                        <a href="/#pricing" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Pricing' }))} className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Pricing</a>
+                        <Link to="/still_working" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'How it Works' }))} className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">How it Works</Link>
                         <div className="mt-4 pt-4 border-t border-white/10 flex flex-col space-y-3 px-3">
                             <Button variant="ghost" className="w-full justify-start">Login</Button>
                             {/* === PRE-REGISTRATION (CHANGE TO "Download for Free" WHEN PRODUCT LAUNCHES) === */}

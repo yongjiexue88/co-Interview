@@ -28,7 +28,8 @@ const Hero: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
 
                 {/* Badge */}
-                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-10 hover:bg-white/10 transition-colors cursor-pointer group backdrop-blur-sm">
+                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-10 hover:bg-white/10 transition-colors cursor-pointer group backdrop-blur-sm"
+                    onClick={() => import('../lib/analytics').then(m => m.trackEvent('hero_badge_click', { label: '2.0 Announcement' }))}>
                     <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">🎉 2.0 is here <span className="text-gray-500 mx-1">|</span> See what's new</span>
                     <ArrowRight className="w-3 h-3 text-gray-500 group-hover:text-white transition-colors" />
                 </div>
