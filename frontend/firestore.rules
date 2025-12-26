@@ -2,10 +2,11 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Pre-registration collection - allow anyone to write (for email signups)
+    // Pre-registration collection
     match /preregistrations/{document} {
-      // Allow reading (needed for duplicate email check)
-      allow read: if true;
+      // Allow reading ONLY for specific admin emails
+      allow read: if request.auth != null && 
+                  request.auth.token.email in ['yongjiexue88@gmail.com', 'xue515953749@gmail.com'];
       
       // Allow creating new documents (email signups from website)
       allow create: if request.resource.data.email is string

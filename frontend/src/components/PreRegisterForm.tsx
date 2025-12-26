@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Check, Loader2, Mail, AlertCircle } from 'lucide-react';
 
@@ -31,17 +31,10 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
         setFormState('loading');
 
         try {
-            // Check for duplicate email
-            const q = query(collection(db, 'preregistrations'), where('email', '==', email.toLowerCase()));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                setFormState('duplicate');
-                return;
-            }
-
-            // Add new registration
-            await addDoc(collection(db, 'preregistrations'), {
+            // Use email as document ID to prevent duplicates and allow write-only access
+            // We use setDoc which will overwrite if exists, effectively acting as "upsert"
+            // This is secure because we don't need to read the DB to check existence
+            await setDoc(doc(db, 'preregistrations', email.toLowerCase()), {
                 email: email.toLowerCase(),
                 source,
                 createdAt: serverTimestamp(),

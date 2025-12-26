@@ -1,3 +1,4 @@
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 // Firebase configuration for co-interview
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
@@ -21,4 +22,8 @@ export const db = getFirestore(app);
 
 // Initialize Analytics (only in browser environment)
 export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null);
+
+// Initialize Auth
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
 

@@ -103,3 +103,8 @@ export const FAQS: FaqItem[] = [
         answer: "Yes! In the settings, you can provide your own OpenAI or Anthropic API key to pay for usage directly and bypass our rate limits."
     }
 ];
+
+export const ADMIN_EMAILS = [
+    'yongjiexue88@gmail.com',
+    'xue515953749@gmail.com'
+];
