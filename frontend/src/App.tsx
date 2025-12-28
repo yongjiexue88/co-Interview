@@ -5,6 +5,7 @@ import StillWorkingPage from './pages/StillWorkingPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLoginPage from './pages/AdminLoginPage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import ActivationPage from './components/ActivationPage';
 import { usePageTracking } from './hooks/usePageTracking';
 import { useScrollTracking } from './hooks/useScrollTracking';
 import { useExitTracking } from './hooks/useExitTracking';
@@ -24,6 +25,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/still_working" element={<StillWorkingPage />} />
+                    <Route path="/success" element={<ActivationPage />} />
 
                     {/* Admin Routes */}
                     <Route path="/admin/login" element={<AdminLoginPage />} />

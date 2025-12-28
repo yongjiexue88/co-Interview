@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import Button from './ui/Button';
 import PreRegisterForm from './PreRegisterForm';
+import { useExperiment } from '../hooks/useExperiment';
 
 // Simple Icons as SVG components
 const AppleIcon = () => (
@@ -17,6 +18,11 @@ const WindowsIcon = () => (
 );
 
 const Hero: React.FC = () => {
+    const variant = useExperiment('hero_headline_v1', ['A', 'B']);
+    const headlineText = variant === 'A'
+        ? "Pass Any Technical Interview"
+        : "Never Freeze During a Coding Interview Again";
+
     return (
         <div className="relative pt-12 pb-20 lg:pt-20 lg:pb-32 overflow-hidden bg-black">
 
@@ -35,7 +41,7 @@ const Hero: React.FC = () => {
                 </div>
 
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8">
-                    <span className="block text-white mb-2">Meet</span>
+                    <span className="block text-white mb-2">{headlineText}</span>
                     <span className="block text-[#4b5563] relative inline-block">
                         Co-Interview 2.0
                         <span className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-b from-white/10 to-transparent blur-[2px]">Co-Interview 2.0</span>
@@ -49,7 +55,13 @@ const Hero: React.FC = () => {
 
                 {/* === PRE-REGISTRATION (REMOVE WHEN PRODUCT LAUNCHES) === */}
                 <div className="flex justify-center mb-24">
-                    <PreRegisterForm source="hero" />
+                    <PreRegisterForm
+                        source="hero"
+                        trackingProps={{
+                            experiment_id: 'hero_headline_v1',
+                            variant_id: variant
+                        }}
+                    />
                 </div>
                 {/* === END PRE-REGISTRATION === */}
 

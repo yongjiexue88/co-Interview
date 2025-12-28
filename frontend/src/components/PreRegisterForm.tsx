@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { doc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Check, Loader2, Mail, AlertCircle } from 'lucide-react';
+import { Loader2, Mail, AlertCircle, ArrowRight } from 'lucide-react';
 
 interface PreRegisterFormProps {
     source: 'hero' | 'final_cta' | 'navbar';
     variant?: 'default' | 'compact';
+    trackingProps?: Record<string, any>;
 }
 
-type FormState = 'idle' | 'loading' | 'success' | 'error' | 'duplicate';
+type FormState = 'idle' | 'loading' | 'qualifying' | 'success' | 'error';
 
-const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'default' }) => {
+const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'default', trackingProps }) => {
     const [email, setEmail] = useState('');
     const [formState, setFormState] = useState<FormState>('idle');
     const [errorMessage, setErrorMessage] = useState('');
+    const navigate = useNavigate();
 
     const validateEmail = (email: string) => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -31,26 +34,24 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
         setFormState('loading');
 
         try {
-            // Use email as document ID to prevent duplicates and allow write-only access
-            // We use setDoc which will overwrite if exists, effectively acting as "upsert"
-            // This is secure because we don't need to read the DB to check existence
             await setDoc(doc(db, 'preregistrations', email.toLowerCase()), {
                 email: email.toLowerCase(),
                 source,
                 createdAt: serverTimestamp(),
+                ...trackingProps // Store tracking props in Firestore too for easy debugging
             });
 
-            setFormState('success');
-
-            // Track successful signup
+            // Track signup immediately
             import('../lib/analytics').then(({ trackEvent }) => {
                 trackEvent('sign_up', {
                     method: 'email',
-                    source: source
+                    source: source,
+                    ...trackingProps
                 });
             });
 
-            setEmail('');
+            // Move to qualification step instead of direct success
+            setFormState('qualifying');
         } catch (error) {
             console.error('Error adding pre-registration:', error);
             setFormState('error');
@@ -58,30 +59,61 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
         }
     };
 
-    if (formState === 'success') {
-        return (
-            <div className={`flex items-center gap-3 ${variant === 'compact' ? 'justify-center' : ''}`}>
-                <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
-                    <Check className="w-5 h-5 text-green-500" />
-                </div>
-                <div>
-                    <p className="text-white font-medium">You're on the list!</p>
-                    <p className="text-sm text-gray-400">We'll notify you when we launch.</p>
-                </div>
-            </div>
-        );
-    }
+    const handleQualifierSelect = async (intent: string) => {
+        if (!email) return;
 
-    if (formState === 'duplicate') {
+        if (intent !== 'skip') {
+            try {
+                await updateDoc(doc(db, 'preregistrations', email.toLowerCase()), {
+                    intent,
+                    intentCapturedAt: serverTimestamp()
+                });
+
+                import('../lib/analytics').then(({ trackEvent }) => {
+                    trackEvent('qualifier_submitted', {
+                        intent,
+                        source,
+                        ...trackingProps
+                    });
+                });
+            } catch (error) {
+                console.error('Error saving intent:', error);
+            }
+        }
+
+        navigate('/success');
+        setEmail('');
+    };
+
+    if (formState === 'qualifying') {
+        const intents = [
+            { id: 'faang', label: 'FAANG' },
+            { id: 'startup', label: 'Startup' },
+            { id: 'internship', label: 'Internship' },
+            { id: 'unsure', label: 'Not sure yet' }
+        ];
+
         return (
-            <div className={`flex items-center gap-3 ${variant === 'compact' ? 'justify-center' : ''}`}>
-                <div className="w-10 h-10 bg-[#FACC15]/20 rounded-full flex items-center justify-center">
-                    <Mail className="w-5 h-5 text-[#FACC15]" />
+            <div className="w-full animate-fadeIn">
+                <p className="text-white font-medium mb-3">What are you preparing for?</p>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                    {intents.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => handleQualifierSelect(item.label)}
+                            className="bg-[#1a1a1a] hover:bg-[#2a2a2a] border border-white/10 hover:border-[#FACC15]/50 text-gray-300 hover:text-white py-2 px-3 rounded-lg text-sm transition-all text-left flex items-center justify-between group"
+                        >
+                            <span>{item.label}</span>
+                            <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-[#FACC15]" />
+                        </button>
+                    ))}
                 </div>
-                <div>
-                    <p className="text-white font-medium">Already registered!</p>
-                    <p className="text-sm text-gray-400">This email is already on our waitlist.</p>
-                </div>
+                <button
+                    onClick={() => handleQualifierSelect('skip')}
+                    className="text-xs text-gray-500 hover:text-gray-400 underline decoration-dotted"
+                >
+                    Skip this step
+                </button>
             </div>
         );
     }

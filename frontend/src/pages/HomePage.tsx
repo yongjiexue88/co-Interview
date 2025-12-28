@@ -6,6 +6,7 @@ import CompetitorComparison from '../components/CompetitorComparison';
 import Testimonials from '../components/Testimonials';
 import Compatibility from '../components/Compatibility';
 import Pricing from '../components/Pricing';
+import PricingSection from '../components/PricingSection';
 import FAQ from '../components/FAQ';
 import Podium from '../components/Podium';
 import FinalCTA from '../components/FinalCTA';
@@ -38,7 +39,7 @@ const HomePage: React.FC = () => {
                 <CompetitorComparison />
                 <Testimonials />
                 <Compatibility />
-                <Pricing />
+                <PricingSection />
                 <FAQ />
                 <Podium />
                 <FinalCTA />

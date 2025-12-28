@@ -30,7 +30,8 @@ async function prerender() {
         console.log(`Pre-rendering: ${route}`);
 
         await page.goto(`http://localhost:${PORT}${route}`, {
-            waitUntil: 'networkidle0'
+            waitUntil: 'domcontentloaded',
+            timeout: 60000
         });
 
         // Wait for Helmet to update the title

@@ -25,11 +25,14 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import KPISummaryPanel from '../components/KPISummaryPanel';
+
 interface UserData {
     id: string;
     email: string;
     source: string;
     createdAt: Timestamp;
+    intent?: string;
 }
 
 interface AnalyticsEvent {
@@ -113,7 +116,7 @@ const AdminDashboard: React.FC = () => {
     };
 
     const handleExportCSV = () => {
-        const headers = ['Email', 'Source', 'Date Joined', 'Time'];
+        const headers = ['Email', 'Source', 'Intent', 'Date Joined', 'Time'];
         const csvContent = [
             headers.join(','),
             ...users.map(user => {
@@ -121,6 +124,7 @@ const AdminDashboard: React.FC = () => {
                 return [
                     user.email,
                     user.source,
+                    user.intent || '-',
                     date.toLocaleDateString(),
                     date.toLocaleTimeString()
                 ].join(',');
@@ -255,6 +259,8 @@ const AdminDashboard: React.FC = () => {
                         </button>
                     </div>
                 </div>
+
+                <KPISummaryPanel users={users} events={analyticsEvents} />
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

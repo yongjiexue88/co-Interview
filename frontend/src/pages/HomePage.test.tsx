@@ -6,7 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 // Mock child components to isolate HomePage structure testing
 vi.mock('../components/Navbar', () => ({ default: () => <div data-testid="navbar">Navbar</div> }));
 vi.mock('../components/Hero', () => ({ default: () => <div data-testid="hero">Hero</div> }));
-vi.mock('../components/Pricing', () => ({ default: () => <div data-testid="pricing">Pricing</div> }));
+vi.mock('../components/PricingSection', () => ({ default: () => <div data-testid="pricing">Pricing</div> }));
 vi.mock('../components/Footer', () => ({ default: () => <div data-testid="footer">Footer</div> }));
 // Mock other components as needed, simple divs are enough for smoke tests
 vi.mock('../components/UndetectableFeatures', () => ({ default: () => <div>Features</div> }));
