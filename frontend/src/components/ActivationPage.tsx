@@ -1,11 +1,28 @@
-import React from 'react';
-import { Check, Star, Play } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Check, Star, Play, ArrowRight } from 'lucide-react';
 import Button from './ui/Button';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { trackEvent } from '../lib/analytics';
 
 const ActivationPage: React.FC = () => {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+
+    useEffect(() => {
+        const emailParam = searchParams.get('email');
+        if (emailParam) {
+            setEmail(emailParam);
+        }
+    }, [searchParams]);
+
+    const handleCreateAccount = () => {
+        trackEvent('activation_create_account_click', { source: 'activation_page' });
+        navigate(`/signup?email=${encodeURIComponent(email)}`);
+    };
+
     return (
         <div className="min-h-screen bg-black text-white selection:bg-yellow-500/30 flex flex-col">
             <Navbar />
@@ -23,64 +40,53 @@ const ActivationPage: React.FC = () => {
                     </div>
 
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-8 animate-fadeIn delay-100">
-                        Here's how Interview Coder helps<br />
-                        <span className="text-white">when you freeze</span>
+                        One last step to claim your<br />
+                        <span className="text-[#FACC15]">free trial</span>
                     </h1>
 
-                    {/* Demo Placeholder */}
-                    <div className="relative max-w-3xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl mb-12 animate-fadeIn delay-200 group">
-                        <div className="aspect-video bg-gray-900 flex items-center justify-center relative">
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+                    <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto animate-fadeIn delay-200">
+                        Create your account now to secure your spot and start using Interview Coder.
+                    </p>
 
-                            {/* Placeholder for GIF/Video */}
-                            <div className="text-gray-500 flex flex-col items-center">
-                                <Play className="w-16 h-16 mb-4 text-white/50 group-hover:text-[#FACC15] transition-colors" />
-                                <span className="font-mono text-sm">Demo Video Placeholder</span>
-                            </div>
-
-                            <div className="absolute bottom-6 left-6 text-left z-20">
-                                <div className="text-white font-semibold text-lg mb-1">Live Coding Support</div>
-                                <p className="text-gray-400 text-sm">See how we suggest lines of code in real-time.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-16 animate-fadeIn delay-300">
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
-                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
-                                1
-                            </div>
-                            <h3 className="font-semibold text-white mb-2">Connects to call</h3>
-                            <p className="text-sm text-gray-400">Works with Zoom, Meets, and Teams automatically.</p>
-                        </div>
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
-                            <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mb-4 text-purple-400">
-                                2
-                            </div>
-                            <h3 className="font-semibold text-white mb-2">Listens & Solves</h3>
-                            <p className="text-sm text-gray-400">Transcribes audio and solves coding problems instantly.</p>
-                        </div>
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
-                            <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mb-4 text-[#FACC15]">
-                                3
-                            </div>
-                            <h3 className="font-semibold text-white mb-2">You get the credit</h3>
-                            <p className="text-sm text-gray-400">Subtle overlays keep you looking at the camera.</p>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col items-center animate-fadeIn delay-500">
-                        <Button
-                            variant="primary"
-                            size="lg"
-                            className="w-full sm:w-auto min-w-[300px] text-lg py-6"
-                            onClick={() => trackEvent('activation_priority_click', { source: 'activation_page' })}
+                    <div className="flex flex-col items-center animate-fadeIn delay-300 mb-16">
+                        <button
+                            onClick={handleCreateAccount}
+                            className="px-8 py-4 bg-gradient-to-r from-[#FACC15] to-yellow-500 hover:from-yellow-400 hover:to-yellow-600 text-black font-semibold rounded-full transition-all duration-300 shadow-lg shadow-[#FACC15]/20 hover:shadow-[#FACC15]/30 flex items-center justify-center gap-2 min-w-[200px] text-lg"
                         >
-                            Add me to Priority Access
-                        </Button>
+                            <span>Create Your Account</span>
+                            <ArrowRight className="w-5 h-5" />
+                        </button>
                         <p className="mt-4 text-gray-500 text-sm">
-                            Limited spots available for beta release.
+                            It only takes 30 seconds.
                         </p>
+                    </div>
+
+                    {/* How it works section */}
+                    <div className="border-t border-white/10 pt-16 animate-fadeIn delay-500">
+                        <h2 className="text-2xl font-bold mb-12">How it works</h2>
+                        <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
+                                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
+                                    1
+                                </div>
+                                <h3 className="font-semibold text-white mb-2">Connects to call</h3>
+                                <p className="text-sm text-gray-400">Works with Zoom, Meets, and Teams automatically.</p>
+                            </div>
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
+                                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mb-4 text-purple-400">
+                                    2
+                                </div>
+                                <h3 className="font-semibold text-white mb-2">Listens & Solves</h3>
+                                <p className="text-sm text-gray-400">Transcribes audio and solves coding problems instantly.</p>
+                            </div>
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
+                                <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mb-4 text-[#FACC15]">
+                                    3
+                                </div>
+                                <h3 className="font-semibold text-white mb-2">You get the credit</h3>
+                                <p className="text-sm text-gray-400">Subtle overlays keep you looking at the camera.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>

@@ -81,7 +81,7 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
             }
         }
 
-        navigate('/success');
+        navigate(`/success?email=${encodeURIComponent(email)}`);
         setEmail('');
     };
 

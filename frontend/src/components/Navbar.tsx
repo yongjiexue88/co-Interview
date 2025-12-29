@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
-import Button from './ui/Button';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, ChevronDown } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 const Navbar: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const { user } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -15,13 +21,37 @@ const Navbar: React.FC = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            setDropdownOpen(false);
+            navigate('/');
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    };
+
+    const userName = user?.displayName || user?.email?.split('@')[0] || 'User';
+    const userInitial = userName.charAt(0).toUpperCase();
+
     return (
         <nav className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-black/90 backdrop-blur-md border-white/10' : 'bg-black border-transparent'}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     <div className="flex items-center space-x-3 cursor-pointer">
                         <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-8 h-8 rounded-xl" />
-                        <span className="text-lg font-bold tracking-tight text-white hidden md:block">Co-Interview</span>
+                        <span className="text-lg font-bold tracking-tight text-white hidden md:block">Interview Coder</span>
                     </div>
 
                     {/* Desktop Menu */}
@@ -29,17 +59,68 @@ const Navbar: React.FC = () => {
                         <a href="/#proof" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Proof' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Proof</a>
                         <a href="/#pricing" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Pricing' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Pricing</a>
                         <a href="/#help" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Help' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Help</a>
-                        <a href="/#blog" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Blog' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Blog</a>
+                        <Link to="/blog" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Blog' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Blog</Link>
                         <Link to="/still_working" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'How it works' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">How it works</Link>
                     </div>
 
+                    {/* Desktop Right Side - Conditional based on auth state */}
                     <div className="hidden md:flex items-center space-x-4">
-                        <Button variant="ghost" size="sm">Login</Button>
-                        {/* === PRE-REGISTRATION (CHANGE TO "Download for Free" WHEN PRODUCT LAUNCHES) === */}
-                        <a href="#download" className="px-4 py-2 text-sm font-semibold text-black bg-white hover:bg-gray-100 rounded-full transition-all shadow-none">
-                            Join Waitlist
-                        </a>
-                        {/* === END PRE-REGISTRATION === */}
+                        {user ? (
+                            /* Logged In - Show User Avatar with Dropdown */
+                            <div className="relative" ref={dropdownRef}>
+                                <button
+                                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                                    className="flex items-center gap-2"
+                                >
+                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    <div className="relative">
+                                        <div className="w-10 h-10 rounded-full bg-[#E91E63] flex items-center justify-center text-white font-bold text-sm">
+                                            {userInitial}
+                                        </div>
+                                        {/* FREE badge */}
+                                        <span className="absolute -top-1 -right-1 bg-green-500 text-[8px] text-white font-bold px-1 rounded">
+                                            FREE
+                                        </span>
+                                    </div>
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                {dropdownOpen && (
+                                    <div className="absolute right-0 mt-2 w-40 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden">
+                                        <Link
+                                            to="/dashboard"
+                                            onClick={() => setDropdownOpen(false)}
+                                            className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 transition-colors"
+                                        >
+                                            Dashboard
+                                        </Link>
+                                        <Link
+                                            to="/still_working"
+                                            onClick={() => setDropdownOpen(false)}
+                                            className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 transition-colors"
+                                        >
+                                            Help
+                                        </Link>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center gap-2 px-4 py-3 text-sm text-[#FACC15] hover:bg-white/5 transition-colors"
+                                        >
+                                            Log out
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            /* Not Logged In - Show Login & Join Waitlist */
+                            <>
+                                <Link to="/signin" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Login' }))} className="px-4 py-1.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-all">Login</Link>
+                                {/* === PRE-REGISTRATION (CHANGE TO "Download for Free" WHEN PRODUCT LAUNCHES) === */}
+                                <a href="#download" className="px-4 py-2 text-sm font-semibold text-black bg-white hover:bg-gray-100 rounded-full transition-all shadow-none">
+                                    Join Waitlist
+                                </a>
+                                {/* === END PRE-REGISTRATION === */}
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Toggle */}
@@ -62,12 +143,30 @@ const Navbar: React.FC = () => {
                         <a href="/#pricing" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Pricing' }))} className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Pricing</a>
                         <Link to="/still_working" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'How it Works' }))} className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">How it Works</Link>
                         <div className="mt-4 pt-4 border-t border-white/10 flex flex-col space-y-3 px-3">
-                            <Button variant="ghost" className="w-full justify-start">Login</Button>
-                            {/* === PRE-REGISTRATION (CHANGE TO "Download for Free" WHEN PRODUCT LAUNCHES) === */}
-                            <a href="#download" className="w-full py-2 text-center text-sm font-semibold text-black bg-white rounded-full">
-                                Join Waitlist
-                            </a>
-                            {/* === END PRE-REGISTRATION === */}
+                            {user ? (
+                                /* Mobile - Logged In */
+                                <>
+                                    <div className="flex items-center gap-3 py-2">
+                                        <div className="w-10 h-10 rounded-full bg-[#E91E63] flex items-center justify-center text-white font-bold text-sm">
+                                            {userInitial}
+                                        </div>
+                                        <span className="text-white font-medium">{userName}</span>
+                                    </div>
+                                    <Link to="/dashboard" className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all">Dashboard</Link>
+                                    <Link to="/still_working" className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all">Help</Link>
+                                    <button onClick={handleLogout} className="w-full text-left py-2 px-3 text-[#FACC15] hover:bg-white/5 rounded-md transition-all">Log out</button>
+                                </>
+                            ) : (
+                                /* Mobile - Not Logged In */
+                                <>
+                                    <Link to="/signin" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Login' }))} className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all">Login</Link>
+                                    {/* === PRE-REGISTRATION (CHANGE TO "Download for Free" WHEN PRODUCT LAUNCHES) === */}
+                                    <a href="#download" className="w-full py-2 text-center text-sm font-semibold text-black bg-white rounded-full">
+                                        Join Waitlist
+                                    </a>
+                                    {/* === END PRE-REGISTRATION === */}
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
