@@ -15,6 +15,7 @@ import PricingPage from './pages/dashboard/PricingPage';
 import PreviousVersionsPage from './pages/dashboard/PreviousVersionsPage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import ActivationPage from './components/ActivationPage';
+import PoliciesPage from './pages/PoliciesPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import { usePageTracking } from './hooks/usePageTracking';
@@ -42,6 +43,7 @@ function App() {
                     <Route path="/signin" element={<SignInPage />} />
                     <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/policies" element={<PoliciesPage />} />
 
                     {/* Dashboard Routes with shared layout */}
                     <Route path="/dashboard" element={<DashboardLayout />}>

@@ -1,7 +1,26 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import Navbar from './Navbar';
 import { MemoryRouter } from 'react-router-dom';
+
+// Mock Firebase to prevent auth/invalid-api-key error
+vi.mock('../lib/firebase', () => ({
+    auth: {},
+    googleProvider: {},
+}));
+
+// Mock Firebase auth functions
+vi.mock('firebase/auth', () => ({
+    signOut: vi.fn(),
+}));
+
+// Mock useAuth hook
+vi.mock('../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: null,
+        loading: false,
+    }),
+}));
 
 describe('Navbar', () => {
     it('renders desktop links', () => {

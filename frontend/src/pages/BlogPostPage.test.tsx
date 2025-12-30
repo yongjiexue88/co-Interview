@@ -100,14 +100,30 @@ describe('BlogPostPage', () => {
         expect(screen.getAllByText('Conclusion').length).toBeGreaterThanOrEqual(2);
     });
 
-    it('renders back link to blog', async () => {
+    it('renders top back link', async () => {
         renderWithRouter();
 
         await screen.findByText('Test Blog Post Title');
 
-        const backLink = screen.getByRole('link', { name: /back/i });
-        expect(backLink).toBeInTheDocument();
-        expect(backLink).toHaveAttribute('href', '/blog');
+        // The top link just says "Back"
+        const backLinks = screen.getAllByRole('link', { name: /back/i });
+        const topLink = backLinks.find(link => link.textContent === 'Back');
+
+        expect(topLink).toBeInTheDocument();
+        expect(topLink).toHaveAttribute('href', '/blog');
+    });
+
+    it('renders bottom back to blog button', async () => {
+        renderWithRouter();
+
+        await screen.findByText('Test Blog Post Title');
+
+        // The bottom button says "Back to Blog"
+        const bottomButton = screen.getByRole('link', { name: /back to blog/i });
+
+        expect(bottomButton).toBeInTheDocument();
+        expect(bottomButton).toHaveAttribute('href', '/blog');
+        expect(bottomButton).toHaveClass('bg-black'); // Verify some styling to ensure it's the right one
     });
 
     it('renders download CTA section', async () => {
