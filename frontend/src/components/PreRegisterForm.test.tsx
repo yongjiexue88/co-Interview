@@ -86,7 +86,7 @@ describe('PreRegisterForm', () => {
         // Should update doc and navigate
         await waitFor(() => {
             expect(Firestore.updateDoc).toHaveBeenCalled();
-            expect(mockNavigate).toHaveBeenCalledWith('/success');
+            expect(mockNavigate).toHaveBeenCalledWith('/success?email=test%40example.com');
         });
     });
 

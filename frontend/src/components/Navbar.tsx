@@ -51,7 +51,7 @@ const Navbar: React.FC = () => {
                 <div className="flex items-center justify-between h-16">
                     <Link to="/" className="flex items-center space-x-3 cursor-pointer">
                         <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-10 h-10 rounded-xl" />
-                        <span className="text-xl font-bold tracking-tight text-white hidden md:block">Interview Coder</span>
+                        <span className="text-xl font-bold tracking-tight text-white hidden md:block">Co-Interview</span>
                     </Link>
 
                     {/* Desktop Menu */}
