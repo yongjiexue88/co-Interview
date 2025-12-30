@@ -126,12 +126,22 @@ describe('BlogPostPage', () => {
         expect(bottomButton).toHaveClass('bg-black'); // Verify some styling to ensure it's the right one
     });
 
-    it('renders download CTA section', async () => {
+    it('renders sidebar download CTA', async () => {
         renderWithRouter();
 
         await screen.findByText('Test Blog Post Title');
 
         expect(screen.getByText(/Download and try/i)).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Get Started' })).toBeInTheDocument();
+    });
+
+    it('renders bottom CTA section', async () => {
+        renderWithRouter();
+
+        await screen.findByText('Test Blog Post Title');
+
+        expect(screen.getByText(/Ready to Pass Any SWE Interviews/i)).toBeInTheDocument();
+        const buttons = screen.getAllByRole('link', { name: /Pass Your Next Interview/i });
+        expect(buttons.length).toBeGreaterThan(0);
     });
 });

@@ -16,6 +16,9 @@ import PreviousVersionsPage from './pages/dashboard/PreviousVersionsPage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import ActivationPage from './components/ActivationPage';
 import PoliciesPage from './pages/PoliciesPage';
+import TermsPage from './pages/policies/TermsPage';
+import RefundPage from './pages/policies/RefundPage';
+import PrivacyPage from './pages/policies/PrivacyPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import { usePageTracking } from './hooks/usePageTracking';
@@ -44,6 +47,9 @@ function App() {
                     <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/policies" element={<PoliciesPage />} />
+                    <Route path="/policies/terms" element={<TermsPage />} />
+                    <Route path="/policies/refund" element={<RefundPage />} />
+                    <Route path="/policies/privacy" element={<PrivacyPage />} />
 
                     {/* Dashboard Routes with shared layout */}
                     <Route path="/dashboard" element={<DashboardLayout />}>
