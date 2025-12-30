@@ -5,59 +5,61 @@ import { MonthGroup, BlogPost, FeaturedPost as FeaturedPostType } from '../../co
 
 interface BlogListProps {
     groups: MonthGroup[];
-    featuredPost: FeaturedPostType;
+    featuredPost?: FeaturedPostType;
 }
 
 const BlogList: React.FC<BlogListProps> = ({ groups, featuredPost }) => {
     return (
         <div className="max-w-7xl mx-auto px-6 pb-24">
             {/* Featured Post */}
-            <div className="mb-16">
-                <article className="group relative">
-                    <div className="block relative overflow-hidden rounded-3xl transition-all duration-500">
-                        {/* Background Image */}
-                        <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                            <img
-                                alt={featuredPost.title}
-                                loading="lazy"
-                                decoding="async"
-                                className="object-cover group-hover:scale-105 transition-transform duration-700 w-full h-full"
-                                src={featuredPost.imageUrl}
-                            />
-                        </div>
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent backdrop-blur-sm rounded-3xl"></div>
+            {featuredPost && (
+                <div className="mb-16">
+                    <article className="group relative">
+                        <div className="block relative overflow-hidden rounded-3xl transition-all duration-500">
+                            {/* Background Image */}
+                            <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                                <img
+                                    alt={featuredPost.title}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="object-cover group-hover:scale-105 transition-transform duration-700 w-full h-full"
+                                    src={featuredPost.imageUrl}
+                                />
+                            </div>
+                            {/* Gradient Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent backdrop-blur-sm rounded-3xl"></div>
 
-                        {/* Content */}
-                        <div className="relative px-8 md:px-12 py-4 md:py-4 h-60 lg:h-72 xl:h-96 grid grid-rows-8 max-w-2xl">
-                            {/* Date */}
-                            <div className="row-span-2 flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-[10px] sm:text-xs md:text-sm text-gray-200">
-                                <div className="flex items-center gap-1 md:gap-2">
-                                    <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
-                                    <time>{featuredPost.date}</time>
+                            {/* Content */}
+                            <div className="relative px-8 md:px-12 py-4 md:py-4 h-60 lg:h-72 xl:h-96 grid grid-rows-8 max-w-2xl">
+                                {/* Date */}
+                                <div className="row-span-2 flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-[10px] sm:text-xs md:text-sm text-gray-200">
+                                    <div className="flex items-center gap-1 md:gap-2">
+                                        <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
+                                        <time>{featuredPost.date}</time>
+                                    </div>
+                                </div>
+
+                                {/* Title */}
+                                <div className="row-span-4 flex flex-col space-y-4 md:space-y-6">
+                                    <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-tight">
+                                        {featuredPost.title}
+                                    </h3>
+                                </div>
+
+                                {/* CTA Button */}
+                                <div className="row-span-2 flex items-center">
+                                    <Link to={featuredPost.href}>
+                                        <div className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 px-2 sm:px-3 md:px-4 lg:px-6 py-1 sm:py-1.5 md:py-2 lg:py-3 bg-white text-black font-medium rounded-md shadow-lg hover:bg-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                                            <span className="text-[10px] sm:text-xs md:text-sm lg:text-base">Read Full Article</span>
+                                            <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5" />
+                                        </div>
+                                    </Link>
                                 </div>
                             </div>
-
-                            {/* Title */}
-                            <div className="row-span-4 flex flex-col space-y-4 md:space-y-6">
-                                <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-tight">
-                                    {featuredPost.title}
-                                </h3>
-                            </div>
-
-                            {/* CTA Button */}
-                            <div className="row-span-2 flex items-center">
-                                <Link to={featuredPost.href}>
-                                    <div className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 px-2 sm:px-3 md:px-4 lg:px-6 py-1 sm:py-1.5 md:py-2 lg:py-3 bg-white text-black font-medium rounded-md shadow-lg hover:bg-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer">
-                                        <span className="text-[10px] sm:text-xs md:text-sm lg:text-base">Read Full Article</span>
-                                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5" />
-                                    </div>
-                                </Link>
-                            </div>
                         </div>
-                    </div>
-                </article>
-            </div>
+                    </article>
+                </div>
+            )}
 
             {/* Blog List */}
             <div className="mb-16">

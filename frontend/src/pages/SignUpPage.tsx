@@ -24,10 +24,10 @@ const SignUpPage: React.FC = () => {
     }, [searchParams]);
 
     useEffect(() => {
-        if (user && !isSuccess) {
+        if (user && !isSuccess && !isSubmitting) {
             navigate('/dashboard');
         }
-    }, [user, navigate, isSuccess]);
+    }, [user, navigate, isSuccess, isSubmitting]);
 
     const handleGoogleSignUp = async () => {
         try {

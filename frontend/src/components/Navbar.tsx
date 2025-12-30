@@ -47,20 +47,20 @@ const Navbar: React.FC = () => {
 
     return (
         <nav className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-black/90 backdrop-blur-md border-white/10' : 'bg-black border-transparent'}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-20">
-                    <div className="flex items-center space-x-3 cursor-pointer">
-                        <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-8 h-8 rounded-xl" />
-                        <span className="text-lg font-bold tracking-tight text-white hidden md:block">Interview Coder</span>
-                    </div>
+            <div className="w-full px-6 sm:px-10 lg:px-16">
+                <div className="flex items-center justify-between h-16">
+                    <Link to="/" className="flex items-center space-x-3 cursor-pointer">
+                        <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-10 h-10 rounded-xl" />
+                        <span className="text-xl font-bold tracking-tight text-white hidden md:block">Interview Coder</span>
+                    </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-8">
-                        <a href="/#proof" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Proof' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Proof</a>
-                        <a href="/#pricing" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Pricing' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Pricing</a>
-                        <a href="/#help" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Help' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Help</a>
-                        <Link to="/blog" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Blog' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Blog</Link>
-                        <Link to="/still_working" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'How it works' }))} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">How it works</Link>
+                    <div className="hidden md:flex items-center space-x-10">
+                        <a href="/#proof" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Proof' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">Proof</a>
+                        <a href="/#pricing" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Pricing' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">Pricing</a>
+                        <a href="/#help" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Help' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">Help</a>
+                        <Link to="/blog" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Blog' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">Blog</Link>
+                        <Link to="/still_working" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'How it works' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">How it works</Link>
                     </div>
 
                     {/* Desktop Right Side - Conditional based on auth state */}
@@ -113,9 +113,9 @@ const Navbar: React.FC = () => {
                         ) : (
                             /* Not Logged In - Show Login & Join Waitlist */
                             <>
-                                <Link to="/signin" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Login' }))} className="px-4 py-1.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-all">Login</Link>
+                                <Link to="/signin" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Login' }))} className="px-5 py-2 text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-all">Login</Link>
                                 {/* === PRE-REGISTRATION (CHANGE TO "Download for Free" WHEN PRODUCT LAUNCHES) === */}
-                                <a href="#download" className="px-4 py-2 text-sm font-semibold text-black bg-white hover:bg-gray-100 rounded-full transition-all shadow-none">
+                                <a href="#download" className="px-5 py-2.5 text-sm font-semibold text-black bg-white hover:bg-gray-100 rounded-full transition-all shadow-none">
                                     Join Waitlist
                                 </a>
                                 {/* === END PRE-REGISTRATION === */}

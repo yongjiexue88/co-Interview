@@ -1,29 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { getBlogPostBySlug, ParsedBlogPost } from '../content/blogLoader';
 import SEO from '../components/SEO';
 import Banner from '../components/Banner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-react';
-
-interface BlogPostData {
-    slug: string;
-    title: string;
-    content: string; // HTML or Markdown
-    date: string;
-    imageUrl: string;
-    readTime: string;
-    description?: string;
-    author?: string;
-}
+import ReadingProgressBar from '../components/blog/ReadingProgressBar';
+import BlogTableOfContents from '../components/blog/BlogTableOfContents';
+import { ArrowLeft } from 'lucide-react';
 
 const BlogPostPage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
-    const [post, setPost] = useState<BlogPostData | null>(null);
+    const [post, setPost] = useState<ParsedBlogPost | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const articleRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -34,19 +25,12 @@ const BlogPostPage: React.FC = () => {
             }
 
             try {
-                // Query by slug field
-                const postsRef = collection(db, 'blog_posts');
-                const q = query(postsRef, where('slug', '==', slug));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
+                const data = await getBlogPostBySlug(slug);
+                if (data) {
+                    setPost(data);
+                } else {
                     setError('Post not found');
-                    setLoading(false);
-                    return;
                 }
-
-                const docData = querySnapshot.docs[0].data() as BlogPostData;
-                setPost(docData);
             } catch (err) {
                 console.error('Error fetching blog post:', err);
                 setError('Failed to load post');
@@ -77,7 +61,7 @@ const BlogPostPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#161616] text-white">
+            <div className="min-h-screen bg-[#000000] text-white">
                 <Banner />
                 <Navbar />
                 <div className="flex items-center justify-center min-h-[60vh]">
@@ -93,7 +77,7 @@ const BlogPostPage: React.FC = () => {
 
     if (error || !post) {
         return (
-            <div className="min-h-screen bg-[#161616] text-white">
+            <div className="min-h-screen bg-[#000000] text-white">
                 <SEO title="Post Not Found — Co-Interview" />
                 <Banner />
                 <Navbar />
@@ -114,7 +98,7 @@ const BlogPostPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#161616] text-white selection:bg-[#EFCC3A]/30">
+        <div className="min-h-screen bg-[#000000] text-white selection:bg-[#EFCC3A]/30">
             <SEO
                 title={`${post.title} — Co-Interview Blog`}
                 description={post.description || post.title}
@@ -122,78 +106,75 @@ const BlogPostPage: React.FC = () => {
             <Banner />
             <Navbar />
 
-            <main className="pt-8 pb-24">
-                {/* Hero Section */}
-                <div className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
-                    <img
-                        src={post.imageUrl}
-                        alt={post.title}
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#161616] via-[#161616]/60 to-transparent"></div>
-                </div>
-
-                {/* Content */}
-                <div className="max-w-4xl mx-auto px-6 -mt-24 relative z-10">
+            <main className="pt-8 pb-24 px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
                     {/* Back Link */}
                     <Link
                         to="/blog"
-                        className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
+                        className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors text-sm"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        Back to Blog
+                        Back
                     </Link>
 
-                    {/* Meta */}
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-4">
-                        <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            <time>{post.date}</time>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4" />
-                            <span>{post.readTime} read</span>
-                        </div>
-                        <button
-                            onClick={handleShare}
-                            className="flex items-center gap-2 hover:text-[#EFCC3A] transition-colors ml-auto"
-                        >
-                            <Share2 className="w-4 h-4" />
-                            Share
-                        </button>
-                    </div>
-
                     {/* Title */}
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight mb-8">
+                    <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-4 max-w-4xl">
                         {post.title}
                     </h1>
 
-                    {/* Article Content */}
-                    <article
-                        className="prose prose-lg prose-invert max-w-none
-                            prose-headings:text-white prose-headings:font-bold
-                            prose-p:text-gray-300 prose-p:leading-relaxed
-                            prose-a:text-[#EFCC3A] prose-a:no-underline hover:prose-a:underline
-                            prose-strong:text-white
-                            prose-code:text-[#EFCC3A] prose-code:bg-white/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-                            prose-pre:bg-[#0A0A0A] prose-pre:border prose-pre:border-white/10
-                            prose-blockquote:border-l-[#EFCC3A] prose-blockquote:text-gray-400
-                            prose-li:text-gray-300"
-                        dangerouslySetInnerHTML={{ __html: post.content }}
-                    />
+                    {/* Date */}
+                    <div className="text-gray-400 text-sm mb-12">
+                        {post.date}
+                    </div>
 
-                    {/* CTA Section */}
-                    <div className="mt-16 p-8 bg-gradient-to-r from-[#EFCC3A]/10 to-transparent rounded-2xl border border-[#EFCC3A]/20">
-                        <h3 className="text-2xl font-bold mb-4">Ready to ace your next interview?</h3>
-                        <p className="text-gray-400 mb-6">
-                            Get real-time AI assistance during your technical interviews with Co-Interview.
-                        </p>
-                        <a
-                            href="/#download"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-[#EFCC3A] text-black font-semibold rounded-lg hover:bg-[#d4b534] transition-colors"
-                        >
-                            Join the Waitlist
-                        </a>
+                    {/* Main Content Layout */}
+                    <div className="flex gap-12">
+                        {/* Article Content - Left Side */}
+                        <div className="flex-1 min-w-0 max-w-4xl">
+                            <article
+                                ref={articleRef}
+                                className="prose prose-lg prose-invert max-w-none
+                                    prose-headings:text-white prose-headings:font-bold prose-headings:scroll-mt-24
+                                    prose-p:text-gray-300 prose-p:leading-relaxed
+                                    prose-a:text-white prose-a:underline prose-a:decoration-gray-500 hover:prose-a:decoration-white
+                                    prose-strong:text-white
+                                    prose-code:text-[#EFCC3A] prose-code:bg-white/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                                    prose-pre:bg-[#111] prose-pre:border prose-pre:border-white/10
+                                    prose-blockquote:border-l-[#EFCC3A] prose-blockquote:text-gray-400
+                                    prose-li:text-gray-300
+                                    marker:text-gray-500"
+                                dangerouslySetInnerHTML={{ __html: post.content }}
+                            />
+
+                            {/* Download CTA */}
+                            <div className="mt-20 p-8 md:p-12 bg-[#111] rounded-3xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
+                                <div>
+                                    <h3 className="text-2xl md:text-3xl font-bold mb-4">
+                                        Download and try <br />
+                                        <span className="text-white">InterviewCoder for free today</span>
+                                    </h3>
+                                </div>
+                                <a
+                                    href="/#download"
+                                    className="w-full md:w-auto px-8 py-3 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-colors text-center"
+                                >
+                                    Get Started
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Sidebar - Right Side (hidden on mobile) */}
+                        <aside className="hidden lg:block w-64 flex-shrink-0">
+                            <div className="sticky top-24">
+                                {/* Reading Progress */}
+                                <ReadingProgressBar articleRef={articleRef} />
+
+                                {/* Table of Contents */}
+                                {post.headings && post.headings.length > 0 && (
+                                    <BlogTableOfContents headings={post.headings} />
+                                )}
+                            </div>
+                        </aside>
                     </div>
                 </div>
             </main>

@@ -6,8 +6,21 @@ const { exec } = require('child_process');
 // Define routes to pre-render
 const routes = [
     '/',
-    '/still_working'
+    '/still_working',
+    '/blog'
 ];
+
+// Add blog post routes dynamically
+const blogDir = path.join(__dirname, 'src', 'content', 'blog-html');
+if (fs.existsSync(blogDir)) {
+    const files = fs.readdirSync(blogDir);
+    files.forEach(file => {
+        if (file.endsWith('.html')) {
+            const slug = file.replace('.html', '');
+            routes.push(`/blog/${slug}`);
+        }
+    });
+}
 
 async function prerender() {
     console.log('Starting pre-rendering...');
