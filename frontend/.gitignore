@@ -30,3 +30,5 @@ firebase-debug.log
 .firebaserc
 .env
 .env.local
+assets_todo/
+assests_todo/
