@@ -1,0 +1,262 @@
+name: Build and Release Electron App
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers on version tags like v0.5.0, v1.0.0, etc.
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+env:
+  FIREBASE_STORAGE_BUCKET: co-interview-481814.firebasestorage.app
+
+jobs:
+  # ============================================
+  # Build macOS ARM64 (Apple Silicon)
+  # ============================================
+  build-mac-arm64:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: electron/package-lock.json
+
+      - name: Install dependencies
+        working-directory: electron
+        run: npm ci
+
+      - name: Build for macOS ARM64
+        working-directory: electron
+        run: npm run make -- --arch=arm64 --platform=darwin
+
+      - name: Find and rename DMG
+        id: find-dmg
+        working-directory: electron
+        run: |
+          DMG_PATH=$(find out/make -name "*.dmg" | head -1)
+          echo "Original DMG: $DMG_PATH"
+          NEW_NAME="Co-Interview-mac-arm64.dmg"
+          cp "$DMG_PATH" "$NEW_NAME"
+          echo "dmg_path=$NEW_NAME" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-arm64-dmg
+          path: electron/Co-Interview-mac-arm64.dmg
+          retention-days: 7
+
+  # ============================================
+  # Build macOS x64 (Intel)
+  # ============================================
+  build-mac-x64:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: electron/package-lock.json
+
+      - name: Install dependencies
+        working-directory: electron
+        run: npm ci
+
+      - name: Build for macOS x64
+        working-directory: electron
+        run: npm run make -- --arch=x64 --platform=darwin
+
+      - name: Find and rename DMG
+        id: find-dmg
+        working-directory: electron
+        run: |
+          DMG_PATH=$(find out/make -name "*.dmg" | head -1)
+          echo "Original DMG: $DMG_PATH"
+          NEW_NAME="Co-Interview-mac-x64.dmg"
+          cp "$DMG_PATH" "$NEW_NAME"
+          echo "dmg_path=$NEW_NAME" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-x64-dmg
+          path: electron/Co-Interview-mac-x64.dmg
+          retention-days: 7
+
+  # ============================================
+  # Build Windows
+  # ============================================
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: electron/package-lock.json
+
+      - name: Install dependencies
+        working-directory: electron
+        run: npm ci
+
+      - name: Build for Windows
+        working-directory: electron
+        run: npm run make -- --platform=win32
+
+      - name: Find and rename Windows build
+        id: find-exe
+        working-directory: electron
+        shell: powershell
+        run: |
+          # Look for squirrel installer or zip
+          $setupExe = Get-ChildItem -Path out/make -Recurse -Filter "*.exe" | Select-Object -First 1
+          if ($setupExe) {
+            Copy-Item $setupExe.FullName -Destination "Co-Interview-windows.exe"
+            echo "build_path=Co-Interview-windows.exe" >> $env:GITHUB_OUTPUT
+            echo "build_type=exe" >> $env:GITHUB_OUTPUT
+          } else {
+            # Fallback: create a zip of the packaged app
+            $appDir = Get-ChildItem -Path out -Directory -Filter "*win32*" | Select-Object -First 1
+            if ($appDir) {
+              Compress-Archive -Path "$($appDir.FullName)/*" -DestinationPath "Co-Interview-windows.zip"
+              echo "build_path=Co-Interview-windows.zip" >> $env:GITHUB_OUTPUT
+              echo "build_type=zip" >> $env:GITHUB_OUTPUT
+            }
+          }
+
+      - name: Upload artifact (exe)
+        if: steps.find-exe.outputs.build_type == 'exe'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: electron/Co-Interview-windows.exe
+          retention-days: 7
+
+      - name: Upload artifact (zip)
+        if: steps.find-exe.outputs.build_type == 'zip'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: electron/Co-Interview-windows.zip
+          retention-days: 7
+
+  # ============================================
+  # Upload to Firebase Storage
+  # ============================================
+  upload-to-firebase:
+    needs: [build-mac-arm64, build-mac-x64, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find artifacts -type f -ls
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: co-interview-481814
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Upload to Firebase Storage
+        run: |
+          # Upload macOS ARM64 DMG
+          if [ -f "artifacts/mac-arm64-dmg/Co-Interview-mac-arm64.dmg" ]; then
+            gsutil cp "artifacts/mac-arm64-dmg/Co-Interview-mac-arm64.dmg" \
+              "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/mac-arm64.dmg"
+            echo "✅ Uploaded mac-arm64.dmg"
+          fi
+
+          # Upload macOS x64 DMG
+          if [ -f "artifacts/mac-x64-dmg/Co-Interview-mac-x64.dmg" ]; then
+            gsutil cp "artifacts/mac-x64-dmg/Co-Interview-mac-x64.dmg" \
+              "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/mac-x64.dmg"
+            echo "✅ Uploaded mac-x64.dmg"
+          fi
+
+          # Upload Windows build (exe or zip)
+          if [ -f "artifacts/windows-build/Co-Interview-windows.exe" ]; then
+            gsutil cp "artifacts/windows-build/Co-Interview-windows.exe" \
+              "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/windows.exe"
+            echo "✅ Uploaded windows.exe"
+          elif [ -f "artifacts/windows-build/Co-Interview-windows.zip" ]; then
+            gsutil cp "artifacts/windows-build/Co-Interview-windows.zip" \
+              "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/windows.zip"
+            echo "✅ Uploaded windows.zip"
+          fi
+
+      - name: Set public access for release files
+        run: |
+          gsutil -m acl ch -u AllUsers:R "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/*" || true
+
+      - name: Print download URLs
+        run: |
+          echo "🎉 Release files uploaded successfully!"
+          echo ""
+          echo "Download URLs:"
+          echo "  macOS (Apple Silicon): https://firebasestorage.googleapis.com/v0/b/${{ env.FIREBASE_STORAGE_BUCKET }}/o/releases%2Fmac-arm64.dmg?alt=media"
+          echo "  macOS (Intel): https://firebasestorage.googleapis.com/v0/b/${{ env.FIREBASE_STORAGE_BUCKET }}/o/releases%2Fmac-x64.dmg?alt=media"
+          echo "  Windows: https://firebasestorage.googleapis.com/v0/b/${{ env.FIREBASE_STORAGE_BUCKET }}/o/releases%2Fwindows.zip?alt=media"
+
+  # ============================================
+  # Create GitHub Release (optional)
+  # ============================================
+  create-release:
+    needs: [build-mac-arm64, build-mac-x64, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/mac-arm64-dmg/*
+            artifacts/mac-x64-dmg/*
+            artifacts/windows-build/*
+          body: |
+            ## Download Links
+
+            | Platform | Download |
+            |----------|----------|
+            | macOS (Apple Silicon) | [Co-Interview-mac-arm64.dmg](https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fmac-arm64.dmg?alt=media) |
+            | macOS (Intel) | [Co-Interview-mac-x64.dmg](https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fmac-x64.dmg?alt=media) |
+            | Windows | [Co-Interview-windows.zip](https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fwindows.zip?alt=media) |
+
+            > ⚠️ **Note:** These builds are not code-signed. 
+            > - **macOS users:** Right-click the app and select "Open" to bypass Gatekeeper.
+            > - **Windows users:** Click "More info" → "Run anyway" when SmartScreen appears.

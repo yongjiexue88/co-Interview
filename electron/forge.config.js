@@ -7,21 +7,22 @@ module.exports = {
         extraResource: ['./src/assets/SystemAudioDump'],
         name: 'Co-Interview',
         icon: 'src/assets/logo',
-        // use `security find-identity -v -p codesigning` to find your identity
-        // for macos signing
-        // also fuck apple
-        // osxSign: {
-        //    identity: '<paste your identity here>',
-        //   optionsForFile: (filePath) => {
-        //       return {
-        //           entitlements: 'entitlements.plist',
-        //       };
-        //   },
-        // },
-        // notarize if off cuz i ran this for 6 hours and it still didnt finish
+        // Ad-hoc signing (free, no Apple Developer account required)
+        // This allows the app to run on Apple Silicon Macs
+        // Users will still need to right-click -> Open to bypass Gatekeeper
+        osxSign: {
+            identity: '-', // '-' means ad-hoc signing
+            optionsForFile: (filePath) => {
+                return {
+                    entitlements: 'entitlements.plist',
+                };
+            },
+        },
+        // Notarization requires $99/year Apple Developer account
+        // Uncomment if you get a Developer ID certificate later
         // osxNotarize: {
         //    appleId: 'your apple id',
-        //    appleIdPassword: 'app specific password',
+        //    appleIdPassword: 'app specific password (from appleid.apple.com)',
         //    teamId: 'your team id',
         // },
     },
