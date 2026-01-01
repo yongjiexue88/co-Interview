@@ -108,14 +108,24 @@ const DashboardHomePage: React.FC = () => {
                     <div className="text-xs text-gray-500 mb-1">🍎</div>
                     <h3 className="text-white font-semibold mb-1">Co-Interview Free</h3>
                     <p className="text-gray-500 text-sm mb-4">Version: 2.0.0 - Latest</p>
-                    <a
-                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2FCo-Interview.dmg?alt=media`}
-                        download
-                        className="w-full border border-white/20 text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-white/5 transition-colors"
-                    >
-                        <Download className="w-4 h-4" />
-                        Download for Mac
-                    </a>
+                    <div className="space-y-2">
+                        <a
+                            href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-arm64.dmg?alt=media`}
+                            download
+                            className="w-full border border-white/20 text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-white/5 transition-colors"
+                        >
+                            <Download className="w-4 h-4" />
+                            Download for Mac (Apple Silicon)
+                        </a>
+                        <a
+                            href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-x64.dmg?alt=media`}
+                            download
+                            className="w-full border border-white/20 text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-white/5 transition-colors"
+                        >
+                            <Download className="w-4 h-4" />
+                            Download for Mac (Intel)
+                        </a>
+                    </div>
                 </div>
 
                 {/* Windows Download */}
@@ -131,7 +141,7 @@ const DashboardHomePage: React.FC = () => {
                     <h3 className="text-white font-semibold mb-1">Co-Interview Free</h3>
                     <p className="text-gray-500 text-sm mb-4">Version: 2.0.0 - Latest</p>
                     <a
-                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2FCo-Interview-Setup.exe?alt=media`}
+                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fwindows.zip?alt=media`}
                         download
                         className="w-full border border-white/20 text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-white/5 transition-colors"
                     >

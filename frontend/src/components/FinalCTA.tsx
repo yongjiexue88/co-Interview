@@ -30,14 +30,33 @@ const FinalCTA: React.FC = () => {
 
                 {/* === DOWNLOAD BUTTONS === */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a
-                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac.dmg?alt=media`}
-                        download
-                        className="group flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40"
-                    >
-                        <AppleIcon />
-                        <span>Get for Mac</span>
-                    </a>
+                    {/* Mac Dropdown Button */}
+                    <div className="relative group">
+                        <button
+                            className="flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40"
+                        >
+                            <AppleIcon />
+                            <span>Get for Mac</span>
+                        </button>
+                        {/* Dropdown Menu */}
+                        <div className="absolute top-full left-0 mt-2 w-full bg-[#1a1a1a] border border-white/10 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
+                            <a
+                                href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-arm64.dmg?alt=media`}
+                                download
+                                className="block px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium"
+                            >
+                                Get for Mac (Apple Silicon)
+                            </a>
+                            <a
+                                href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-x64.dmg?alt=media`}
+                                download
+                                className="block px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium border-t border-white/5"
+                            >
+                                Get for Mac (Intel)
+                            </a>
+                        </div>
+                    </div>
+                    {/* Windows Button */}
                     <a
                         href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fwindows.zip?alt=media`}
                         download
