@@ -173,46 +173,50 @@ jobs:
           echo "Downloaded artifacts:"
           find artifacts -type f -ls
 
-      - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: co-interview-481814
-
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
+        id: auth
         with:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
       - name: Upload to Firebase Storage
         run: |
+          # Authenticate gsutil explicitly using the credentials file from the auth step
+          gcloud auth login --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud config set project co-interview-481814
+
           # Upload macOS ARM64 DMG
           if [ -f "artifacts/mac-arm64-dmg/Co-Interview-mac-arm64.dmg" ]; then
-            gsutil cp "artifacts/mac-arm64-dmg/Co-Interview-mac-arm64.dmg" \
+            gcloud storage cp "artifacts/mac-arm64-dmg/Co-Interview-mac-arm64.dmg" \
               "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/mac-arm64.dmg"
             echo "✅ Uploaded mac-arm64.dmg"
           fi
 
           # Upload macOS x64 DMG
           if [ -f "artifacts/mac-x64-dmg/Co-Interview-mac-x64.dmg" ]; then
-            gsutil cp "artifacts/mac-x64-dmg/Co-Interview-mac-x64.dmg" \
+            gcloud storage cp "artifacts/mac-x64-dmg/Co-Interview-mac-x64.dmg" \
               "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/mac-x64.dmg"
             echo "✅ Uploaded mac-x64.dmg"
           fi
 
           # Upload Windows build (exe or zip)
           if [ -f "artifacts/windows-build/Co-Interview-windows.exe" ]; then
-            gsutil cp "artifacts/windows-build/Co-Interview-windows.exe" \
+            gcloud storage cp "artifacts/windows-build/Co-Interview-windows.exe" \
               "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/windows.exe"
             echo "✅ Uploaded windows.exe"
           elif [ -f "artifacts/windows-build/Co-Interview-windows.zip" ]; then
-            gsutil cp "artifacts/windows-build/Co-Interview-windows.zip" \
+            gcloud storage cp "artifacts/windows-build/Co-Interview-windows.zip" \
               "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/windows.zip"
             echo "✅ Uploaded windows.zip"
           fi
 
       - name: Set public access for release files
         run: |
-          gsutil -m acl ch -u AllUsers:R "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/*" || true
+          # Make all files in the releases folder public
+          gcloud storage objects update "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/*" --add-acl-grant=entity=AllUsers,role=READER || true
 
       - name: Print download URLs
         run: |
