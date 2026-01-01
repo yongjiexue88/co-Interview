@@ -53,30 +53,26 @@ const Hero: React.FC = () => {
                     features to keep you invisible across every interview check.
                 </p>
 
-                {/* === PRE-REGISTRATION (REMOVE WHEN PRODUCT LAUNCHES) === */}
-                <div className="flex justify-center mb-24">
-                    <PreRegisterForm
-                        source="hero"
-                        trackingProps={{
-                            experiment_id: 'hero_headline_v1',
-                            variant_id: variant
-                        }}
-                    />
-                </div>
-                {/* === END PRE-REGISTRATION === */}
-
-                {/* === DOWNLOAD BUTTONS (UNCOMMENT WHEN PRODUCT LAUNCHES) ===
-                <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-24">
-                    <Button variant="primary" size="lg" className="w-full sm:w-auto min-w-[200px] space-x-3">
+                {/* === DOWNLOAD BUTTONS === */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24">
+                    <a
+                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac.dmg?alt=media`}
+                        download
+                        className="group flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40 min-w-[200px] justify-center"
+                    >
                         <AppleIcon />
                         <span>Get for Mac</span>
-                    </Button>
-                    <Button variant="primary" size="lg" className="w-full sm:w-auto min-w-[200px] space-x-3">
+                    </a>
+                    <a
+                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fwindows.zip?alt=media`}
+                        download
+                        className="group flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40 min-w-[200px] justify-center"
+                    >
                         <WindowsIcon />
                         <span>Get for Windows</span>
-                    </Button>
+                    </a>
                 </div>
-                === END DOWNLOAD BUTTONS === */}
+                {/* === END DOWNLOAD BUTTONS === */}
 
                 {/* Mock Interface */}
                 <div className="relative max-w-6xl mx-auto perspective-1000">

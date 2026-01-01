@@ -25,31 +25,33 @@ const FinalCTA: React.FC = () => {
                 </h2>
 
                 <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
-                    Join the waitlist and get early access when we launch. Pre-register now for 30 days free!
+                    Start acing every interview with Co-Interview's AI-powered assistance.
                 </p>
 
-                {/* === PRE-REGISTRATION (REMOVE WHEN PRODUCT LAUNCHES) === */}
-                <div className="flex justify-center">
-                    <PreRegisterForm source="final_cta" />
-                </div>
-                {/* === END PRE-REGISTRATION === */}
-
-                {/* === DOWNLOAD BUTTONS (UNCOMMENT WHEN PRODUCT LAUNCHES) ===
+                {/* === DOWNLOAD BUTTONS === */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <button className="group flex items-center gap-3 bg-white hover:bg-gray-100 text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-white/10 hover:shadow-white/20">
+                    <a
+                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac.dmg?alt=media`}
+                        download
+                        className="group flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40"
+                    >
                         <AppleIcon />
                         <span>Get for Mac</span>
-                    </button>
-                    <button className="group flex items-center gap-3 bg-[#1a1a1a] hover:bg-[#222] text-white border border-white/10 hover:border-white/20 px-8 py-4 rounded-full font-semibold transition-all duration-300">
+                    </a>
+                    <a
+                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fwindows.zip?alt=media`}
+                        download
+                        className="group flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40"
+                    >
                         <WindowsIcon />
                         <span>Get for Windows</span>
-                    </button>
+                    </a>
                 </div>
 
                 <p className="mt-8 text-sm text-gray-500">
                     Free to download • No credit card required • Works on macOS 12+ & Windows 10+
                 </p>
-                === END DOWNLOAD BUTTONS === */}
+                {/* === END DOWNLOAD BUTTONS === */}
             </div>
         </section>
     );
