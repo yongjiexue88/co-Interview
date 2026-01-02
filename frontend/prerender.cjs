@@ -35,7 +35,7 @@ async function prerender() {
     const server = exec(`npx serve -s dist -p ${PORT}`);
 
     // Give the server a moment to start
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     const browser = await puppeteer.launch({
         headless: "new",
@@ -44,33 +44,38 @@ async function prerender() {
     const page = await browser.newPage();
 
     for (const route of routes) {
-        console.log(`Pre-rendering: ${route}`);
+        try {
+            console.log(`Pre-rendering: ${route}`);
 
-        await page.goto(`http://localhost:${PORT}${route}`, {
-            waitUntil: 'domcontentloaded',
-            timeout: 60000
-        });
+            await page.goto(`http://localhost:${PORT}${route}`, {
+                waitUntil: 'domcontentloaded',
+                timeout: 60000
+            });
 
-        // Wait for Helmet to update the title
-        await page.waitForFunction(() => document.title.includes('Co-Interview'), { timeout: 5000 }).catch(() => console.log('Title wait timeout'));
+            // Wait for Helmet to update the title
+            await page.waitForFunction(() => document.title.includes('Co-Interview'), { timeout: 5000 }).catch(() => console.log('Title wait timeout'));
 
-        // Get the HTML content
-        const content = await page.content();
+            // Get the HTML content
+            const content = await page.content();
 
-        // Determine output path
-        const filePath = route === '/'
-            ? path.join(__dirname, 'dist', 'index.html')
-            : path.join(__dirname, 'dist', route.substring(1), 'index.html');
+            // Determine output path
+            const filePath = route === '/'
+                ? path.join(__dirname, 'dist', 'index.html')
+                : path.join(__dirname, 'dist', route.substring(1), 'index.html');
 
-        // Ensure directory exists
-        const dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
+            // Ensure directory exists
+            const dir = path.dirname(filePath);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+
+            // write file
+            fs.writeFileSync(filePath, content);
+            console.log(`Saved: ${filePath}`);
+        } catch (error) {
+            console.error(`Failed to prerender ${route}:`, error);
+            // Continue to next route
         }
-
-        // write file
-        fs.writeFileSync(filePath, content);
-        console.log(`Saved: ${filePath}`);
     }
 
     await browser.close();

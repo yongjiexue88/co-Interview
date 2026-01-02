@@ -1,14 +1,99 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  body {
-    background-color: #000000;
-    color: white;
+@theme {
+  /* Fonts */
+  --font-sans: 'Inter', 'sans-serif';
+  --font-mono: 'JetBrains Mono', 'monospace';
+
+  /* Colors */
+  --color-background: #000000;
+  --color-surface: #111111;
+  --color-primary: #EFCC3A;
+  --color-primary-dark: #D4B32F;
+  --color-secondary: #FACC15;
+  --color-accent: #ffffff;
+
+  --color-brand-dark: #030712;
+  --color-brand-purple: #8b5cf6;
+  --color-brand-glow: #a78bfa;
+
+  /* Animations */
+  --animate-blob: blob 7s infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-fade-in-up: fadeInUp 0.5s ease-out forwards;
+  --animate-spin-slow: spin 8s linear infinite;
+  --animate-pulse-fast: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-scan: scan 2s ease-in-out infinite;
+
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(10px) translateX(-50%);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0) translateX(-50%);
+    }
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+
+    50% {
+      opacity: 1;
+    }
+
+    100% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
   }
 }
 
+/* Custom Base Styles */
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-accent);
+  }
+}
+
+/* Custom Utilities */
 @layer utilities {
   .glass-card {
     background: rgba(17, 17, 17, 0.7);
@@ -30,18 +115,18 @@
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #111111;
+  background: #111111;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #333333;
-    border-radius: 4px;
+  background: #333333;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #444444;
+  background: #444444;
 }
