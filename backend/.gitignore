@@ -23,3 +23,4 @@ build/
 # Firebase service account
 *-service-account*.json
 firebase-adminsdk*.json
+service-account.json
