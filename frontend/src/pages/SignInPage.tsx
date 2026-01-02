@@ -22,11 +22,64 @@ const SignInPage: React.FC = () => {
     const handleGoogleLogin = async () => {
         try {
             setError('');
-            await signInWithPopup(auth, googleProvider);
+            // If in Electron mode, do NOT use popup. Logic should be handled by Electron opening /api/v1/auth/google directly.
+            // But if user manually came here in browser and wants to open Electron?
+            // For now, assume this button is for Web Context.
+
+            // If we are in Electron Webview (unlikely now), popups might fail.
+            // But we are in System Browser now.
+            const result = await signInWithPopup(auth, googleProvider);
+            await handleElectronRedirect(result.user);
         } catch (error) {
             console.error('Login failed:', error);
             setError('Failed to log in with Google. Please try again.');
         }
+    };
+
+    const handleElectronRedirect = async (firebaseUser: any) => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const isElectron = searchParams.get('electron') === 'true';
+
+        if (isElectron) {
+            try {
+                // Exchange ID token for Custom Token
+                const idToken = await firebaseUser.getIdToken();
+                // Use local backend in dev, prod in build. 
+                // We can guess based on window.location.hostname
+                const apiBase = window.location.hostname === 'localhost'
+                    ? 'http://localhost:8080/api'
+                    : 'https://co-interview.com/api';
+
+                const response = await fetch(`${apiBase}/v1/auth/exchange`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${idToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const { custom_token } = await response.json();
+
+                    // Redirect to protocol
+                    const redirectUrl = new URL('co-interview://auth-callback');
+                    redirectUrl.searchParams.set('token', customToken);
+                    redirectUrl.searchParams.set('uid', firebaseUser.uid);
+                    redirectUrl.searchParams.set('email', firebaseUser.email || '');
+                    redirectUrl.searchParams.set('name', firebaseUser.displayName || '');
+                    if (firebaseUser.photoURL) redirectUrl.searchParams.set('photo', firebaseUser.photoURL);
+
+                    window.location.href = redirectUrl.toString();
+                    return;
+                }
+            } catch (err) {
+                console.error('Token exchange failed:', err);
+                // Fallback: Just go to dashboard if failed? Or show error?
+            }
+        }
+
+        // Default web behavior
+        navigate('/dashboard');
     };
 
     const handleEmailLogin = async (e: React.FormEvent) => {
@@ -40,7 +93,8 @@ const SignInPage: React.FC = () => {
         setError('');
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            await handleElectronRedirect(result.user);
         } catch (error: any) {
             console.error('Login failed:', error);
             if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {

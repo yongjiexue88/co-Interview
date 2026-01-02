@@ -678,29 +678,27 @@ export class OnboardingView extends LitElement {
     async handleGoogleSignIn() {
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
-            this.authLoading = true;
             this.authError = '';
+            // Do not set authLoading = true to avoid locking UI
             try {
-                await ipcRenderer.invoke('auth:open-signin');
-                // Auth will complete via IPC callback
+                // Call new Google Auth handler (Server-Side Flow)
+                await ipcRenderer.invoke('auth:open-google');
             } catch (error) {
                 this.authError = 'Failed to open sign-in. Please try again.';
-                this.authLoading = false;
+                // No need to reset authLoading as we didn't set it
             }
         }
     }
 
     async handleEmailSignIn() {
-        // Email/password also uses browser flow
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
-            this.authLoading = true;
             this.authError = '';
             try {
-                await ipcRenderer.invoke('auth:open-signin');
+                // Call new Login Page handler (Email/Password Flow)
+                await ipcRenderer.invoke('auth:open-login');
             } catch (error) {
-                this.authError = 'Failed to open sign-in. Please try again.';
-                this.authLoading = false;
+                this.authError = 'Failed to open login page. Please try again.';
             }
         }
     }

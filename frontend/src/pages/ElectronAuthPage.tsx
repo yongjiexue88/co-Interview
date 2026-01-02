@@ -14,9 +14,14 @@ const ElectronAuthPage: React.FC = () => {
     const [error, setError] = useState('');
     const isSignUp = searchParams.get('mode') === 'signup';
 
+    const hasRun = React.useRef(false);
+
     useEffect(() => {
         // Auto-start Google sign-in on page load
-        handleGoogleAuth();
+        if (!hasRun.current) {
+            hasRun.current = true;
+            handleGoogleAuth();
+        }
     }, []);
 
     const handleGoogleAuth = async () => {
@@ -27,8 +32,12 @@ const ElectronAuthPage: React.FC = () => {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
 
-            // Redirect back to Electron app with user data
+            // Get the Firebase ID token for backend verification
+            const idToken = await user.getIdToken();
+
+            // Redirect back to Electron app with user data + token
             const callbackUrl = new URL('co-interview://auth-callback');
+            callbackUrl.searchParams.set('token', idToken);
             callbackUrl.searchParams.set('uid', user.uid);
             callbackUrl.searchParams.set('email', user.email || '');
             callbackUrl.searchParams.set('name', user.displayName || '');
@@ -45,8 +54,11 @@ const ElectronAuthPage: React.FC = () => {
 
         } catch (err: any) {
             console.error('Auth error:', err);
+            // Ignore popup closed errors if success already happened (race condition)
+            if (status === 'success') return;
+
             setStatus('error');
-            if (err.code === 'auth/popup-closed-by-user') {
+            if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
                 setError('Sign-in was cancelled. Click below to try again.');
             } else if (err.code === 'auth/popup-blocked') {
                 setError('Popup was blocked. Please allow popups and try again.');

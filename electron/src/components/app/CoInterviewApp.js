@@ -146,7 +146,8 @@ export class CoInterviewApp extends LitElement {
             ]);
 
             // Check onboarding status
-            this.currentView = config.onboarded ? 'main' : 'onboarding';
+            // FOR DEBUGGING: Always show onboarding
+            this.currentView = 'onboarding'; // config.onboarded ? 'main' : 'onboarding';
 
             // Apply background appearance (color + transparency)
             this.applyBackgroundAppearance(

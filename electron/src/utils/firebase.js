@@ -2,7 +2,7 @@
 // Uses same config as frontend for consistent auth
 
 const { initializeApp } = require('firebase/app');
-const { getAuth, GoogleAuthProvider, signInWithCredential, onAuthStateChanged } = require('firebase/auth');
+const { getAuth, GoogleAuthProvider, signInWithCredential, signInWithCustomToken, onAuthStateChanged } = require('firebase/auth');
 
 // Firebase config - same as frontend
 const firebaseConfig = {
@@ -73,5 +73,6 @@ module.exports = {
     getCurrentUser,
     signOut,
     onAuthChange,
-    signInWithCredential
+    signInWithCredential,
+    signInWithCustomToken
 };

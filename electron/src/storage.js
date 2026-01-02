@@ -20,6 +20,11 @@ const DEFAULT_AUTH = {
     userEmail: null,
     displayName: null,
     photoURL: null,
+    idToken: null,
+    plan: 'free',
+    status: 'active',
+    quotaRemainingSeconds: null,
+    features: [],
     isLoggedIn: false
 };
 

@@ -60,40 +60,144 @@ if (!gotTheLock) {
     });
 }
 
-function handleAuthCallback(url) {
+// Open Google Sign In (Server-Side Flow)
+ipcMain.handle('auth:open-google', async () => {
+    try {
+        // Use local backend in dev, prod backend in build
+        const authUrl = app.isPackaged
+            ? 'https://co-interview.com/api/v1/auth/google'
+            : 'http://localhost:8080/api/v1/auth/google';
+
+        console.log('Opening Google Auth:', authUrl);
+        await shell.openExternal(authUrl);
+        return { success: true };
+    } catch (error) {
+        console.error('Error opening Google Auth:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// Open Email/Password Login (Frontend Page)
+ipcMain.handle('auth:open-login', async () => {
+    try {
+        const authUrl = app.isPackaged
+            ? 'https://co-interview.com/signin?electron=true'
+            : 'http://localhost:3000/signin?electron=true';
+
+        console.log('Opening Login Page:', authUrl);
+        await shell.openExternal(authUrl);
+        return { success: true };
+    } catch (error) {
+        console.error('Error opening Login Page:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+async function handleAuthCallback(url) {
     console.log('Auth callback received:', url);
     try {
         const urlObj = new URL(url);
         if (urlObj.pathname === '//auth-callback' || urlObj.pathname === '/auth-callback') {
+            // Check for cancel
+            if (urlObj.searchParams.get('cancel') === 'true') {
+                if (mainWindow && mainWindow.webContents) {
+                    mainWindow.webContents.send('auth-complete', {
+                        success: false,
+                        error: 'Authentication cancelled'
+                    });
+                }
+                return;
+            }
+
+            const token = urlObj.searchParams.get('token');
             const uid = urlObj.searchParams.get('uid');
             const email = urlObj.searchParams.get('email');
             const displayName = urlObj.searchParams.get('name');
             const photoURL = urlObj.searchParams.get('photo');
 
-            if (uid && email) {
-                // Store auth data
-                storage.setAuthData({
-                    userId: uid,
-                    userEmail: email,
-                    displayName: displayName || null,
-                    photoURL: photoURL || null,
-                    isLoggedIn: true
-                });
+            if (token) {
+                // Try to sign in with Custom Token (from Backend logic)
+                // If it fails, maybe it's an ID token (from Frontend logic) 
+                // but the frontend logic should ideally also use Custom Tokens or we standardize.
 
-                // Notify renderer
-                if (mainWindow && mainWindow.webContents) {
-                    mainWindow.webContents.send('auth-complete', {
-                        success: true,
-                        userId: uid,
-                        email: email,
-                        displayName: displayName
+                const { auth, signInWithCustomToken } = require('./utils/firebase');
+                try {
+                    console.log('Signing in with token...');
+                    await signInWithCustomToken(auth, token);
+                    console.log('Sign in successful');
+
+                    // Now get the FRESH ID token for storage
+                    const user = auth.currentUser;
+                    const idToken = await user.getIdToken();
+
+                    // Verify with backend if needed (optional since we just got it from there)
+                    let entitlements = null;
+                    if (idToken) {
+                        try {
+                            const apiUrl = app.isPackaged
+                                ? 'https://co-interview.com/api/v1/auth/verify'
+                                : 'http://localhost:8080/api/v1/auth/verify';
+
+                            const response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${idToken}`,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+
+                            if (response.ok) {
+                                entitlements = await response.json();
+                                console.log('Backend verification successful');
+                            }
+                        } catch (error) {
+                            console.warn('Backend verification warning:', error.message);
+                        }
+                    }
+
+                    // Store auth data
+                    storage.setAuthData({
+                        userId: user.uid,
+                        userEmail: user.email,
+                        displayName: user.displayName || displayName,
+                        photoURL: user.photoURL || photoURL,
+                        idToken: idToken,
+                        isLoggedIn: true,
+                        plan: entitlements?.plan || 'free',
+                        status: entitlements?.status || 'active',
+                        quotaRemainingSeconds: entitlements?.quota_remaining_seconds || null,
+                        features: entitlements?.features || []
                     });
+
+                    // Notify renderer
+                    if (mainWindow && mainWindow.webContents) {
+                        mainWindow.webContents.send('auth-complete', {
+                            success: true,
+                            userId: user.uid,
+                            email: user.email,
+                            displayName: user.displayName,
+                            plan: entitlements?.plan || 'free'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Sign in failed:', error);
+                    if (mainWindow && mainWindow.webContents) {
+                        mainWindow.webContents.send('auth-complete', {
+                            success: false,
+                            error: 'Authentication failed: ' + error.message
+                        });
+                    }
                 }
-                console.log('Auth successful for:', email);
             }
         }
     } catch (error) {
-        console.error('Error parsing auth callback URL:', error);
+        console.error('Auth callback error:', error);
+        if (mainWindow && mainWindow.webContents) {
+            mainWindow.webContents.send('auth-complete', {
+                success: false,
+                error: error.message
+            });
+        }
     }
 }
 
@@ -392,7 +496,13 @@ function setupAuthIpcHandlers() {
     ipcMain.handle('auth:open-signin', async () => {
         try {
             // Open the website auth page in browser
-            await shell.openExternal('https://co-interview.com/electron-auth');
+            // Use localhost in development, production URL in build
+            const authUrl = app.isPackaged
+                ? 'https://co-interview.com/electron-auth'
+                : 'http://localhost:3000/electron-auth';
+
+            console.log('Opening auth URL:', authUrl);
+            await shell.openExternal(authUrl);
             return { success: true };
         } catch (error) {
             console.error('Error opening auth URL:', error);

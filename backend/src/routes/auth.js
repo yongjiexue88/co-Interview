@@ -60,6 +60,137 @@ router.post('/verify', authMiddleware, async (req, res, next) => {
 });
 
 /**
+ * GET /v1/auth/google
+ * Initiate Google OAuth 2.0 flow
+ */
+router.get('/google', (req, res) => {
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        process.env.GOOGLE_REDIRECT_URI
+    );
+
+    const authorizeUrl = client.generateAuthUrl({
+        access_type: 'offline',
+        scope: [
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://www.googleapis.com/auth/userinfo.email'
+        ]
+    });
+
+    res.redirect(authorizeUrl);
+});
+
+/**
+ * GET /v1/auth/google/callback
+ * Handle Google OAuth callback, mint custom token, and redirect to Electron
+ */
+router.get('/google/callback', async (req, res, next) => {
+    try {
+        const { code } = req.query;
+        if (!code) {
+            throw new Error('No code provided');
+        }
+
+        const { OAuth2Client } = require('google-auth-library');
+        const client = new OAuth2Client(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            process.env.GOOGLE_REDIRECT_URI
+        );
+
+        // Exchange code for tokens
+        const { tokens } = await client.getToken(code);
+        client.setCredentials(tokens);
+
+        // Get user info
+        const ticket = await client.verifyIdToken({
+            idToken: tokens.id_token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+        const payload = ticket.getPayload();
+        const { email, sub: googleUid, name, picture } = payload;
+
+        // Get or Create Firebase User
+        const { auth: adminAuth, db } = require('../config/firebase'); // Re-import to ensure admin context
+
+        let firebaseUser;
+        try {
+            firebaseUser = await adminAuth.getUserByEmail(email);
+        } catch (error) {
+            if (error.code === 'auth/user-not-found') {
+                // Create new user
+                firebaseUser = await adminAuth.createUser({
+                    email,
+                    displayName: name,
+                    photoURL: picture,
+                    emailVerified: true
+                });
+            } else {
+                throw error;
+            }
+        }
+
+        // Mint Custom Token
+        const customToken = await adminAuth.createCustomToken(firebaseUser.uid);
+
+        // Ensure user document exists (sync with /verify logic)
+        const userRef = db.collection('users').doc(firebaseUser.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) {
+            const { PLANS } = require('../config/stripe');
+            const newUser = {
+                email,
+                createdAt: new Date(),
+                plan: 'free',
+                status: 'active',
+                quotaSecondsMonth: PLANS.free.quotaSecondsMonth,
+                quotaSecondsUsed: 0,
+                // Helper needed or copy logic
+                quotaResetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+                concurrencyLimit: PLANS.free.concurrencyLimit,
+                features: PLANS.free.features
+            };
+            await userRef.set(newUser);
+        }
+
+        // Redirect to Electron Protocol
+        const redirectUrl = new URL('co-interview://auth-callback');
+        redirectUrl.searchParams.set('token', customToken);
+        redirectUrl.searchParams.set('uid', firebaseUser.uid);
+        redirectUrl.searchParams.set('email', email);
+        redirectUrl.searchParams.set('name', name);
+        if (picture) redirectUrl.searchParams.set('photo', picture);
+
+        res.redirect(redirectUrl.toString());
+
+    } catch (error) {
+        console.error('OAuth Callback Error:', error);
+        // Redirect to Electron with error or show error page
+        res.status(500).send(`Authentication failed: ${error.message}. Please try again.`);
+    }
+});
+
+/**
+ * POST /v1/auth/exchange
+ * Exchange an ID Token (from client login) for a Custom Token (for Electron sign-in)
+ */
+router.post('/exchange', authMiddleware, async (req, res, next) => {
+    try {
+        const { uid } = req.user;
+        const { auth: adminAuth } = require('../config/firebase');
+
+        // Mint Custom Token
+        const customToken = await adminAuth.createCustomToken(uid);
+
+        res.json({ custom_token: customToken });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
  * Get the first day of next month
  */
 function getNextMonthStart() {

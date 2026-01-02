@@ -7,7 +7,11 @@ const { exec } = require('child_process');
 const routes = [
     '/',
     '/still_working',
-    '/blog'
+    '/blog',
+    '/policies',
+    '/policies/terms',
+    '/policies/privacy',
+    '/policies/refund'
 ];
 
 // Add blog post routes dynamically
