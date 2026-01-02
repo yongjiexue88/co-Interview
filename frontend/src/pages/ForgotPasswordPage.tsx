@@ -43,28 +43,68 @@ const ForgotPasswordPage: React.FC = () => {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">
                 <div className="w-full max-w-md text-center space-y-6">
-                    <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle className="w-8 h-8 text-green-500" />
+                    {/* Yellow Logo */}
+                    <div className="w-16 h-16 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-full flex items-center justify-center mx-auto">
+                        <img
+                            src="https://www.interviewcoder.co/logo.svg"
+                            alt="Co-Interview"
+                            className="w-10 h-10"
+                        />
                     </div>
-                    <h1 className="text-2xl font-semibold text-white">Check your email</h1>
+
+                    {/* Title */}
+                    <h1 className="text-3xl font-bold text-white">Check your email</h1>
                     <p className="text-gray-400">
-                        We've sent a password reset link to <span className="text-white font-medium">{email}</span>
+                        We've sent a password reset link to{' '}
+                        <span className="text-white font-medium">{email}</span>
                     </p>
-                    <p className="text-gray-500 text-sm">
-                        Didn't receive the email? Check your spam folder or try again.
-                    </p>
-                    <div className="space-y-3 pt-4">
+
+                    {/* Email Sent Box */}
+                    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5 text-left">
+                        <div className="flex items-center gap-2 mb-3">
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                            <span className="text-white font-semibold">Email Sent!</span>
+                        </div>
+                        <p className="text-gray-400 text-sm">
+                            Password reset instructions have been sent to your email. Please check your inbox and click the link to reset your password.
+                        </p>
+                    </div>
+
+                    {/* What's next? Box */}
+                    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5 text-left">
+                        <h3 className="text-white font-semibold mb-4">What's next?</h3>
+                        <ul className="space-y-3 text-gray-400 text-sm">
+                            <li className="flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0"></span>
+                                Check your email inbox (and spam folder)
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0"></span>
+                                Click the reset link in the email
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0"></span>
+                                Create your new password
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="space-y-3 pt-2">
                         <button
-                            onClick={() => setIsSuccess(false)}
-                            className="w-full bg-[#2a2a2a] hover:bg-[#333333] text-white font-medium py-3 px-4 rounded-lg transition-colors border border-white/5"
+                            onClick={() => {
+                                setIsSuccess(false);
+                                setEmail('');
+                            }}
+                            className="w-full bg-[#2a2a2a] hover:bg-[#333333] text-white font-medium py-3.5 px-4 rounded-lg transition-colors border border-white/10"
                         >
-                            Try a different email
+                            Send Another Email
                         </button>
                         <Link
                             to="/signin"
-                            className="block w-full bg-transparent hover:bg-white/5 border border-white/10 text-gray-400 font-medium py-3 px-4 rounded-lg transition-colors text-center"
+                            className="block text-gray-400 hover:text-white transition-colors text-sm"
                         >
-                            Back to sign in
+                            Back to Sign In
                         </Link>
                     </div>
                 </div>
