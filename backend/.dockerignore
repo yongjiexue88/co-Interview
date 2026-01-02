@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Service account keys (never deploy these)
+*-service-account*.json
+firebase-adminsdk*.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

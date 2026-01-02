@@ -15,6 +15,14 @@ const DEFAULT_CREDENTIALS = {
     apiKey: ''
 };
 
+const DEFAULT_AUTH = {
+    userId: null,
+    userEmail: null,
+    displayName: null,
+    photoURL: null,
+    isLoggedIn: false
+};
+
 const DEFAULT_PREFERENCES = {
     customPrompt: '',
     selectedProfile: 'interview',
@@ -65,6 +73,10 @@ function getPreferencesPath() {
 
 function getKeybindsPath() {
     return path.join(getConfigDir(), 'keybinds.json');
+}
+
+function getAuthPath() {
+    return path.join(getConfigDir(), 'auth.json');
 }
 
 function getLimitsPath() {
@@ -404,6 +416,26 @@ function deleteAllSessions() {
     }
 }
 
+// ============ AUTH ============
+
+function getAuthData() {
+    return readJsonFile(getAuthPath(), DEFAULT_AUTH);
+}
+
+function setAuthData(authData) {
+    const updated = { ...DEFAULT_AUTH, ...authData };
+    return writeJsonFile(getAuthPath(), updated);
+}
+
+function clearAuthData() {
+    return writeJsonFile(getAuthPath(), DEFAULT_AUTH);
+}
+
+function isLoggedIn() {
+    const auth = getAuthData();
+    return auth.isLoggedIn === true && auth.userId != null;
+}
+
 // ============ CLEAR ALL DATA ============
 
 function clearAllData() {
@@ -450,6 +482,13 @@ module.exports = {
     deleteSession,
     deleteAllSessions,
 
+    // Auth
+    getAuthData,
+    setAuthData,
+    clearAuthData,
+    isLoggedIn,
+
     // Clear all
     clearAllData
 };
+

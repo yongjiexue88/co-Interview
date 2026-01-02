@@ -21,6 +21,7 @@ import RefundPage from './pages/policies/RefundPage';
 import PrivacyPage from './pages/policies/PrivacyPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
+import ElectronAuthPage from './pages/ElectronAuthPage';
 import { usePageTracking } from './hooks/usePageTracking';
 import { useScrollTracking } from './hooks/useScrollTracking';
 import { useExitTracking } from './hooks/useExitTracking';
@@ -46,6 +47,7 @@ function App() {
                     <Route path="/signin" element={<SignInPage />} />
                     <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/electron-auth" element={<ElectronAuthPage />} />
                     <Route path="/policies" element={<PoliciesPage />} />
                     <Route path="/policies/terms" element={<TermsPage />} />
                     <Route path="/policies/refund" element={<RefundPage />} />

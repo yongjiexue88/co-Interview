@@ -19,11 +19,83 @@ app.whenReady().then(async () => {
     // Initialize storage (checks version, resets if needed)
     storage.initializeStorage();
 
+    // Register custom protocol for OAuth callback
+    if (process.defaultApp) {
+        if (process.argv.length >= 2) {
+            app.setAsDefaultProtocolClient('co-interview', process.execPath, [process.argv[1]]);
+        }
+    } else {
+        app.setAsDefaultProtocolClient('co-interview');
+    }
+
     createMainWindow();
     setupGeminiIpcHandlers(geminiSessionRef);
     setupStorageIpcHandlers();
     setupGeneralIpcHandlers();
+    setupAuthIpcHandlers();
 });
+
+// Handle protocol URL on macOS
+app.on('open-url', (event, url) => {
+    event.preventDefault();
+    handleAuthCallback(url);
+});
+
+// Handle protocol URL on Windows/Linux (single instance)
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    app.quit();
+} else {
+    app.on('second-instance', (event, argv) => {
+        // Windows/Linux: protocol URL is in argv
+        const url = argv.find(arg => arg.startsWith('co-interview://'));
+        if (url) {
+            handleAuthCallback(url);
+        }
+        // Focus window
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
+    });
+}
+
+function handleAuthCallback(url) {
+    console.log('Auth callback received:', url);
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.pathname === '//auth-callback' || urlObj.pathname === '/auth-callback') {
+            const uid = urlObj.searchParams.get('uid');
+            const email = urlObj.searchParams.get('email');
+            const displayName = urlObj.searchParams.get('name');
+            const photoURL = urlObj.searchParams.get('photo');
+
+            if (uid && email) {
+                // Store auth data
+                storage.setAuthData({
+                    userId: uid,
+                    userEmail: email,
+                    displayName: displayName || null,
+                    photoURL: photoURL || null,
+                    isLoggedIn: true
+                });
+
+                // Notify renderer
+                if (mainWindow && mainWindow.webContents) {
+                    mainWindow.webContents.send('auth-complete', {
+                        success: true,
+                        userId: uid,
+                        email: email,
+                        displayName: displayName
+                    });
+                }
+                console.log('Auth successful for:', email);
+            }
+        }
+    } catch (error) {
+        console.error('Error parsing auth callback URL:', error);
+    }
+}
 
 app.on('window-all-closed', () => {
     stopMacOSAudioCapture();
@@ -270,5 +342,72 @@ function setupGeneralIpcHandlers() {
     // Debug logging from renderer
     ipcMain.on('log-message', (event, msg) => {
         console.log(msg);
+    });
+}
+
+function setupAuthIpcHandlers() {
+    // Get auth data
+    ipcMain.handle('auth:get-data', async () => {
+        try {
+            return { success: true, data: storage.getAuthData() };
+        } catch (error) {
+            console.error('Error getting auth data:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Set auth data
+    ipcMain.handle('auth:set-data', async (event, authData) => {
+        try {
+            storage.setAuthData(authData);
+            return { success: true };
+        } catch (error) {
+            console.error('Error setting auth data:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Clear auth data (logout)
+    ipcMain.handle('auth:logout', async () => {
+        try {
+            storage.clearAuthData();
+            return { success: true };
+        } catch (error) {
+            console.error('Error clearing auth data:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Check if logged in
+    ipcMain.handle('auth:is-logged-in', async () => {
+        try {
+            return { success: true, data: storage.isLoggedIn() };
+        } catch (error) {
+            console.error('Error checking login status:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Open auth URL in browser
+    ipcMain.handle('auth:open-signin', async () => {
+        try {
+            // Open the website auth page in browser
+            await shell.openExternal('https://co-interview.com/electron-auth');
+            return { success: true };
+        } catch (error) {
+            console.error('Error opening auth URL:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Open signup URL in browser
+    ipcMain.handle('auth:open-signup', async () => {
+        try {
+            await shell.openExternal('https://co-interview.com/electron-auth?mode=signup');
+            return { success: true };
+        } catch (error) {
+            console.error('Error opening signup URL:', error);
+            return { success: false, error: error.message };
+        }
     });
 }

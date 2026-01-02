@@ -157,6 +157,178 @@ export class OnboardingView extends LitElement {
             opacity: 0.8;
         }
 
+        /* Sign-in slide styles - matching reference design */
+        .auth-container {
+            width: 100%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .auth-logo {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(250, 204, 21, 0.3);
+        }
+
+        .auth-logo svg {
+            width: 40px;
+            height: 40px;
+            color: #1a1a1a;
+        }
+
+        .auth-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .auth-subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .auth-buttons {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .google-btn {
+            width: 100%;
+            background: rgba(60, 70, 80, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .google-btn:hover {
+            background: rgba(70, 80, 90, 0.9);
+            transform: translateY(-1px);
+        }
+
+        .google-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .google-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .email-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #FACC15 0%, #D4A50A 100%);
+            border: none;
+            color: #1a1a1a;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(250, 204, 21, 0.25);
+        }
+
+        .email-btn:hover {
+            background: linear-gradient(135deg, #EAB308 0%, #CA9A0A 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(250, 204, 21, 0.35);
+        }
+
+        .email-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .email-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .auth-links {
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 16px;
+        }
+
+        .auth-link {
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            text-decoration: none;
+            background: none;
+            border: none;
+            font-size: inherit;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .auth-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .auth-legal {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            line-height: 1.6;
+        }
+
+        .auth-legal a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+        }
+
+        .auth-legal a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .auth-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            text-align: center;
+            width: 100%;
+        }
+
         .navigation {
             position: absolute;
             bottom: 0;
@@ -241,6 +413,11 @@ export class OnboardingView extends LitElement {
         contextText: { type: String },
         onComplete: { type: Function },
         onClose: { type: Function },
+        // Auth properties
+        authEmail: { type: String },
+        authPassword: { type: String },
+        authLoading: { type: Boolean },
+        authError: { type: String },
     };
 
     constructor() {
@@ -249,6 +426,11 @@ export class OnboardingView extends LitElement {
         this.contextText = '';
         this.onComplete = () => { };
         this.onClose = () => { };
+        // Auth state
+        this.authEmail = '';
+        this.authPassword = '';
+        this.authLoading = false;
+        this.authError = '';
         this.canvas = null;
         this.ctx = null;
         this.animationId = null;
@@ -259,8 +441,17 @@ export class OnboardingView extends LitElement {
         this.transitionDuration = 800; // 800ms fade duration
         this.previousColorScheme = null;
 
-        // Subtle dark color schemes for each slide
+        // Subtle dark color schemes for each slide (6 slides now)
         this.colorSchemes = [
+            // Slide 0 - Sign In (Dark blue accent)
+            [
+                [15, 20, 35], // Dark blue
+                [10, 15, 30], // Darker blue
+                [20, 25, 40], // Slightly lighter
+                [5, 10, 25], // Very dark blue
+                [25, 30, 45], // Muted blue
+                [5, 5, 15], // Almost black
+            ],
             // Slide 1 - Welcome (Very dark purple/gray)
             [
                 [25, 25, 35], // Dark gray-purple
@@ -414,7 +605,12 @@ export class OnboardingView extends LitElement {
     }
 
     nextSlide() {
-        if (this.currentSlide < 4) {
+        // Slide 0 is sign-in, don't auto-advance from it
+        if (this.currentSlide === 0) {
+            // Skip not allowed for sign-in unless explicitly clicked
+            return;
+        }
+        if (this.currentSlide < 5) {
             this.startColorTransition(this.currentSlide + 1);
         } else {
             this.completeOnboarding();
@@ -470,8 +666,98 @@ export class OnboardingView extends LitElement {
         this.onComplete();
     }
 
+    // Auth handlers
+    handleEmailInput(e) {
+        this.authEmail = e.target.value;
+    }
+
+    handlePasswordInput(e) {
+        this.authPassword = e.target.value;
+    }
+
+    async handleGoogleSignIn() {
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            this.authLoading = true;
+            this.authError = '';
+            try {
+                await ipcRenderer.invoke('auth:open-signin');
+                // Auth will complete via IPC callback
+            } catch (error) {
+                this.authError = 'Failed to open sign-in. Please try again.';
+                this.authLoading = false;
+            }
+        }
+    }
+
+    async handleEmailSignIn() {
+        // Email/password also uses browser flow
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            this.authLoading = true;
+            this.authError = '';
+            try {
+                await ipcRenderer.invoke('auth:open-signin');
+            } catch (error) {
+                this.authError = 'Failed to open sign-in. Please try again.';
+                this.authLoading = false;
+            }
+        }
+    }
+
+    handleSignUp() {
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.invoke('auth:open-signup');
+        }
+    }
+
+    handleSkipAuth() {
+        // Skip auth and go to welcome slide
+        this.startColorTransition(1);
+    }
+
+    openExternal(url) {
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.invoke('open-external', url);
+        }
+    }
+
+    // Listen for auth complete from main process
+    firstUpdated() {
+        this.canvas = this.shadowRoot.querySelector('.gradient-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.resizeCanvas();
+        this.startGradientAnimation();
+
+        window.addEventListener('resize', () => this.resizeCanvas());
+
+        // Listen for auth callback
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.on('auth-complete', (event, data) => {
+                this.authLoading = false;
+                if (data.success) {
+                    // Move to welcome slide on successful auth
+                    this.startColorTransition(1);
+                } else {
+                    this.authError = data.error || 'Authentication failed.';
+                }
+                this.requestUpdate();
+            });
+        }
+    }
+
     getSlideContent() {
         const slides = [
+            {
+                // Auth slide has its own logo/title - hide default ones
+                icon: null,
+                title: '',
+                content: '',
+                showAuth: true,
+            },
             {
                 icon: 'assets/onboarding/welcome.svg',
                 title: 'Welcome to Co-Interview',
@@ -518,9 +804,9 @@ export class OnboardingView extends LitElement {
                 <canvas class="gradient-canvas"></canvas>
 
                 <div class="content-wrapper">
-                    <img class="slide-icon" src="${slide.icon}" alt="${slide.title} icon" />
-                    <div class="slide-title">${slide.title}</div>
-                    <div class="slide-content">${slide.content}</div>
+                    ${slide.icon ? html`<img class="slide-icon" src="${slide.icon}" alt="${slide.title} icon" />` : ''}
+                    ${slide.title ? html`<div class="slide-title">${slide.title}</div>` : ''}
+                    ${slide.content ? html`<div class="slide-content">${slide.content}</div>` : ''}
 
                     ${slide.showTextarea
                 ? html`
@@ -550,6 +836,64 @@ export class OnboardingView extends LitElement {
                               </div>
                           `
                 : ''}
+                    ${slide.showAuth
+                ? html`
+                              <div class="auth-container">
+                                  <!-- Logo -->
+                                  <div class="auth-logo">
+                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                          <path d="M12 3L20 7.5V16.5L12 21L4 16.5V7.5L12 3Z"/>
+                                          <path d="M12 12L20 7.5"/>
+                                          <path d="M12 12V21"/>
+                                          <path d="M12 12L4 7.5"/>
+                                      </svg>
+                                  </div>
+                                  
+                                  <!-- Title -->
+                                  <div class="auth-title">Welcome to Co-Interview</div>
+                                  <div class="auth-subtitle">Your AI assistant for productivity</div>
+                                  
+                                  ${this.authError ? html`<div class="auth-error">${this.authError}</div>` : ''}
+                                  
+                                  <!-- Buttons -->
+                                  <div class="auth-buttons">
+                                      <button class="google-btn" @click=${this.handleGoogleSignIn} ?disabled=${this.authLoading}>
+                                          <svg viewBox="0 0 24 24">
+                                              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                          </svg>
+                                          ${this.authLoading ? 'Opening browser...' : 'Continue with Google'}
+                                      </button>
+                                      <button class="email-btn" @click=${this.handleEmailSignIn}>
+                                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                              <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                              <path d="M22 6L12 13L2 6"/>
+                                          </svg>
+                                          Log in with email & password
+                                      </button>
+                                  </div>
+                                  
+                                  <!-- Links -->
+                                  <div class="auth-links">
+                                      <button class="auth-link" @click=${this.handleSignUp}>
+                                          New to Co-Interview? Learn more
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                              <path d="M7 17L17 7"/>
+                                              <path d="M7 7H17V17"/>
+                                          </svg>
+                                      </button>
+                                  </div>
+                                  
+                                  <!-- Legal -->
+                                  <div class="auth-legal">
+                                      By signing in, you agree to our <a href="#" @click=${(e) => { e.preventDefault(); this.openExternal('https://co-interview.com/policies/terms'); }}>Terms of Service</a> 
+                                      and <a href="#" @click=${(e) => { e.preventDefault(); this.openExternal('https://co-interview.com/policies/privacy'); }}>Privacy Policy</a>
+                                  </div>
+                              </div>
+                          `
+                : ''}
                 </div>
 
                 <div class="navigation">
@@ -560,12 +904,12 @@ export class OnboardingView extends LitElement {
                     </button>
 
                     <div class="progress-dots">
-                        ${[0, 1, 2, 3, 4].map(
+                        ${[0, 1, 2, 3, 4, 5].map(
                     index => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
-                            if (index !== this.currentSlide) {
+                            if (index !== this.currentSlide && index !== 0) {
                                 this.startColorTransition(index);
                             }
                         }}
@@ -574,10 +918,12 @@ export class OnboardingView extends LitElement {
                 )}
                     </div>
 
-                    <button class="nav-button" @click=${this.nextSlide}>
-                        ${this.currentSlide === 4
+                    <button class="nav-button" @click=${() => this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide()}>
+                        ${this.currentSlide === 5
                 ? 'Get Started'
-                : html`
+                : this.currentSlide === 0
+                    ? 'Skip'
+                    : html`
                                   <svg width="16px" height="16px" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                       <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
                                   </svg>
