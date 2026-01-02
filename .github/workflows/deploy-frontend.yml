@@ -3,7 +3,7 @@ name: Deploy Frontend to Firebase Hosting
 on:
   push:
     branches:
-      - main
+      - '**'
     paths:
       - 'frontend/**'
   workflow_dispatch:  # Allow manual trigger
