@@ -1,5 +1,19 @@
 import { html, css, LitElement } from '../../assets/lit-core-2.7.4.min.js';
 
+// Import analytics for tracking
+let trackEvent = () => { };
+if (typeof window !== 'undefined' && window.require) {
+    try {
+        const path = window.require('path');
+        const { app } = window.require('@electron/remote');
+        const analyticsPath = path.join(app.getAppPath(), 'src', 'utils', 'analytics.js');
+        const analytics = window.require(analyticsPath);
+        trackEvent = analytics.trackEvent;
+    } catch (error) {
+        console.warn('[OnboardingView] Analytics not available:', error);
+    }
+}
+
 export class OnboardingView extends LitElement {
     static styles = css`
         * {
@@ -142,6 +156,86 @@ export class OnboardingView extends LitElement {
             outline: none;
             border-color: rgba(255, 255, 255, 0.2);
             background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Tailor dropdowns */
+        .tailor-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(-10px);
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        .form-group:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .form-group:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .form-group:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #e5e5e5;
+            text-align: left;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(60, 60, 60, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #e5e5e5;
+            font-size: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .form-select:hover {
+            background: rgba(70, 70, 70, 0.7);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .form-select:focus {
+            outline: none;
+            background: rgba(70, 70, 70, 0.8);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .form-select option {
+            background: #2a2a2a;
+            color: #e5e5e5;
+            padding: 8px;
         }
 
         .feature-list {
@@ -426,19 +520,27 @@ export class OnboardingView extends LitElement {
         authPassword: { type: String },
         authLoading: { type: Boolean },
         authError: { type: String },
+        // Tailor properties
+        outputLanguage: { type: String },
+        programmingLanguage: { type: String },
+        audioLanguage: { type: String },
     };
 
     constructor() {
         super();
         this.currentSlide = 0;
         this.contextText = '';
-        this.onComplete = () => {};
-        this.onClose = () => {};
+        this.onComplete = () => { };
+        this.onClose = () => { };
         // Auth state
         this.authEmail = '';
         this.authPassword = '';
         this.authLoading = false;
         this.authError = '';
+        // Tailor preferences
+        this.outputLanguage = 'English';
+        this.programmingLanguage = 'Python';
+        this.audioLanguage = 'en';
         this.canvas = null;
         this.ctx = null;
         this.animationId = null;
@@ -449,7 +551,7 @@ export class OnboardingView extends LitElement {
         this.transitionDuration = 800; // 800ms fade duration
         this.previousColorScheme = null;
 
-        // Subtle dark color schemes for each slide (6 slides now)
+        // Subtle dark color schemes for each slide (7 slides now)
         this.colorSchemes = [
             // Slide 0 - Sign In (Dark blue accent)
             [
@@ -478,7 +580,16 @@ export class OnboardingView extends LitElement {
                 [30, 35, 45], // Muted blue
                 [5, 10, 20], // Almost black
             ],
-            // Slide 3 - Context (Dark neutral)
+            // Slide 3 - Tailor Your Co-Interviewer (Dark purple accent)
+            [
+                [30, 20, 35], // Dark purple
+                [25, 15, 30], // Darker purple
+                [35, 25, 40], // Slightly purple
+                [20, 10, 25], // Very dark purple
+                [40, 30, 45], // Muted purple
+                [15, 5, 20], // Almost black
+            ],
+            // Slide 4 - Context (Dark neutral)
             [
                 [25, 25, 25], // Neutral dark
                 [20, 20, 20], // Darker neutral
@@ -487,7 +598,7 @@ export class OnboardingView extends LitElement {
                 [35, 35, 35], // Lighter dark
                 [10, 10, 10], // Almost black
             ],
-            // Slide 4 - Features (Dark green-gray)
+            // Slide 5 - Features (Dark green-gray)
             [
                 [20, 30, 25], // Dark green-gray
                 [15, 25, 20], // Darker green-gray
@@ -496,7 +607,7 @@ export class OnboardingView extends LitElement {
                 [30, 40, 35], // Muted green
                 [5, 15, 10], // Almost black
             ],
-            // Slide 5 - Complete (Dark warm gray)
+            // Slide 6 - Complete (Dark warm gray)
             [
                 [30, 25, 20], // Dark warm gray
                 [25, 20, 15], // Darker warm
@@ -618,7 +729,7 @@ export class OnboardingView extends LitElement {
             // Skip not allowed for sign-in unless explicitly clicked
             return;
         }
-        if (this.currentSlide < 5) {
+        if (this.currentSlide < 6) {
             this.startColorTransition(this.currentSlide + 1);
         } else {
             this.completeOnboarding();
@@ -633,6 +744,16 @@ export class OnboardingView extends LitElement {
 
     startColorTransition(newSlide) {
         this.previousColorScheme = [...this.colorSchemes[this.currentSlide]];
+
+        // Track slide view
+        const slideNames = ['sign_in', 'welcome', 'privacy', 'tailor', 'context', 'features', 'complete'];
+        if (slideNames[newSlide]) {
+            trackEvent('onboarding_slide_view', {
+                slide_number: newSlide,
+                slide_name: slideNames[newSlide],
+            });
+        }
+
         this.currentSlide = newSlide;
         this.isTransitioning = true;
         this.transitionStartTime = performance.now();
@@ -667,11 +788,46 @@ export class OnboardingView extends LitElement {
     }
 
     async completeOnboarding() {
+        // Save tailor preferences
+        if (this.outputLanguage) {
+            await cheatingDaddy.storage.updatePreference('outputLanguage', this.outputLanguage);
+        }
+        if (this.programmingLanguage) {
+            await cheatingDaddy.storage.updatePreference('programmingLanguage', this.programmingLanguage);
+        }
+        if (this.audioLanguage) {
+            await cheatingDaddy.storage.updatePreference('audioLanguage', this.audioLanguage);
+        }
+
         if (this.contextText.trim()) {
             await cheatingDaddy.storage.updatePreference('customPrompt', this.contextText.trim());
+            trackEvent('onboarding_context_added', {
+                context_length: this.contextText.trim().length,
+            });
         }
         await cheatingDaddy.storage.updateConfig('onboarded', true);
+
+        // Track completion
+        trackEvent('onboarding_completed', {
+            output_language: this.outputLanguage,
+            programming_language: this.programmingLanguage,
+            audio_language: this.audioLanguage,
+        });
+
         this.onComplete();
+    }
+
+    // Tailor form handlers
+    handleOutputLanguageChange(e) {
+        this.outputLanguage = e.target.value;
+    }
+
+    handleProgrammingLanguageChange(e) {
+        this.programmingLanguage = e.target.value;
+    }
+
+    handleAudioLanguageChange(e) {
+        this.audioLanguage = e.target.value;
     }
 
     // Auth handlers
@@ -687,6 +843,10 @@ export class OnboardingView extends LitElement {
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
             this.authError = '';
+
+            // Track Google sign-in attempt
+            trackEvent('onboarding_auth_google');
+
             // Do not set authLoading = true to avoid locking UI
             try {
                 // Call new Google Auth handler (Server-Side Flow)
@@ -702,6 +862,10 @@ export class OnboardingView extends LitElement {
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
             this.authError = '';
+
+            // Track email sign-in attempt
+            trackEvent('onboarding_auth_email');
+
             try {
                 // Call new Login Page handler (Email/Password Flow)
                 await ipcRenderer.invoke('auth:open-login');
@@ -719,6 +883,9 @@ export class OnboardingView extends LitElement {
     }
 
     handleSkipAuth() {
+        // Track skip auth
+        trackEvent('onboarding_auth_skip');
+
         // Skip auth and go to welcome slide
         this.startColorTransition(1);
     }
@@ -792,6 +959,12 @@ export class OnboardingView extends LitElement {
                 content: 'Invisible to screen sharing apps and recording software. Your secret advantage stays completely hidden from others.',
             },
             {
+                icon: 'assets/onboarding/customize.svg',
+                title: 'Tailor Your Co-Interviewer',
+                content: 'Help your AI assistant provide better support by sharing information that matters to you.',
+                showSuggestions: true,
+            },
+            {
                 icon: 'assets/onboarding/context.svg',
                 title: 'Add Your Context',
                 content: 'Share relevant information to help the AI provide better, more personalized assistance.',
@@ -831,8 +1004,26 @@ export class OnboardingView extends LitElement {
                     ${slide.icon ? html`<img class="slide-icon" src="${slide.icon}" alt="${slide.title} icon" />` : ''}
                     ${slide.title ? html`<div class="slide-title">${slide.title}</div>` : ''}
                     ${slide.content ? html`<div class="slide-content">${slide.content}</div>` : ''}
+                    ${slide.showSuggestions
+                ? html`
+                              <div class="context-suggestions">
+                                  <div class="suggestion-item">
+                                      <span class="suggestion-icon">📝</span>
+                                      <span class="suggestion-text">Your resume or professional background</span>
+                                  </div>
+                                  <div class="suggestion-item">
+                                      <span class="suggestion-icon">🎯</span>
+                                      <span class="suggestion-text">Job descriptions you're interviewing for</span>
+                                  </div>
+                                  <div class="suggestion-item">
+                                      <span class="suggestion-icon">💼</span>
+                                      <span class="suggestion-text">Specific topics or areas where you need help</span>
+                                  </div>
+                              </div>
+                          `
+                : ''}
                     ${slide.showTextarea
-                        ? html`
+                ? html`
                               <textarea
                                   class="context-textarea"
                                   placeholder="Paste your resume, job description, or any relevant context here..."
@@ -840,9 +1031,9 @@ export class OnboardingView extends LitElement {
                                   @input=${this.handleContextInput}
                               ></textarea>
                           `
-                        : ''}
+                : ''}
                     ${slide.showFeatures
-                        ? html`
+                ? html`
                               <div class="feature-list">
                                   <div class="feature-item">
                                       <span class="feature-icon">-</span>
@@ -858,9 +1049,9 @@ export class OnboardingView extends LitElement {
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                     ${slide.showAuth
-                        ? html`
+                ? html`
                               <div class="auth-container">
                                   <!-- Logo -->
                                   <div class="auth-logo">
@@ -927,24 +1118,24 @@ export class OnboardingView extends LitElement {
                                       <a
                                           href="#"
                                           @click=${e => {
-                                              e.preventDefault();
-                                              this.openExternal('https://co-interview.com/policies/terms');
-                                          }}
+                        e.preventDefault();
+                        this.openExternal('https://co-interview.com/policies/terms');
+                    }}
                                           >Terms of Service</a
                                       >
                                       and
                                       <a
                                           href="#"
                                           @click=${e => {
-                                              e.preventDefault();
-                                              this.openExternal('https://co-interview.com/policies/privacy');
-                                          }}
+                        e.preventDefault();
+                        this.openExternal('https://co-interview.com/policies/privacy');
+                    }}
                                           >Privacy Policy</a
                                       >
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                 </div>
 
                 <div class="navigation">
@@ -955,26 +1146,26 @@ export class OnboardingView extends LitElement {
                     </button>
 
                     <div class="progress-dots">
-                        ${[0, 1, 2, 3, 4, 5].map(
-                            index => html`
+                        ${[0, 1, 2, 3, 4, 5, 6].map(
+                    index => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
-                                        if (index !== this.currentSlide && index !== 0) {
-                                            this.startColorTransition(index);
-                                        }
-                                    }}
+                            if (index !== this.currentSlide && index !== 0) {
+                                this.startColorTransition(index);
+                            }
+                        }}
                                 ></div>
                             `
-                        )}
+                )}
                     </div>
 
                     <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
-                        ${this.currentSlide === 5
-                            ? 'Get Started'
-                            : this.currentSlide === 0
-                              ? 'Skip'
-                              : html`
+                        ${this.currentSlide === 6
+                ? 'Get Started'
+                : this.currentSlide === 0
+                    ? 'Skip'
+                    : html`
                                     <svg
                                         width="16px"
                                         height="16px"

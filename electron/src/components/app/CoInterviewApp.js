@@ -7,6 +7,20 @@ import { HistoryView } from '../views/HistoryView.js';
 import { AssistantView } from '../views/AssistantView.js';
 import { OnboardingView } from '../views/OnboardingView.js';
 
+// Import analytics for tracking
+let trackEvent = () => {};
+if (typeof window !== 'undefined' && window.require) {
+    try {
+        const path = window.require('path');
+        const { app } = window.require('@electron/remote');
+        const analyticsPath = path.join(app.getAppPath(), 'src', 'utils', 'analytics.js');
+        const analytics = window.require(analyticsPath);
+        trackEvent = analytics.trackEvent;
+    } catch (error) {
+        console.warn('[CoInterviewApp] Analytics not available:', error);
+    }
+}
+
 export class CoInterviewApp extends LitElement {
     static styles = css`
         * {
@@ -163,6 +177,12 @@ export class CoInterviewApp extends LitElement {
             this._storageLoaded = true;
             this.updateLayoutMode();
             this.requestUpdate();
+
+            // Track app launch
+            trackEvent('app_launched', {
+                initial_view: this.currentView,
+                layout_mode: this.layoutMode,
+            });
         } catch (error) {
             console.error('Error loading from storage:', error);
             this._storageLoaded = true;

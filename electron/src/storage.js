@@ -21,6 +21,7 @@ const DEFAULT_AUTH = {
     displayName: null,
     photoURL: null,
     idToken: null,
+    refreshToken: null,
     plan: 'free',
     status: 'active',
     quotaRemainingSeconds: null,

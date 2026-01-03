@@ -33,7 +33,56 @@ app.whenReady().then(async () => {
     setupStorageIpcHandlers();
     setupGeneralIpcHandlers();
     setupAuthIpcHandlers();
+
+    // Try to refresh token on startup
+    refreshAuthToken();
 });
+
+// Refresh ID token using the stored refresh token
+async function refreshAuthToken() {
+    try {
+        const authData = storage.getAuthData();
+        if (!authData.isLoggedIn || !authData.refreshToken) {
+            console.log('No refresh token found or not logged in');
+            return;
+        }
+
+        console.log('Attempting to refresh auth token...');
+        const apiKey = require('./utils/firebase').firebaseConfig.apiKey;
+        const response = await fetch(`https://securetoken.googleapis.com/v1/token?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `grant_type=refresh_token&refresh_token=${authData.refreshToken}`,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.id_token) {
+            console.log('Token refresh successful');
+
+            // Update storage with new tokens
+            // Note: securetoken API returns 'refresh_token' to be used for next request
+            const updatedAuth = {
+                ...authData,
+                idToken: data.id_token,
+                refreshToken: data.refresh_token || authData.refreshToken,
+            };
+            storage.setAuthData(updatedAuth);
+            console.log('Auth data updated with fresh token');
+        } else {
+            console.error('Token refresh failed:', data.error);
+            // If refresh fails (e.g. token revoked), we might want to logout
+            // but let's be conservative and just log it for now.
+            // if (data.error && (data.error.message === 'TOKEN_EXPIRED' || data.error.message === 'INVALID_REFRESH_TOKEN')) {
+            //    storage.clearAuthData();
+            // }
+        }
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+    }
+}
 
 // Handle protocol URL on macOS
 app.on('open-url', (event, url) => {
@@ -192,8 +241,9 @@ async function handleAuthCallback(url) {
                         status: entitlements?.status || 'active',
                         quotaRemainingSeconds: entitlements?.quota_remaining_seconds || null,
                         features: entitlements?.features || [],
+                        refreshToken: user.refreshToken,
                     };
-                    console.log('Storing auth data:', { ...authData, idToken: '***' });
+                    console.log('Storing auth data:', { ...authData, idToken: '***', refreshToken: '***' });
                     storage.setAuthData(authData);
 
                     // Notify renderer
