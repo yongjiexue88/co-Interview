@@ -63,7 +63,6 @@ if (!gotTheLock) {
 // Open Google Sign In (Server-Side Flow)
 ipcMain.handle('auth:open-google', async () => {
     try {
-        // Use local backend in dev, prod backend in build
         const authUrl = app.isPackaged
             ? 'https://co-interview.com/api/v1/auth/google'
             : 'http://localhost:8080/api/v1/auth/google';
