@@ -239,7 +239,15 @@ router.get('/google/callback', async (req, res, next) => {
             message: error.message,
             configuredRedirectUri: process.env.GOOGLE_REDIRECT_URI,
             clientIdPrefix: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.substring(0, 15) + '...' : 'undefined',
-            env: process.env.NODE_ENV
+            env: process.env.NODE_ENV,
+            // Secret Diagnostics
+            secretLen: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.length : 0,
+            secretHasWhitespace: process.env.GOOGLE_CLIENT_SECRET ? /\s/.test(process.env.GOOGLE_CLIENT_SECRET) : false,
+            secretStart: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.substring(0, 3) : 'N/A',
+            secretEnd: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.substring(process.env.GOOGLE_CLIENT_SECRET.length - 3) : 'N/A',
+            // Code Diagnostics
+            codeLen: req.query.code ? req.query.code.length : 0,
+            codePrefix: req.query.code ? req.query.code.substring(0, 10) + '...' : 'undefined'
         };
         console.error('Debug Info:', debugInfo);
 
@@ -248,7 +256,7 @@ router.get('/google/callback', async (req, res, next) => {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login Failed</title>
+    <title>Login Failed - Debug Mode</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -260,22 +268,26 @@ router.get('/google/callback', async (req, res, next) => {
             height: 100vh;
             margin: 0;
         }
-        .container { text-align: center; padding: 40px; max-width: 600px; }
+        .container { text-align: center; padding: 40px; max-width: 700px; }
         h1 { color: #ef4444; }
         p { color: #9ca3af; }
         a { color: #FACC15; }
         .debug { 
             text-align: left; 
             background: #202020; 
-            padding: 15px; 
+            padding: 20px; 
             border-radius: 8px; 
             margin-top: 20px; 
             font-family: monospace; 
-            font-size: 12px;
+            font-size: 13px;
             overflow-x: auto;
             border: 1px solid #333;
             color: #d1d5db;
+            line-height: 1.6;
         }
+        .warning { color: #f59e0b; font-weight: bold; }
+        .good { color: #10b981; }
+        .bad { color: #ef4444; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -284,14 +296,27 @@ router.get('/google/callback', async (req, res, next) => {
         <p>${error.message}</p>
         
         <div class="debug">
-            <strong>Debug Configuration:</strong><br/>
-            GOOGLE_REDIRECT_URI: <strong>${debugInfo.configuredRedirectUri}</strong><br/>
-            NODE_ENV: ${debugInfo.env}<br/>
-            CLIENT_ID_PREFIX: ${debugInfo.clientIdPrefix}<br/>
+            <strong>Configuration Diagnostics:</strong><hr style="border-color: #444;"/>
+            
+            <strong>Redirect URI:</strong> ${debugInfo.configuredRedirectUri}<br/>
+            <strong>Environment:</strong> ${debugInfo.env}<br/>
+            <strong>Client ID:</strong> ${debugInfo.clientIdPrefix}<br/>
+            <br/>
+            
+            <strong>Secret Health Check:</strong><br/>
+            &bull; Length: ${debugInfo.secretLen} chars <span class="${debugInfo.secretLen > 20 ? 'good' : 'bad'}">(${debugInfo.secretLen > 20 ? 'OK' : 'Suspicious'})</span><br/>
+            &bull; Whitespace Check: <span class="${debugInfo.secretHasWhitespace ? 'bad' : 'good'}">${debugInfo.secretHasWhitespace ? 'WARNING: Contains Whitespace!' : 'Pass'}</span><br/>
+            &bull; Start/End: <code>${debugInfo.secretStart} ... ${debugInfo.secretEnd}</code><br/>
+            <br/>
+
+            <strong>Auth Code:</strong><br/>
+            &bull; Received Length: ${debugInfo.codeLen}<br/>
+            &bull; Prefix: ${debugInfo.codePrefix}<br/>
+
             <br/>
             <details>
-                <summary>Full Error</summary>
-                <pre>${error.stack}</pre>
+                <summary>Full Error Stack</summary>
+                <pre style="margin-top: 10px; font-size: 11px;">${error.stack}</pre>
             </details>
         </div>
 
