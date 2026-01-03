@@ -5,7 +5,11 @@ if (require('electron-squirrel-startup')) {
 const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const { createWindow, updateGlobalShortcuts } = require('./utils/window');
 const { setupGeminiIpcHandlers, stopMacOSAudioCapture, sendToRenderer } = require('./utils/gemini');
+
 const storage = require('./storage');
+
+// Initialize @electron/remote
+require('@electron/remote/main').initialize();
 
 const geminiSessionRef = { current: null };
 let mainWindow = null;

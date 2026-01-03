@@ -1,7 +1,7 @@
 import { html, css, LitElement } from '../../assets/lit-core-2.7.4.min.js';
 
 // Import analytics for tracking
-let trackEvent = () => { };
+let trackEvent = () => {};
 if (typeof window !== 'undefined' && window.require) {
     try {
         const path = window.require('path');
@@ -530,8 +530,8 @@ export class OnboardingView extends LitElement {
         super();
         this.currentSlide = 0;
         this.contextText = '';
-        this.onComplete = () => { };
-        this.onClose = () => { };
+        this.onComplete = () => {};
+        this.onClose = () => {};
         // Auth state
         this.authEmail = '';
         this.authPassword = '';
@@ -909,12 +909,13 @@ export class OnboardingView extends LitElement {
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
 
-            // Check if already logged in
+            // Removed auto-skip logic to ensure user always sees the login screen first
+            // If they are already logged in, they can click "Skip" or "Continue" manually if we add that logic
+
+            // Check if already logged in (for console context only)
             ipcRenderer.invoke('auth:is-logged-in').then(result => {
                 if (result && result.success && result.data === true) {
-                    console.log('OnboardingView: User already logged in, skipping sign-in slide');
-                    // Skip to welcome slide
-                    this.startColorTransition(1);
+                    console.log('OnboardingView: User already logged in, but showing sign-in slide as requested');
                 }
             });
 
@@ -938,6 +939,20 @@ export class OnboardingView extends LitElement {
         }
     }
 
+    // Helper to get absolute asset path for packaged app
+    getAssetPath(relativePath) {
+        if (window.require) {
+            try {
+                const path = window.require('path');
+                const { app } = window.require('@electron/remote');
+                return path.join(app.getAppPath(), 'src', relativePath);
+            } catch (e) {
+                console.warn('Failed to get asset path:', e);
+            }
+        }
+        return relativePath;
+    }
+
     getSlideContent() {
         const slides = [
             {
@@ -948,36 +963,36 @@ export class OnboardingView extends LitElement {
                 showAuth: true,
             },
             {
-                icon: 'assets/onboarding/welcome.svg',
+                icon: this.getAssetPath('assets/onboarding/welcome.svg'),
                 title: 'Welcome to Co-Interview',
                 content:
                     'Your AI assistant that listens and watches, then provides intelligent suggestions automatically during interviews and meetings.',
             },
             {
-                icon: 'assets/onboarding/security.svg',
+                icon: this.getAssetPath('assets/onboarding/security.svg'),
                 title: 'Completely Private',
                 content: 'Invisible to screen sharing apps and recording software. Your secret advantage stays completely hidden from others.',
             },
             {
-                icon: 'assets/onboarding/customize.svg',
+                icon: this.getAssetPath('assets/onboarding/customize.svg'),
                 title: 'Tailor Your Co-Interviewer',
                 content: 'Help your AI assistant provide better support by sharing information that matters to you.',
                 showSuggestions: true,
             },
             {
-                icon: 'assets/onboarding/context.svg',
+                icon: this.getAssetPath('assets/onboarding/context.svg'),
                 title: 'Add Your Context',
                 content: 'Share relevant information to help the AI provide better, more personalized assistance.',
                 showTextarea: true,
             },
             {
-                icon: 'assets/onboarding/customize.svg',
+                icon: this.getAssetPath('assets/onboarding/customize.svg'),
                 title: 'Additional Features',
                 content: '',
                 showFeatures: true,
             },
             {
-                icon: 'assets/onboarding/ready.svg',
+                icon: this.getAssetPath('assets/onboarding/ready.svg'),
                 title: 'Ready to Go',
                 content: 'Add your Gemini API key in settings and start getting AI-powered assistance in real-time.',
             },
@@ -1005,25 +1020,80 @@ export class OnboardingView extends LitElement {
                     ${slide.title ? html`<div class="slide-title">${slide.title}</div>` : ''}
                     ${slide.content ? html`<div class="slide-content">${slide.content}</div>` : ''}
                     ${slide.showSuggestions
-                ? html`
-                              <div class="context-suggestions">
-                                  <div class="suggestion-item">
-                                      <span class="suggestion-icon">📝</span>
-                                      <span class="suggestion-text">Your resume or professional background</span>
+                        ? html`
+                              <div class="tailor-form">
+                                  <div class="form-group">
+                                      <label class="form-label">Output language</label>
+                                      <select class="form-select" .value=${this.outputLanguage} @change=${this.handleOutputLanguageChange}>
+                                          <option value="English">English</option>
+                                          <option value="Arabic">Arabic (العربية)</option>
+                                          <option value="Bengali">Bengali (বাংলা)</option>
+                                          <option value="Cantonese">Cantonese (粵語)</option>
+                                          <option value="German">German (Deutsch)</option>
+                                          <option value="Farsi">Farsi (فارسی)</option>
+                                          <option value="French">French (Français)</option>
+                                          <option value="Hindi">Hindi (हिंदी)</option>
+                                          <option value="Italian">Italian (Italiano)</option>
+                                          <option value="Japanese">Japanese (日本語)</option>
+                                          <option value="Korean">Korean (한국어)</option>
+                                          <option value="Mandarin">Mandarin (普通话)</option>
+                                          <option value="Dutch">Dutch (Nederlands)</option>
+                                          <option value="Polish">Polish (Polski)</option>
+                                          <option value="Portuguese">Portuguese (Português)</option>
+                                          <option value="Russian">Russian (Русский)</option>
+                                          <option value="Spanish">Spanish (Español)</option>
+                                          <option value="Tamil">Tamil (தமிழ்)</option>
+                                          <option value="Thai">Thai (ไทย)</option>
+                                          <option value="Turkish">Turkish (Türkçe)</option>
+                                          <option value="Urdu">Urdu (اردو)</option>
+                                          <option value="Vietnamese">Vietnamese (Tiếng Việt)</option>
+                                      </select>
                                   </div>
-                                  <div class="suggestion-item">
-                                      <span class="suggestion-icon">🎯</span>
-                                      <span class="suggestion-text">Job descriptions you're interviewing for</span>
+
+                                  <div class="form-group">
+                                      <label class="form-label">Programming language</label>
+                                      <select class="form-select" .value=${this.programmingLanguage} @change=${this.handleProgrammingLanguageChange}>
+                                          <option value="Python">Python</option>
+                                          <option value="JavaScript">JavaScript</option>
+                                          <option value="TypeScript">TypeScript</option>
+                                          <option value="Java">Java</option>
+                                          <option value="PHP">PHP</option>
+                                          <option value="Golang">Golang</option>
+                                          <option value="R">R</option>
+                                          <option value="Ruby">Ruby</option>
+                                          <option value="C">C</option>
+                                          <option value="C++">C++</option>
+                                          <option value="C#">C#</option>
+                                          <option value="Rust">Rust</option>
+                                          <option value="Kotlin">Kotlin</option>
+                                          <option value="Swift">Swift</option>
+                                          <option value="Dart">Dart</option>
+                                          <option value="SQL">SQL</option>
+                                      </select>
                                   </div>
-                                  <div class="suggestion-item">
-                                      <span class="suggestion-icon">💼</span>
-                                      <span class="suggestion-text">Specific topics or areas where you need help</span>
+
+                                  <div class="form-group">
+                                      <label class="form-label">Meeting audio language</label>
+                                      <select class="form-select" .value=${this.audioLanguage} @change=${this.handleAudioLanguageChange}>
+                                          <option value="zh-HK">Chinese (Cantonese) (繁體中文)</option>
+                                          <option value="zh-CN">Chinese (Mandarin) (简体中文)</option>
+                                          <option value="en">English (recommended)</option>
+                                          <option value="fr">French (Français)</option>
+                                          <option value="de">German (Deutsch)</option>
+                                          <option value="hi">Hindi (हिंदी)</option>
+                                          <option value="it">Italian (Italiano)</option>
+                                          <option value="ja">Japanese (日本語)</option>
+                                          <option value="pt">Portuguese (Português)</option>
+                                          <option value="ru">Russian (Русский)</option>
+                                          <option value="es">Spanish (Español)</option>
+                                          <option value="auto">Auto-detect language</option>
+                                      </select>
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                     ${slide.showTextarea
-                ? html`
+                        ? html`
                               <textarea
                                   class="context-textarea"
                                   placeholder="Paste your resume, job description, or any relevant context here..."
@@ -1031,9 +1101,9 @@ export class OnboardingView extends LitElement {
                                   @input=${this.handleContextInput}
                               ></textarea>
                           `
-                : ''}
+                        : ''}
                     ${slide.showFeatures
-                ? html`
+                        ? html`
                               <div class="feature-list">
                                   <div class="feature-item">
                                       <span class="feature-icon">-</span>
@@ -1049,9 +1119,9 @@ export class OnboardingView extends LitElement {
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                     ${slide.showAuth
-                ? html`
+                        ? html`
                               <div class="auth-container">
                                   <!-- Logo -->
                                   <div class="auth-logo">
@@ -1118,24 +1188,24 @@ export class OnboardingView extends LitElement {
                                       <a
                                           href="#"
                                           @click=${e => {
-                        e.preventDefault();
-                        this.openExternal('https://co-interview.com/policies/terms');
-                    }}
+                                              e.preventDefault();
+                                              this.openExternal('https://co-interview.com/policies/terms');
+                                          }}
                                           >Terms of Service</a
                                       >
                                       and
                                       <a
                                           href="#"
                                           @click=${e => {
-                        e.preventDefault();
-                        this.openExternal('https://co-interview.com/policies/privacy');
-                    }}
+                                              e.preventDefault();
+                                              this.openExternal('https://co-interview.com/policies/privacy');
+                                          }}
                                           >Privacy Policy</a
                                       >
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                 </div>
 
                 <div class="navigation">
@@ -1147,25 +1217,25 @@ export class OnboardingView extends LitElement {
 
                     <div class="progress-dots">
                         ${[0, 1, 2, 3, 4, 5, 6].map(
-                    index => html`
+                            index => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
-                            if (index !== this.currentSlide && index !== 0) {
-                                this.startColorTransition(index);
-                            }
-                        }}
+                                        if (index !== this.currentSlide && index !== 0) {
+                                            this.startColorTransition(index);
+                                        }
+                                    }}
                                 ></div>
                             `
-                )}
+                        )}
                     </div>
 
                     <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
                         ${this.currentSlide === 6
-                ? 'Get Started'
-                : this.currentSlide === 0
-                    ? 'Skip'
-                    : html`
+                            ? 'Get Started'
+                            : this.currentSlide === 0
+                              ? 'Skip'
+                              : html`
                                     <svg
                                         width="16px"
                                         height="16px"

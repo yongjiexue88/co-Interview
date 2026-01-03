@@ -32,6 +32,9 @@ function createWindow(sendToRenderer, geminiSessionRef) {
         backgroundColor: '#00000000',
     });
 
+    // Enable @electron/remote for the renderer
+    require('@electron/remote/main').enable(mainWindow.webContents);
+
     const { session, desktopCapturer } = require('electron');
     session.defaultSession.setDisplayMediaRequestHandler(
         (request, callback) => {
