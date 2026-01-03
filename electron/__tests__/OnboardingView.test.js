@@ -1,9 +1,25 @@
 /**
- * Integration tests for OnboardingView Component
- * These tests verify the logic without importing the actual component
+ * Logic-only tests for OnboardingView behaviors and source smoke checks.
+ * These do not render the component.
  */
+const fs = require('fs');
+const path = require('path');
 
-describe('OnboardingView - Tailor Dropdowns Integration', () => {
+const onboardingViewPath = path.join(__dirname, '..', 'src', 'components', 'views', 'OnboardingView.js');
+const onboardingSource = fs.readFileSync(onboardingViewPath, 'utf8');
+
+describe('OnboardingView source smoke', () => {
+    test('defines the slides array', () => {
+        expect(onboardingSource).toContain('const slides = [');
+        expect(onboardingSource).toContain('return slides[this.currentSlide]');
+    });
+
+    test('registers the custom element', () => {
+        expect(onboardingSource).toContain("customElements.define('onboarding-view'");
+    });
+});
+
+describe('OnboardingView - Tailor Dropdowns Logic', () => {
     // Mock the storage and tracking functions
     let mockStorage;
     let mockTrackEvent;

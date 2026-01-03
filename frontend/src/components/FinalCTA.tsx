@@ -40,6 +40,9 @@ const FinalCTA: React.FC = () => {
                             <a
                                 href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-arm64.dmg?alt=media`}
                                 download
+                                onClick={() =>
+                                    import('../lib/analytics').then(m => m.trackEvent('final_cta_download_click', { platform: 'mac-arm64' }))
+                                }
                                 className="block px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium"
                             >
                                 Get for Mac (Apple Silicon)
@@ -47,6 +50,9 @@ const FinalCTA: React.FC = () => {
                             <a
                                 href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-x64.dmg?alt=media`}
                                 download
+                                onClick={() =>
+                                    import('../lib/analytics').then(m => m.trackEvent('final_cta_download_click', { platform: 'mac-x64' }))
+                                }
                                 className="block px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium border-t border-white/5"
                             >
                                 Get for Mac (Intel)
@@ -57,6 +63,7 @@ const FinalCTA: React.FC = () => {
                     <a
                         href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fwindows.zip?alt=media`}
                         download
+                        onClick={() => import('../lib/analytics').then(m => m.trackEvent('final_cta_download_click', { platform: 'windows' }))}
                         className="group flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40"
                     >
                         <WindowsIcon />

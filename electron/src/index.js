@@ -8,9 +8,6 @@ const { setupGeminiIpcHandlers, stopMacOSAudioCapture, sendToRenderer } = requir
 
 const storage = require('./storage');
 
-// Initialize @electron/remote
-require('@electron/remote/main').initialize();
-
 const geminiSessionRef = { current: null };
 let mainWindow = null;
 

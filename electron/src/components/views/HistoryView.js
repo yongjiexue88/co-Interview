@@ -377,10 +377,17 @@ export class HistoryView extends LitElement {
         resizeLayout();
     }
 
+    async loadLimits() {
+        if (window.coInterview?.storage?.getTodayLimits) {
+            const limits = await window.coInterview.storage.getTodayLimits();
+            this.flashCount = limits.flash?.count || 0;
+        }
+    }
+
     async loadSessions() {
         try {
             this.loading = true;
-            this.sessions = await cheatingDaddy.storage.getAllSessions();
+            this.sessions = await coInterview.storage.getAllSessions();
         } catch (error) {
             console.error('Error loading conversation sessions:', error);
             this.sessions = [];
@@ -392,7 +399,7 @@ export class HistoryView extends LitElement {
 
     async loadSelectedSession(sessionId) {
         try {
-            const session = await cheatingDaddy.storage.getSession(sessionId);
+            const session = await coInterview.storage.getSession(sessionId);
             if (session) {
                 this.selectedSession = session;
                 this.requestUpdate();

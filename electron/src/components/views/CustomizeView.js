@@ -601,7 +601,7 @@ export class CustomizeView extends LitElement {
     }
 
     getThemes() {
-        return cheatingDaddy.theme.getAll();
+        return coInterview.theme.getAll();
     }
 
     setActiveSection(section) {
@@ -748,7 +748,7 @@ export class CustomizeView extends LitElement {
 
     async _loadFromStorage() {
         try {
-            const [prefs, keybinds] = await Promise.all([cheatingDaddy.storage.getPreferences(), cheatingDaddy.storage.getKeybinds()]);
+            const [prefs, keybinds] = await Promise.all([coInterview.storage.getPreferences(), coInterview.storage.getKeybinds()]);
 
             this.googleSearchEnabled = prefs.googleSearchEnabled ?? true;
             this.backgroundTransparency = prefs.backgroundTransparency ?? 0.8;
@@ -878,24 +878,24 @@ export class CustomizeView extends LitElement {
 
     async handleCustomPromptInput(e) {
         this.customPrompt = e.target.value;
-        await cheatingDaddy.storage.updatePreference('customPrompt', e.target.value);
+        await coInterview.storage.updatePreference('customPrompt', e.target.value);
     }
 
     async handleAudioModeSelect(e) {
         this.audioMode = e.target.value;
-        await cheatingDaddy.storage.updatePreference('audioMode', e.target.value);
+        await coInterview.storage.updatePreference('audioMode', e.target.value);
         this.requestUpdate();
     }
 
     async handleThemeChange(e) {
         this.theme = e.target.value;
-        await cheatingDaddy.theme.save(this.theme);
+        await coInterview.theme.save(this.theme);
         this.updateBackgroundAppearance();
         this.requestUpdate();
     }
 
     getDefaultKeybinds() {
-        const isMac = cheatingDaddy.isMacOS || navigator.platform.includes('Mac');
+        const isMac = coInterview.isMacOS || navigator.platform.includes('Mac');
         return {
             moveUp: isMac ? 'Alt+Up' : 'Ctrl+Up',
             moveDown: isMac ? 'Alt+Down' : 'Ctrl+Down',
@@ -912,7 +912,7 @@ export class CustomizeView extends LitElement {
     }
 
     async saveKeybinds() {
-        await cheatingDaddy.storage.setKeybinds(this.keybinds);
+        await coInterview.storage.setKeybinds(this.keybinds);
         // Send to main process to update global shortcuts
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
@@ -928,7 +928,7 @@ export class CustomizeView extends LitElement {
 
     async resetKeybinds() {
         this.keybinds = this.getDefaultKeybinds();
-        await cheatingDaddy.storage.setKeybinds(null);
+        await coInterview.storage.setKeybinds(null);
         this.requestUpdate();
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
@@ -1073,7 +1073,7 @@ export class CustomizeView extends LitElement {
 
     async handleGoogleSearchChange(e) {
         this.googleSearchEnabled = e.target.checked;
-        await cheatingDaddy.storage.updatePreference('googleSearchEnabled', this.googleSearchEnabled);
+        await coInterview.storage.updatePreference('googleSearchEnabled', this.googleSearchEnabled);
 
         // Notify main process if available
         if (window.require) {
@@ -1097,7 +1097,7 @@ export class CustomizeView extends LitElement {
         this.requestUpdate();
 
         try {
-            await cheatingDaddy.storage.clearAll();
+            await coInterview.storage.clearAll();
 
             this.clearStatusMessage = 'Successfully cleared all local data';
             this.clearStatusType = 'success';
@@ -1126,15 +1126,15 @@ export class CustomizeView extends LitElement {
 
     async handleBackgroundTransparencyChange(e) {
         this.backgroundTransparency = parseFloat(e.target.value);
-        await cheatingDaddy.storage.updatePreference('backgroundTransparency', this.backgroundTransparency);
+        await coInterview.storage.updatePreference('backgroundTransparency', this.backgroundTransparency);
         this.updateBackgroundAppearance();
         this.requestUpdate();
     }
 
     updateBackgroundAppearance() {
         // Use theme's background color
-        const colors = cheatingDaddy.theme.get(this.theme);
-        cheatingDaddy.theme.applyBackgrounds(colors.background, this.backgroundTransparency);
+        const colors = coInterview.theme.get(this.theme);
+        coInterview.theme.applyBackgrounds(colors.background, this.backgroundTransparency);
     }
 
     // Keep old function name for backwards compatibility
@@ -1144,7 +1144,7 @@ export class CustomizeView extends LitElement {
 
     async handleFontSizeChange(e) {
         this.fontSize = parseInt(e.target.value, 10);
-        await cheatingDaddy.storage.updatePreference('fontSize', this.fontSize);
+        await coInterview.storage.updatePreference('fontSize', this.fontSize);
         this.updateFontSize();
         this.requestUpdate();
     }

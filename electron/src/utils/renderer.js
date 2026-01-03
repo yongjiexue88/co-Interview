@@ -139,9 +139,9 @@ async function initializeGemini(profile = 'interview', language = 'en-US') {
         const prefs = await storage.getPreferences();
         const success = await ipcRenderer.invoke('initialize-gemini', apiKey, prefs.customPrompt || '', profile, language);
         if (success) {
-            cheatingDaddy.setStatus('Live');
+            coInterview.setStatus('Live');
         } else {
-            cheatingDaddy.setStatus('error');
+            coInterview.setStatus('error');
         }
     }
 }
@@ -149,7 +149,7 @@ async function initializeGemini(profile = 'interview', language = 'en-US') {
 // Listen for status updates
 ipcRenderer.on('update-status', (event, status) => {
     console.log('Status update:', status);
-    cheatingDaddy.setStatus(status);
+    coInterview.setStatus(status);
 });
 
 async function startCapture(screenshotIntervalSeconds = 5, imageQuality = 'medium') {
@@ -318,7 +318,7 @@ async function startCapture(screenshotIntervalSeconds = 5, imageQuality = 'mediu
         console.log('Manual mode enabled - screenshots will be captured on demand only');
     } catch (err) {
         console.error('Error starting capture:', err);
-        cheatingDaddy.setStatus('error');
+        coInterview.setStatus('error');
     }
 }
 
@@ -591,7 +591,7 @@ async function captureManualScreenshot(imageQuality = null) {
                     // Response already displayed via streaming events (new-response/update-response)
                 } else {
                     console.error('Failed to get image response:', result.error);
-                    cheatingDaddy.addNewResponse(`Error: ${result.error}`);
+                    coInterview.addNewResponse(`Error: ${result.error}`);
                 }
             };
             reader.readAsDataURL(blob);
@@ -714,11 +714,11 @@ ipcRenderer.on('clear-sensitive-data', async () => {
 
 // Handle shortcuts based on current view
 function handleShortcut(shortcutKey) {
-    const currentView = cheatingDaddy.getCurrentView();
+    const currentView = coInterview.getCurrentView();
 
     if (shortcutKey === 'ctrl+enter' || shortcutKey === 'cmd+enter') {
         if (currentView === 'main') {
-            cheatingDaddy.element().handleStart();
+            coInterview.element().handleStart();
         } else {
             captureManualScreenshot();
         }
@@ -1001,9 +1001,6 @@ const coInterview = {
 
 // Make it globally available
 window.coInterview = coInterview;
-
-// Keep backwards compatibility
-window.cheatingDaddy = coInterview;
 
 // Load theme after DOM is ready
 if (document.readyState === 'loading') {

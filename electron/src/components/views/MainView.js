@@ -150,7 +150,7 @@ export class MainView extends LitElement {
     }
 
     async _loadApiKey() {
-        this.apiKey = await cheatingDaddy.storage.getApiKey();
+        this.apiKey = await coInterview.storage.getApiKey();
         this.requestUpdate();
     }
 
@@ -186,7 +186,7 @@ export class MainView extends LitElement {
 
     async handleInput(e) {
         this.apiKey = e.target.value;
-        await cheatingDaddy.storage.setApiKey(e.target.value);
+        await coInterview.storage.setApiKey(e.target.value);
         // Clear error state when user starts typing
         if (this.showApiKeyError) {
             this.showApiKeyError = false;

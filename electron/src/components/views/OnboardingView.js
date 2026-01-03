@@ -4,10 +4,9 @@ import { html, css, LitElement } from '../../assets/lit-core-2.7.4.min.js';
 let trackEvent = () => {};
 if (typeof window !== 'undefined' && window.require) {
     try {
-        const path = window.require('path');
-        const { app } = window.require('@electron/remote');
-        const analyticsPath = path.join(app.getAppPath(), 'src', 'utils', 'analytics.js');
-        const analytics = window.require(analyticsPath);
+        const { fileURLToPath } = window.require('url');
+        const analyticsUrl = new URL('../../utils/analytics.js', import.meta.url);
+        const analytics = window.require(fileURLToPath(analyticsUrl));
         trackEvent = analytics.trackEvent;
     } catch (error) {
         console.warn('[OnboardingView] Analytics not available:', error);
@@ -214,21 +213,22 @@ export class OnboardingView extends LitElement {
             cursor: pointer;
             transition: all 0.2s ease;
             appearance: none;
+            -webkit-appearance: none;
             background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
             background-repeat: no-repeat;
-            background-position: right 12px center;
+            background-position: calc(100% - 12px) center;
             background-size: 16px;
             padding-right: 40px;
         }
 
         .form-select:hover {
-            background: rgba(70, 70, 70, 0.7);
+            background-color: rgba(70, 70, 70, 0.7);
             border-color: rgba(255, 255, 255, 0.25);
         }
 
         .form-select:focus {
             outline: none;
-            background: rgba(70, 70, 70, 0.8);
+            background-color: rgba(70, 70, 70, 0.8);
             border-color: rgba(255, 255, 255, 0.3);
         }
 
@@ -257,6 +257,192 @@ export class OnboardingView extends LitElement {
             font-size: 16px;
             margin-right: 12px;
             opacity: 0.8;
+        }
+
+        /* Persona Grid */
+        .persona-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 24px;
+        }
+
+        .persona-card {
+            background: rgba(40, 40, 40, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .persona-card:hover {
+            background: rgba(60, 60, 60, 0.5);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .persona-card.active {
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(60, 60, 60, 0.6);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Gradient Borders/Glows for cards */
+        .persona-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            opacity: 0.7;
+        }
+
+        .persona-card-0::before {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+        }
+        .persona-card-1::before {
+            background: linear-gradient(90deg, #f59e0b, #ea580c);
+        }
+        .persona-card-2::before {
+            background: linear-gradient(90deg, #ec4899, #8b5cf6);
+        }
+        .persona-card-3::before {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+
+        /* Active glows matching the top border */
+        .persona-card.active.persona-card-0 {
+            box-shadow:
+                0 0 20px rgba(59, 130, 246, 0.15),
+                inset 0 0 20px rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+        .persona-card.active.persona-card-1 {
+            box-shadow:
+                0 0 20px rgba(245, 158, 11, 0.15),
+                inset 0 0 20px rgba(245, 158, 11, 0.1);
+            border-color: #f59e0b;
+        }
+        .persona-card.active.persona-card-2 {
+            box-shadow:
+                0 0 20px rgba(236, 72, 153, 0.15),
+                inset 0 0 20px rgba(236, 72, 153, 0.1);
+            border-color: #ec4899;
+        }
+        .persona-card.active.persona-card-3 {
+            box-shadow:
+                0 0 20px rgba(16, 185, 129, 0.15),
+                inset 0 0 20px rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+
+        .persona-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .persona-desc {
+            font-size: 13px;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Tell Us More styles */
+        .tell-more-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        .pd-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.4s ease;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .pd-section.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+            gap: 0;
+        }
+
+        .pd-section.dimmed {
+            opacity: 0.3;
+        }
+
+        .pd-section.dimmed:hover {
+            opacity: 0.8;
+        }
+
+        .pd-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            text-align: left;
+        }
+
+        .pills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pills-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pill {
+            padding: 8px 16px;
+            background: rgba(40, 40, 40, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            color: #d4d4d4;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pill:hover {
+            background: rgba(60, 60, 60, 0.8);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .pill.selected {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            font-weight: 500;
+        }
+
+        .pd-section.dimmed .pill.selected {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+            opacity: 1; /* Keep selected item bright */
         }
 
         /* Sign-in slide styles - matching reference design */
@@ -524,6 +710,10 @@ export class OnboardingView extends LitElement {
         outputLanguage: { type: String },
         programmingLanguage: { type: String },
         audioLanguage: { type: String },
+        userPersona: { type: String },
+        userRole: { type: String },
+        userExperience: { type: String },
+        userReferral: { type: String },
     };
 
     constructor() {
@@ -541,6 +731,10 @@ export class OnboardingView extends LitElement {
         this.outputLanguage = 'English';
         this.programmingLanguage = 'Python';
         this.audioLanguage = 'en';
+        this.userPersona = '';
+        this.userRole = '';
+        this.userExperience = '';
+        this.userReferral = '';
         this.canvas = null;
         this.ctx = null;
         this.animationId = null;
@@ -571,7 +765,25 @@ export class OnboardingView extends LitElement {
                 [35, 30, 45], // Muted purple
                 [10, 10, 20], // Almost black
             ],
-            // Slide 2 - Privacy (Dark blue-gray)
+            // Slide 2 - User Persona (Dark teal/cyan)
+            [
+                [15, 30, 35], // Dark teal
+                [10, 25, 30], // Darker teal
+                [20, 35, 40], // Slightly lighter teal
+                [5, 20, 25], // Very dark teal
+                [25, 40, 45], // Muted teal
+                [5, 15, 20], // Almost black
+            ],
+            // Slide 3 - Tell Us More (Dark Brown/Gold)
+            [
+                [35, 25, 15], // Dark brown
+                [25, 15, 10], // Darker brown
+                [45, 30, 20], // Golden brown
+                [15, 10, 5], // Very dark
+                [40, 25, 15], // Muted gold
+                [20, 10, 5], // Almost black
+            ],
+            // Slide 4 - Privacy (Dark blue-gray)
             [
                 [20, 25, 35], // Dark blue-gray
                 [15, 20, 30], // Darker blue-gray
@@ -617,15 +829,18 @@ export class OnboardingView extends LitElement {
                 [15, 10, 5], // Almost black
             ],
         ];
+
+        // Randomize referral options
+        const referrals = ['TikTok', 'Instagram', 'Twitter / X', 'LinkedIn', 'YouTube', 'Friend / Colleague', 'Reddit', 'Search Engine', 'Other'];
+        this.referralOptions = this.shuffleArray(referrals);
     }
 
-    firstUpdated() {
-        this.canvas = this.shadowRoot.querySelector('.gradient-canvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.resizeCanvas();
-        this.startGradientAnimation();
-
-        window.addEventListener('resize', () => this.resizeCanvas());
+    shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
     }
 
     disconnectedCallback() {
@@ -729,7 +944,7 @@ export class OnboardingView extends LitElement {
             // Skip not allowed for sign-in unless explicitly clicked
             return;
         }
-        if (this.currentSlide < 6) {
+        if (this.currentSlide < 8) {
             this.startColorTransition(this.currentSlide + 1);
         } else {
             this.completeOnboarding();
@@ -746,7 +961,7 @@ export class OnboardingView extends LitElement {
         this.previousColorScheme = [...this.colorSchemes[this.currentSlide]];
 
         // Track slide view
-        const slideNames = ['sign_in', 'welcome', 'privacy', 'tailor', 'context', 'features', 'complete'];
+        const slideNames = ['sign_in', 'welcome', 'persona', 'tell_more', 'privacy', 'tailor', 'context', 'features', 'complete'];
         if (slideNames[newSlide]) {
             trackEvent('onboarding_slide_view', {
                 slide_number: newSlide,
@@ -790,22 +1005,41 @@ export class OnboardingView extends LitElement {
     async completeOnboarding() {
         // Save tailor preferences
         if (this.outputLanguage) {
-            await cheatingDaddy.storage.updatePreference('outputLanguage', this.outputLanguage);
+            await coInterview.storage.updatePreference('outputLanguage', this.outputLanguage);
         }
         if (this.programmingLanguage) {
-            await cheatingDaddy.storage.updatePreference('programmingLanguage', this.programmingLanguage);
+            await coInterview.storage.updatePreference('programmingLanguage', this.programmingLanguage);
         }
         if (this.audioLanguage) {
-            await cheatingDaddy.storage.updatePreference('audioLanguage', this.audioLanguage);
+            await coInterview.storage.updatePreference('audioLanguage', this.audioLanguage);
         }
 
         if (this.contextText.trim()) {
-            await cheatingDaddy.storage.updatePreference('customPrompt', this.contextText.trim());
+            await coInterview.storage.updatePreference('customPrompt', this.contextText.trim());
             trackEvent('onboarding_context_added', {
                 context_length: this.contextText.trim().length,
             });
         }
-        await cheatingDaddy.storage.updateConfig('onboarded', true);
+
+        if (this.userPersona) {
+            await coInterview.storage.updatePreference('userPersona', this.userPersona);
+            trackEvent('onboarding_persona_selected', {
+                persona: this.userPersona,
+            });
+        }
+
+        if (this.userRole) {
+            await coInterview.storage.updatePreference('userRole', this.userRole);
+            await coInterview.storage.updatePreference('userExperience', this.userExperience);
+            await coInterview.storage.updatePreference('userReferral', this.userReferral);
+            trackEvent('onboarding_details', {
+                role: this.userRole,
+                experience: this.userExperience,
+                referral: this.userReferral,
+            });
+        }
+
+        await coInterview.storage.updateConfig('onboarded', true);
 
         // Track completion
         trackEvent('onboarding_completed', {
@@ -828,6 +1062,26 @@ export class OnboardingView extends LitElement {
 
     handleAudioLanguageChange(e) {
         this.audioLanguage = e.target.value;
+    }
+
+    handlePersonaSelect(persona) {
+        this.userPersona = persona;
+        this.nextSlide();
+    }
+
+    handleRoleSelect(role) {
+        this.userRole = role;
+        this.requestUpdate();
+    }
+
+    handleExperienceSelect(exp) {
+        this.userExperience = exp;
+        this.requestUpdate();
+    }
+
+    handleReferralSelect(ref) {
+        this.userReferral = ref;
+        setTimeout(() => this.nextSlide(), 300);
     }
 
     // Auth handlers
@@ -941,16 +1195,12 @@ export class OnboardingView extends LitElement {
 
     // Helper to get absolute asset path for packaged app
     getAssetPath(relativePath) {
-        if (window.require) {
-            try {
-                const path = window.require('path');
-                const { app } = window.require('@electron/remote');
-                return path.join(app.getAppPath(), 'src', relativePath);
-            } catch (e) {
-                console.warn('Failed to get asset path:', e);
-            }
+        try {
+            return new URL(`../../${relativePath}`, import.meta.url).toString();
+        } catch (error) {
+            console.warn('Failed to resolve asset path:', error);
+            return relativePath;
         }
-        return relativePath;
     }
 
     getSlideContent() {
@@ -967,6 +1217,18 @@ export class OnboardingView extends LitElement {
                 title: 'Welcome to Co-Interview',
                 content:
                     'Your AI assistant that listens and watches, then provides intelligent suggestions automatically during interviews and meetings.',
+            },
+            {
+                icon: null, // No icon for persona card grid
+                title: 'Which one fits you best?',
+                content: 'InterviewCoder adapts to you and your interview style, targeting exactly the key information necessary to ace them.',
+                showPersona: true,
+            },
+            {
+                icon: null,
+                title: 'Tell us more',
+                content: "We'll tailor interview guidance to your specific role and goals.",
+                showTellMore: true,
             },
             {
                 icon: this.getAssetPath('assets/onboarding/security.svg'),
@@ -1015,7 +1277,7 @@ export class OnboardingView extends LitElement {
                 </button>
                 <canvas class="gradient-canvas"></canvas>
 
-                <div class="content-wrapper">
+                <div class="content-wrapper" style="${slide.showPersona || slide.showTellMore ? 'max-width: 800px; padding: 20px;' : ''}">
                     ${slide.icon ? html`<img class="slide-icon" src="${slide.icon}" alt="${slide.title} icon" />` : ''}
                     ${slide.title ? html`<div class="slide-title">${slide.title}</div>` : ''}
                     ${slide.content ? html`<div class="slide-content">${slide.content}</div>` : ''}
@@ -1206,6 +1468,110 @@ export class OnboardingView extends LitElement {
                               </div>
                           `
                         : ''}
+                    ${slide.showPersona
+                        ? html`
+                              <div class="persona-grid">
+                                  <div
+                                      class="persona-card persona-card-0 ${this.userPersona === 'Job Seeker' ? 'active' : ''}"
+                                      @click=${() => this.handlePersonaSelect('Job Seeker')}
+                                  >
+                                      <div class="persona-title">Looking for a job</div>
+                                      <div class="persona-desc">Job Interviews, technical screens, behavioral rounds</div>
+                                  </div>
+                                  <div
+                                      class="persona-card persona-card-1 ${this.userPersona === 'Student' ? 'active' : ''}"
+                                      @click=${() => this.handlePersonaSelect('Student')}
+                                  >
+                                      <div class="persona-title">Student</div>
+                                      <div class="persona-desc">Internship Interviews, campus recruiting, career prep</div>
+                                  </div>
+                                  <div
+                                      class="persona-card persona-card-2 ${this.userPersona === 'Professional' ? 'active' : ''}"
+                                      @click=${() => this.handlePersonaSelect('Professional')}
+                                  >
+                                      <div class="persona-title">Professional</div>
+                                      <div class="persona-desc">Career advancement, senior roles, leadership interviews</div>
+                                  </div>
+                                  <div
+                                      class="persona-card persona-card-3 ${this.userPersona === 'Curious' ? 'active' : ''}"
+                                      @click=${() => this.handlePersonaSelect('Curious')}
+                                  >
+                                      <div class="persona-title">Curious</div>
+                                      <div class="persona-desc">Practice interviews, mock sessions, skill improvement</div>
+                                  </div>
+                              </div>
+                          `
+                        : ''}
+                    ${slide.showTellMore
+                        ? html`
+                              <div class="tell-more-container">
+                                  <!-- ROLES SECTION -->
+                                  <div class="pd-section ${this.userRole ? 'dimmed' : 'active'}">
+                                      <div class="pd-label">What role are you interviewing for?</div>
+                                      <div class="pills-grid">
+                                          ${[
+                                              'Software Engineer',
+                                              'Product Manager',
+                                              'Data Scientist',
+                                              'Data Analyst',
+                                              'Product Designer',
+                                              'UX Designer',
+                                              'Business Analyst',
+                                              'Consultant',
+                                              'Finance / Investment Banking',
+                                              'Marketing Manager',
+                                              'Sales / Account Executive',
+                                              'Engineering Manager',
+                                              'Other',
+                                          ].map(
+                                              role => html`
+                                                  <div
+                                                      class="pill ${this.userRole === role ? 'selected' : ''}"
+                                                      @click=${() => this.handleRoleSelect(role)}
+                                                  >
+                                                      ${role}
+                                                  </div>
+                                              `
+                                          )}
+                                      </div>
+                                  </div>
+
+                                  <!-- EXPERIENCE SECTION -->
+                                  <div class="pd-section ${!this.userRole ? 'hidden' : ''} ${this.userExperience ? 'dimmed' : 'active'}">
+                                      <div class="pd-label">How many years of experience do you have?</div>
+                                      <div class="pills-flex">
+                                          ${['0-1 years', '1-3 years', '3-5 years', '5-8 years', '8-12 years', '12+ years', 'Other'].map(
+                                              exp => html`
+                                                  <div
+                                                      class="pill ${this.userExperience === exp ? 'selected' : ''}"
+                                                      @click=${() => this.handleExperienceSelect(exp)}
+                                                  >
+                                                      ${exp}
+                                                  </div>
+                                              `
+                                          )}
+                                      </div>
+                                  </div>
+
+                                  <!-- REFERRAL SECTION -->
+                                  <div class="pd-section ${!this.userExperience ? 'hidden' : ''} ${this.userReferral ? 'dimmed' : 'active'}">
+                                      <div class="pd-label">Where did you hear from us?</div>
+                                      <div class="pills-flex">
+                                          ${this.referralOptions.map(
+                                              ref => html`
+                                                  <div
+                                                      class="pill ${this.userReferral === ref ? 'selected' : ''}"
+                                                      @click=${() => this.handleReferralSelect(ref)}
+                                                  >
+                                                      ${ref}
+                                                  </div>
+                                              `
+                                          )}
+                                      </div>
+                                  </div>
+                              </div>
+                          `
+                        : ''}
                 </div>
 
                 <div class="navigation">
@@ -1216,7 +1582,7 @@ export class OnboardingView extends LitElement {
                     </button>
 
                     <div class="progress-dots">
-                        ${[0, 1, 2, 3, 4, 5, 6].map(
+                        ${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(
                             index => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
@@ -1231,7 +1597,7 @@ export class OnboardingView extends LitElement {
                     </div>
 
                     <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
-                        ${this.currentSlide === 6
+                        ${this.currentSlide === 8
                             ? 'Get Started'
                             : this.currentSlide === 0
                               ? 'Skip'

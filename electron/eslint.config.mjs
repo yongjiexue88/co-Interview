@@ -12,7 +12,7 @@ export default [
             globals: {
                 ...globals.node,
                 ...globals.browser,
-                cheatingDaddy: "readonly",
+                coInterview: "readonly",
             },
         },
         rules: {

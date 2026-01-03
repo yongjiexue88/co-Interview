@@ -11,10 +11,9 @@ import { OnboardingView } from '../views/OnboardingView.js';
 let trackEvent = () => {};
 if (typeof window !== 'undefined' && window.require) {
     try {
-        const path = window.require('path');
-        const { app } = window.require('@electron/remote');
-        const analyticsPath = path.join(app.getAppPath(), 'src', 'utils', 'analytics.js');
-        const analytics = window.require(analyticsPath);
+        const { fileURLToPath } = window.require('url');
+        const analyticsUrl = new URL('../../utils/analytics.js', import.meta.url);
+        const analytics = window.require(fileURLToPath(analyticsUrl));
         trackEvent = analytics.trackEvent;
     } catch (error) {
         console.warn('[CoInterviewApp] Analytics not available:', error);
@@ -158,7 +157,7 @@ export class CoInterviewApp extends LitElement {
 
     async _loadFromStorage() {
         try {
-            const [config, prefs] = await Promise.all([cheatingDaddy.storage.getConfig(), cheatingDaddy.storage.getPreferences()]);
+            const [config, prefs] = await Promise.all([coInterview.storage.getConfig(), coInterview.storage.getPreferences()]);
 
             // Check onboarding status
             // FOR DEBUGGING: Always show onboarding
@@ -325,7 +324,7 @@ export class CoInterviewApp extends LitElement {
         if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history') {
             this.currentView = 'main';
         } else if (this.currentView === 'assistant') {
-            cheatingDaddy.stopCapture();
+            coInterview.stopCapture();
 
             // Close the session
             if (window.require) {
@@ -354,7 +353,7 @@ export class CoInterviewApp extends LitElement {
     // Main view event handlers
     async handleStart() {
         // check if api key is empty do nothing
-        const apiKey = await cheatingDaddy.storage.getApiKey();
+        const apiKey = await coInterview.storage.getApiKey();
         if (!apiKey || apiKey === '') {
             // Trigger the red blink animation on the API key input
             const mainView = this.shadowRoot.querySelector('main-view');
@@ -364,9 +363,9 @@ export class CoInterviewApp extends LitElement {
             return;
         }
 
-        await cheatingDaddy.initializeGemini(this.selectedProfile, this.selectedLanguage);
+        await coInterview.initializeGemini(this.selectedProfile, this.selectedLanguage);
         // Pass the screenshot interval as string (including 'manual' option)
-        cheatingDaddy.startCapture(this.selectedScreenshotInterval, this.selectedImageQuality);
+        coInterview.startCapture(this.selectedScreenshotInterval, this.selectedImageQuality);
         this.responses = [];
         this.currentResponseIndex = -1;
         this.startTime = Date.now();
@@ -383,22 +382,22 @@ export class CoInterviewApp extends LitElement {
     // Customize view event handlers
     async handleProfileChange(profile) {
         this.selectedProfile = profile;
-        await cheatingDaddy.storage.updatePreference('selectedProfile', profile);
+        await coInterview.storage.updatePreference('selectedProfile', profile);
     }
 
     async handleLanguageChange(language) {
         this.selectedLanguage = language;
-        await cheatingDaddy.storage.updatePreference('selectedLanguage', language);
+        await coInterview.storage.updatePreference('selectedLanguage', language);
     }
 
     async handleScreenshotIntervalChange(interval) {
         this.selectedScreenshotInterval = interval;
-        await cheatingDaddy.storage.updatePreference('selectedScreenshotInterval', interval);
+        await coInterview.storage.updatePreference('selectedScreenshotInterval', interval);
     }
 
     async handleImageQualityChange(quality) {
         this.selectedImageQuality = quality;
-        await cheatingDaddy.storage.updatePreference('selectedImageQuality', quality);
+        await coInterview.storage.updatePreference('selectedImageQuality', quality);
     }
 
     handleBackClick() {
@@ -416,7 +415,7 @@ export class CoInterviewApp extends LitElement {
 
     // Assistant view event handlers
     async handleSendText(message) {
-        const result = await window.cheatingDaddy.sendTextMessage(message);
+        const result = await window.coInterview.sendTextMessage(message);
 
         if (!result.success) {
             console.error('Failed to send message:', result.error);
@@ -569,7 +568,7 @@ export class CoInterviewApp extends LitElement {
 
     async handleLayoutModeChange(layoutMode) {
         this.layoutMode = layoutMode;
-        await cheatingDaddy.storage.updateConfig('layout', layoutMode);
+        await coInterview.storage.updateConfig('layout', layoutMode);
         this.updateLayoutMode();
 
         // Notify main process about layout change for window resizing

@@ -541,8 +541,8 @@ export class AssistantView extends LitElement {
     }
 
     async loadLimits() {
-        if (window.cheatingDaddy?.storage?.getTodayLimits) {
-            const limits = await window.cheatingDaddy.storage.getTodayLimits();
+        if (window.coInterview?.storage?.getTodayLimits) {
+            const limits = await window.coInterview.storage.getTodayLimits();
             this.flashCount = limits.flash?.count || 0;
             this.flashLiteCount = limits.flashLite?.count || 0;
         }
