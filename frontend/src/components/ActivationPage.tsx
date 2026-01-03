@@ -40,7 +40,8 @@ const ActivationPage: React.FC = () => {
                     </div>
 
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-8 animate-fadeIn delay-100">
-                        One last step to claim your<br />
+                        One last step to claim your
+                        <br />
                         <span className="text-[#FACC15]">free trial</span>
                     </h1>
 
@@ -56,9 +57,7 @@ const ActivationPage: React.FC = () => {
                             <span>Create Your Account</span>
                             <ArrowRight className="w-5 h-5" />
                         </button>
-                        <p className="mt-4 text-gray-500 text-sm">
-                            It only takes 30 seconds.
-                        </p>
+                        <p className="mt-4 text-gray-500 text-sm">It only takes 30 seconds.</p>
                     </div>
 
                     {/* How it works section */}
@@ -66,23 +65,17 @@ const ActivationPage: React.FC = () => {
                         <h2 className="text-2xl font-bold mb-12">How it works</h2>
                         <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
                             <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
-                                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
-                                    1
-                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 text-blue-400">1</div>
                                 <h3 className="font-semibold text-white mb-2">Connects to call</h3>
                                 <p className="text-sm text-gray-400">Works with Zoom, Meets, and Teams automatically.</p>
                             </div>
                             <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
-                                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mb-4 text-purple-400">
-                                    2
-                                </div>
+                                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mb-4 text-purple-400">2</div>
                                 <h3 className="font-semibold text-white mb-2">Listens & Solves</h3>
                                 <p className="text-sm text-gray-400">Transcribes audio and solves coding problems instantly.</p>
                             </div>
                             <div className="p-6 rounded-2xl bg-white/5 border border-white/5 text-left">
-                                <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mb-4 text-[#FACC15]">
-                                    3
-                                </div>
+                                <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mb-4 text-[#FACC15]">3</div>
                                 <h3 className="font-semibold text-white mb-2">You get the credit</h3>
                                 <p className="text-sm text-gray-400">Subtle overlays keep you looking at the camera.</p>
                             </div>

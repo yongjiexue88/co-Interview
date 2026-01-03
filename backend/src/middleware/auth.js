@@ -10,7 +10,7 @@ async function authMiddleware(req, res, next) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({
             error: 'Unauthorized',
-            message: 'Missing or invalid Authorization header'
+            message: 'Missing or invalid Authorization header',
         });
     }
 
@@ -21,14 +21,14 @@ async function authMiddleware(req, res, next) {
         req.user = {
             uid: decodedToken.uid,
             email: decodedToken.email,
-            emailVerified: decodedToken.email_verified
+            emailVerified: decodedToken.email_verified,
         };
         next();
     } catch (error) {
         console.error('Auth verification failed:', error.message);
         return res.status(401).json({
             error: 'Unauthorized',
-            message: 'Invalid or expired token'
+            message: 'Invalid or expired token',
         });
     }
 }

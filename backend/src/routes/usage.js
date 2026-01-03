@@ -24,10 +24,7 @@ router.get('/', authMiddleware, async (req, res, next) => {
 
         // Get session count for this month
         const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-        const sessionsSnapshot = await db.collection('sessions')
-            .where('userId', '==', uid)
-            .where('startedAt', '>=', monthStart)
-            .get();
+        const sessionsSnapshot = await db.collection('sessions').where('userId', '==', uid).where('startedAt', '>=', monthStart).get();
 
         const sessions = sessionsSnapshot.docs.map(doc => doc.data());
         const totalDuration = sessions.reduce((sum, s) => sum + (s.durationSeconds || 0), 0);
@@ -43,9 +40,8 @@ router.get('/', authMiddleware, async (req, res, next) => {
             quota_used_seconds: user.quotaSecondsUsed || 0,
             quota_remaining_seconds: planConfig.quotaSecondsMonth - (user.quotaSecondsUsed || 0),
             session_count: sessions.length,
-            avg_session_seconds: avgDuration
+            avg_session_seconds: avgDuration,
         });
-
     } catch (error) {
         next(error);
     }

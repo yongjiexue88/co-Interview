@@ -1,4 +1,3 @@
-
 import { BlogPost } from './blogTypes';
 
 // Heading structure for table of contents
@@ -14,6 +13,7 @@ export interface ParsedBlogPost extends BlogPost {
     slug: string;
     readTime: string;
     headings: Heading[];
+    imageUrl: string;
     description?: string;
 }
 
@@ -133,6 +133,7 @@ export const loadAllBlogPosts = async (): Promise<ParsedBlogPost[]> => {
             readTime,
             content,
             headings,
+            imageUrl,
             description: textContent.slice(0, 150) + '...', // Create excerpt
         });
     }
@@ -146,5 +147,5 @@ export const loadAllBlogPosts = async (): Promise<ParsedBlogPost[]> => {
 
 export const getBlogPostBySlug = async (slug: string): Promise<ParsedBlogPost | null> => {
     const posts = await loadAllBlogPosts();
-    return posts.find((p) => p.slug === slug) || null;
+    return posts.find(p => p.slug === slug) || null;
 };

@@ -21,14 +21,12 @@ const PORT = process.env.PORT || 8080;
 app.use(helmet());
 
 // CORS - allow same-origin (Firebase Hosting) and local dev
-app.use(cors({
-    origin: [
-        'https://co-interview.com',
-        'https://www.co-interview.com',
-        process.env.FRONTEND_URL || 'http://localhost:5173'
-    ],
-    credentials: true
-}));
+app.use(
+    cors({
+        origin: ['https://co-interview.com', 'https://www.co-interview.com', process.env.FRONTEND_URL || 'http://localhost:5173'],
+        credentials: true,
+    })
+);
 
 // Parse JSON (except for webhooks which need raw body)
 app.use('/api/webhooks', express.raw({ type: 'application/json' }));
@@ -61,4 +59,3 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
-

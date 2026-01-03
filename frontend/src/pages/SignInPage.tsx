@@ -44,18 +44,16 @@ const SignInPage: React.FC = () => {
             try {
                 // Exchange ID token for Custom Token
                 const idToken = await firebaseUser.getIdToken();
-                // Use local backend in dev, prod in build. 
+                // Use local backend in dev, prod in build.
                 // We can guess based on window.location.hostname
-                const apiBase = window.location.hostname === 'localhost'
-                    ? 'http://localhost:8080/api'
-                    : 'https://co-interview.com/api';
+                const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:8080/api' : 'https://co-interview.com/api';
 
                 const response = await fetch(`${apiBase}/v1/auth/exchange`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${idToken}`,
-                        'Content-Type': 'application/json'
-                    }
+                        Authorization: `Bearer ${idToken}`,
+                        'Content-Type': 'application/json',
+                    },
                 });
 
                 if (response.ok) {
@@ -63,7 +61,7 @@ const SignInPage: React.FC = () => {
 
                     // Redirect to protocol
                     const redirectUrl = new URL('co-interview://auth-callback');
-                    redirectUrl.searchParams.set('token', customToken);
+                    redirectUrl.searchParams.set('token', custom_token);
                     redirectUrl.searchParams.set('uid', firebaseUser.uid);
                     redirectUrl.searchParams.set('email', firebaseUser.email || '');
                     redirectUrl.searchParams.set('name', firebaseUser.displayName || '');
@@ -121,22 +119,14 @@ const SignInPage: React.FC = () => {
         <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">
             {/* Logo */}
             <div className="mb-8 flex flex-col items-center">
-                <img
-                    src="https://www.interviewcoder.co/logo.svg"
-                    alt="Co-Interview"
-                    className="w-12 h-12 mb-4"
-                />
+                <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-12 h-12 mb-4" />
                 <h1 className="text-2xl font-semibold text-white">Log in to Co-Interview</h1>
             </div>
 
             {/* Login Card */}
             <div className="w-full max-w-md space-y-6">
                 {/* Error Message */}
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm px-4 py-3 rounded-lg">
-                        {error}
-                    </div>
-                )}
+                {error && <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm px-4 py-3 rounded-lg">{error}</div>}
 
                 {/* Google Login Button */}
                 <button
@@ -180,7 +170,7 @@ const SignInPage: React.FC = () => {
                         <input
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={e => setEmail(e.target.value)}
                             placeholder="Email address"
                             className="w-full bg-[#2a2a2a] border border-white/10 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FACC15]/50 focus:border-transparent transition-colors"
                         />
@@ -189,7 +179,7 @@ const SignInPage: React.FC = () => {
                         <input
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={e => setPassword(e.target.value)}
                             placeholder="Password"
                             className="w-full bg-[#2a2a2a] border border-white/10 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FACC15]/50 focus:border-transparent transition-colors"
                         />
@@ -220,10 +210,7 @@ const SignInPage: React.FC = () => {
 
                 {/* Forgot Password */}
                 <div className="text-center">
-                    <button
-                        onClick={() => navigate('/forgot-password')}
-                        className="text-sm text-gray-500 hover:text-gray-400 transition-colors"
-                    >
+                    <button onClick={() => navigate('/forgot-password')} className="text-sm text-gray-500 hover:text-gray-400 transition-colors">
                         Forgot Password?
                     </button>
                 </div>

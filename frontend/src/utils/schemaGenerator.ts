@@ -1,4 +1,3 @@
-
 import { PricingTier } from '../content/pricing';
 import { FAQItem } from '../content/siteContent';
 
@@ -8,11 +7,7 @@ export const generateOrganizationSchema = () => ({
     name: 'Co-Interview',
     url: 'https://co-interview.com',
     logo: 'https://co-interview.com/logo.png', // Update with actual logo path if available
-    sameAs: [
-        'https://x.com/InterviewCoder',
-        'https://www.instagram.com/interviewcoder/',
-        'https://www.youtube.com/@InterviewCoder-official'
-    ]
+    sameAs: ['https://x.com/InterviewCoder', 'https://www.instagram.com/interviewcoder/', 'https://www.youtube.com/@InterviewCoder-official'],
 });
 
 export const generateWebSiteSchema = () => ({
@@ -23,8 +18,8 @@ export const generateWebSiteSchema = () => ({
     potentialAction: {
         '@type': 'SearchAction',
         target: 'https://co-interview.com/search?q={search_term_string}',
-        'query-input': 'required name=search_term_string'
-    }
+        'query-input': 'required name=search_term_string',
+    },
 });
 
 export const generateProductSchema = (pricing: PricingTier[]) => {
@@ -41,15 +36,15 @@ export const generateProductSchema = (pricing: PricingTier[]) => {
         image: 'https://co-interview.com/og-image.png',
         brand: {
             '@type': 'Brand',
-            name: 'Co-Interview'
+            name: 'Co-Interview',
         },
         offers: {
             '@type': 'AggregateOffer',
             priceCurrency: 'USD',
             lowPrice: lowPrice,
             highPrice: highPrice,
-            offerCount: pricing.length
-        }
+            offerCount: pricing.length,
+        },
     };
 };
 
@@ -61,7 +56,7 @@ export const generateFAQSchema = (faqs: FAQItem[]) => ({
         name: faq.question,
         acceptedAnswer: {
             '@type': 'Answer',
-            text: faq.answer
-        }
-    }))
+            text: faq.answer,
+        },
+    })),
 });

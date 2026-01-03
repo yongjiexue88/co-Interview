@@ -71,21 +71,16 @@ const BlogList: React.FC<BlogListProps> = ({ groups, featuredPost }) => {
                                 {/* Left Sidebar - Month Label & Timeline */}
                                 <div className="flex-shrink-0 w-48 pr-8">
                                     <div className="flex flex-col items-center">
-                                        <h1 className="text-xs lg:text-sm font-bold text-white uppercase tracking-wider mb-4">
-                                            {group.month}
-                                        </h1>
+                                        <h1 className="text-xs lg:text-sm font-bold text-white uppercase tracking-wider mb-4">{group.month}</h1>
                                         <div className="w-0.5 bg-gray-600 flex-1"></div>
-                                        <div
-                                            className="w-[0.5px] bg-gray-600 mt-4"
-                                            style={{ height: `${group.posts.length * 130}px` }}
-                                        ></div>
+                                        <div className="w-[0.5px] bg-gray-600 mt-4" style={{ height: `${group.posts.length * 130}px` }}></div>
                                     </div>
                                 </div>
 
                                 {/* Right Side - Articles */}
                                 <div className="flex-1">
                                     <div className="space-y-12">
-                                        {group.posts.map((post) => (
+                                        {group.posts.map(post => (
                                             <ArticleCard key={post.id} post={post} />
                                         ))}
                                     </div>
@@ -97,9 +92,11 @@ const BlogList: React.FC<BlogListProps> = ({ groups, featuredPost }) => {
                     {/* Mobile Layout */}
                     <div className="lg:hidden">
                         <div className="space-y-8">
-                            {groups.flatMap(group => group.posts).map((post) => (
-                                <MobileArticleCard key={post.id} post={post} />
-                            ))}
+                            {groups
+                                .flatMap(group => group.posts)
+                                .map(post => (
+                                    <MobileArticleCard key={post.id} post={post} />
+                                ))}
                         </div>
                     </div>
                 </div>
@@ -112,10 +109,7 @@ const BlogList: React.FC<BlogListProps> = ({ groups, featuredPost }) => {
 const ArticleCard: React.FC<{ post: BlogPost }> = ({ post }) => {
     return (
         <article className="group">
-            <Link
-                className="flex items-start gap-6 py-4 hover:opacity-80 transition-opacity duration-300"
-                to={post.href}
-            >
+            <Link className="flex items-start gap-6 py-4 hover:opacity-80 transition-opacity duration-300" to={post.href}>
                 {/* Icon Box with Golden Gradient */}
                 <div className="flex-shrink-0 w-12 h-12 rounded-md flex items-center justify-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A]"></div>
@@ -145,10 +139,7 @@ const ArticleCard: React.FC<{ post: BlogPost }> = ({ post }) => {
 const MobileArticleCard: React.FC<{ post: BlogPost }> = ({ post }) => {
     return (
         <article className="group">
-            <Link
-                className="flex items-start gap-4 py-2 hover:opacity-80 transition-opacity duration-300"
-                to={post.href}
-            >
+            <Link className="flex items-start gap-4 py-2 hover:opacity-80 transition-opacity duration-300" to={post.href}>
                 {/* Icon Box with Golden Gradient */}
                 <div className="flex-shrink-0 w-12 h-12 rounded-md flex items-center justify-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A]"></div>

@@ -109,17 +109,20 @@ describe('PreRegisterForm', () => {
                 expect.any(Object),
                 expect.objectContaining({
                     email: 'tracking@example.com',
-                    ...trackingProps
+                    ...trackingProps,
                 })
             );
         });
 
         // Check Analytics for sign_up
         await waitFor(() => {
-            expect(trackEvent).toHaveBeenCalledWith('sign_up', expect.objectContaining({
-                source: 'hero',
-                ...trackingProps
-            }));
+            expect(trackEvent).toHaveBeenCalledWith(
+                'sign_up',
+                expect.objectContaining({
+                    source: 'hero',
+                    ...trackingProps,
+                })
+            );
         });
 
         // Wait for qualifier step
@@ -128,10 +131,13 @@ describe('PreRegisterForm', () => {
 
         // Check Analytics for qualifier
         await waitFor(() => {
-            expect(trackEvent).toHaveBeenCalledWith('qualifier_submitted', expect.objectContaining({
-                intent: 'FAANG',
-                ...trackingProps
-            }));
+            expect(trackEvent).toHaveBeenCalledWith(
+                'qualifier_submitted',
+                expect.objectContaining({
+                    intent: 'FAANG',
+                    ...trackingProps,
+                })
+            );
         });
     });
 });

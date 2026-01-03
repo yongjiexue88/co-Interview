@@ -10,10 +10,10 @@ vi.mock('../lib/firebase', () => ({
     auth: { signOut: vi.fn() },
 }));
 
-vi.mock('firebase/firestore', async (importOriginal) => {
+vi.mock('firebase/firestore', async importOriginal => {
     const actual = await importOriginal();
     return {
-        ...actual as any,
+        ...(actual as any),
         collection: vi.fn(),
         query: vi.fn(),
         getDocs: vi.fn(),
@@ -41,10 +41,10 @@ vi.mock('recharts', () => {
 describe('AdminDashboard', () => {
     it('shows loading state initially', () => {
         // Mock getDocs to never resolve (or take time) to check loading
-        // Actually, component sets loading=true initially. 
-        // We need to act quickly or mock state? 
+        // Actually, component sets loading=true initially.
+        // We need to act quickly or mock state?
         // Let's just mock getDocs to return empty data but wrapped in promise
-        vi.mocked(Firestore.getDocs).mockImplementation(() => new Promise(() => { }));
+        vi.mocked(Firestore.getDocs).mockImplementation(() => new Promise(() => {}));
 
         render(
             <MemoryRouter>
@@ -59,9 +59,7 @@ describe('AdminDashboard', () => {
     it('renders dashboard content after data load', async () => {
         // Mock data
         const mockSnapshot = {
-            docs: [
-                { id: '1', data: () => ({ email: 'test@test.com', source: 'hero', createdAt: { toDate: () => new Date() } }) }
-            ]
+            docs: [{ id: '1', data: () => ({ email: 'test@test.com', source: 'hero', createdAt: { toDate: () => new Date() } }) }],
         };
         vi.mocked(Firestore.getDocs).mockResolvedValue(mockSnapshot as any);
 

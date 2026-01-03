@@ -41,7 +41,7 @@ const BlogTableOfContents: React.FC<BlogTableOfContentsProps> = ({ headings }) =
 
             window.scrollTo({
                 top: offsetPosition,
-                behavior: 'smooth'
+                behavior: 'smooth',
             });
         }
     };
@@ -54,18 +54,14 @@ const BlogTableOfContents: React.FC<BlogTableOfContentsProps> = ({ headings }) =
         <nav className="border-t border-white/10 pt-4">
             <h3 className="text-sm font-semibold text-white mb-3">On This Page</h3>
             <ul className="space-y-2">
-                {headings.map((heading) => (
-                    <li
-                        key={heading.id}
-                        style={{ paddingLeft: heading.level === 3 ? '12px' : '0' }}
-                    >
+                {headings.map(heading => (
+                    <li key={heading.id} style={{ paddingLeft: heading.level === 3 ? '12px' : '0' }}>
                         <a
                             href={`#${heading.id}`}
-                            onClick={(e) => handleClick(e, heading.id)}
-                            className={`block text-sm leading-relaxed transition-colors duration-150 ${activeId === heading.id
-                                    ? 'text-teal-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
-                                }`}
+                            onClick={e => handleClick(e, heading.id)}
+                            className={`block text-sm leading-relaxed transition-colors duration-150 ${
+                                activeId === heading.id ? 'text-teal-400 font-medium' : 'text-gray-400 hover:text-white'
+                            }`}
                         >
                             {heading.text}
                         </a>

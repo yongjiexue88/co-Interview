@@ -1,21 +1,21 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { trackEvent } from '../lib/analytics';
 
 export const useExitTracking = () => {
     const location = useLocation();
-    const startTime = useRef(Date.now());
+    const [startTime, setStartTime] = useState(() => Date.now());
     const pathRef = useRef(location.pathname);
 
     // Update path ref on location change
     useEffect(() => {
         pathRef.current = location.pathname;
-        startTime.current = Date.now();
+        setStartTime(Date.now());
     }, [location]);
 
     useEffect(() => {
         const handleExit = () => {
-            const duration = Math.round((Date.now() - startTime.current) / 1000);
+            const duration = Math.round((Date.now() - startTime) / 1000);
             const scrollTop = window.scrollY;
             const docHeight = document.documentElement.scrollHeight;
             const scrollPercent = Math.min(100, Math.round((scrollTop / (docHeight - window.innerHeight)) * 100));
@@ -27,7 +27,7 @@ export const useExitTracking = () => {
                 trackEvent('page_leave', {
                     path: pathRef.current,
                     duration_seconds: duration,
-                    scroll_exit_percent: scrollPercent
+                    scroll_exit_percent: scrollPercent,
                 });
             }
         };

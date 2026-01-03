@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../lib/analytics';
 
-export const useExperiment = <T extends string>(
-    experimentId: string,
-    variants: T[]
-): T => {
+export const useExperiment = <T extends string>(experimentId: string, variants: T[]): T => {
     // Default to first variant initially to avoid hydration mismatch if we were doing SSR
     // (though this is a SPA, it keeps things stable).
     const [variant, setVariant] = useState<T>(variants[0]);
@@ -30,7 +27,7 @@ export const useExperiment = <T extends string>(
         if (!hasLoggedImpression.current) {
             trackEvent('experiment_impression', {
                 experiment_id: experimentId,
-                variant_id: selectedVariant
+                variant_id: selectedVariant,
             });
             hasLoggedImpression.current = true;
 

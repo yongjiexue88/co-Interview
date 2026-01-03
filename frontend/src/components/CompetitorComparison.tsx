@@ -21,13 +21,8 @@ const comparisonFeatures: Feature[] = [
     { name: 'Real Video Proof', coInterview: true, ultraCode: false, lockedIn: false, aiApply: false },
 ];
 
-const FeatureIcon = ({ supported }: { supported: boolean }) => (
-    supported ? (
-        <Check className="w-5 h-5 text-green-500" />
-    ) : (
-        <X className="w-5 h-5 text-red-500/70" />
-    )
-);
+const FeatureIcon = ({ supported }: { supported: boolean }) =>
+    supported ? <Check className="w-5 h-5 text-green-500" /> : <X className="w-5 h-5 text-red-500/70" />;
 
 const CompetitorComparison: React.FC = () => {
     return (
@@ -68,10 +63,7 @@ const CompetitorComparison: React.FC = () => {
                         </thead>
                         <tbody>
                             {comparisonFeatures.map((feature, index) => (
-                                <tr
-                                    key={feature.name}
-                                    className={`border-b border-white/5 ${index % 2 === 0 ? 'bg-white/[0.02]' : ''}`}
-                                >
+                                <tr key={feature.name} className={`border-b border-white/5 ${index % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
                                     <td className="py-4 px-4 text-white font-medium">{feature.name}</td>
                                     <td className="py-4 px-4">
                                         <div className="flex justify-center">

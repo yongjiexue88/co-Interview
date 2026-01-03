@@ -100,33 +100,23 @@ const BlogPostPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#000000] text-white selection:bg-[#EFCC3A]/30">
-            <SEO
-                title={`${post.title} — Co-Interview Blog`}
-                description={post.description || post.title}
-            />
+            <SEO title={`${post.title} — Co-Interview Blog`} description={post.description || post.title} />
             <Banner />
             <Navbar />
 
             <main className="pt-8 pb-24 px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     {/* Back Link */}
-                    <Link
-                        to="/blog"
-                        className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors text-sm"
-                    >
+                    <Link to="/blog" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors text-sm">
                         <ArrowLeft className="w-4 h-4" />
                         Back
                     </Link>
 
                     {/* Title */}
-                    <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-4 max-w-4xl">
-                        {post.title}
-                    </h1>
+                    <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-4 max-w-4xl">{post.title}</h1>
 
                     {/* Date */}
-                    <div className="text-gray-400 text-sm mb-12">
-                        {post.date}
-                    </div>
+                    <div className="text-gray-400 text-sm mb-12">{post.date}</div>
 
                     {/* Main Content Layout */}
                     <div className="flex gap-12">
@@ -156,9 +146,7 @@ const BlogPostPage: React.FC = () => {
                                 <ReadingProgressBar articleRef={articleRef} />
 
                                 {/* Table of Contents */}
-                                {post.headings && post.headings.length > 0 && (
-                                    <BlogTableOfContents headings={post.headings} />
-                                )}
+                                {post.headings && post.headings.length > 0 && <BlogTableOfContents headings={post.headings} />}
                             </div>
                         </aside>
                     </div>
@@ -174,13 +162,12 @@ const BlogPostPage: React.FC = () => {
 
                         {/* Headline */}
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold mb-4 leading-tight text-white">
-                            Ready to Pass Any SWE Interviews<br className="hidden sm:block" /> with 100% Undetectable AI?
+                            Ready to Pass Any SWE Interviews
+                            <br className="hidden sm:block" /> with 100% Undetectable AI?
                         </h2>
 
                         {/* Subtext */}
-                        <p className="text-base md:text-lg mb-10 text-gray-400">
-                            Start Your Free Trial Today
-                        </p>
+                        <p className="text-base md:text-lg mb-10 text-gray-400">Start Your Free Trial Today</p>
 
                         {/* Download Buttons */}
                         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-lg mx-auto">

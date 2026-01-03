@@ -3,16 +3,7 @@ import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
-import {
-    Home,
-    FileText,
-    History,
-    DollarSign,
-    Clock,
-    User,
-    LogOut,
-    Loader2
-} from 'lucide-react';
+import { Home, FileText, History, DollarSign, Clock, User, LogOut, Loader2 } from 'lucide-react';
 
 const sidebarItems = [
     { name: 'Home', icon: Home, href: '/dashboard' },
@@ -87,24 +78,19 @@ const DashboardLayout: React.FC = () => {
             <aside className="w-64 bg-[#0a0a0a] border-r border-white/10 flex flex-col">
                 {/* Logo */}
                 <div className="p-6 flex items-center gap-3">
-                    <img
-                        src="https://www.interviewcoder.co/logo.svg"
-                        alt="Co-Interview"
-                        className="w-8 h-8"
-                    />
+                    <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-8 h-8" />
                     <span className="text-lg font-bold text-white">Interview Coder</span>
                 </div>
 
                 {/* Navigation */}
                 <nav className="flex-1 px-4 py-2">
-                    {sidebarItems.map((item) => (
+                    {sidebarItems.map(item => (
                         <Link
                             key={item.name}
                             to={item.href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors mb-1 ${isActiveRoute(item.href)
-                                ? 'bg-white/10 text-white'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                }`}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors mb-1 ${
+                                isActiveRoute(item.href) ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
                         >
                             <item.icon className="w-5 h-5" />
                             {item.name}
@@ -115,13 +101,11 @@ const DashboardLayout: React.FC = () => {
                 {/* Promo Card */}
                 <div className="p-4">
                     <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
-                        <p className="text-sm text-gray-400 mb-2">Get <span className="text-[#FACC15] font-bold">10%</span> off on</p>
+                        <p className="text-sm text-gray-400 mb-2">
+                            Get <span className="text-[#FACC15] font-bold">10%</span> off on
+                        </p>
                         <div className="flex items-center gap-2 mb-3">
-                            <img
-                                src="https://www.interviewcoder.co/logo.svg"
-                                alt="Pro"
-                                className="w-6 h-6"
-                            />
+                            <img src="https://www.interviewcoder.co/logo.svg" alt="Pro" className="w-6 h-6" />
                             <span className="text-white font-semibold text-sm">Interview Coder Pro</span>
                         </div>
                         <div className="flex justify-center gap-2 mb-3 text-white font-mono">

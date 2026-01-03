@@ -54,15 +54,8 @@ const ActivationSuccess: React.FC = () => {
                         <Zap className="w-3 h-3" />
                         Fast-track your access
                     </p>
-                    <p className="text-[11px] text-gray-400 mb-3">
-                        Get early access + a 14-day free trial when we launch.
-                    </p>
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        className="w-full text-xs font-bold"
-                        onClick={handlePriorityClick}
-                    >
+                    <p className="text-[11px] text-gray-400 mb-3">Get early access + a 14-day free trial when we launch.</p>
+                    <Button variant="primary" size="sm" className="w-full text-xs font-bold" onClick={handlePriorityClick}>
                         Add to Priority Access
                     </Button>
                 </div>

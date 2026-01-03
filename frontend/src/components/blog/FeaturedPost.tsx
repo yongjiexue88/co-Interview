@@ -24,9 +24,7 @@ export const FeaturedPost: React.FC<FeaturedPostProps> = ({ post }) => {
                         {post.date}
                     </div>
 
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 leading-tight">
-                        {post.title}
-                    </h2>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 leading-tight">{post.title}</h2>
 
                     <button className="bg-white text-black px-6 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-gray-100 transition-colors">
                         Read Full Article

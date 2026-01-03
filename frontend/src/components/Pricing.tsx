@@ -11,9 +11,7 @@ const Pricing: React.FC = () => {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-20">
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-                        Simple, transparent pricing
-                    </h2>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Simple, transparent pricing</h2>
                     <p className="text-gray-400 max-w-2xl mx-auto text-lg font-light">
                         Invest in your career for less than the price of a mock interview.
                     </p>
@@ -48,10 +46,7 @@ const Pricing: React.FC = () => {
                                 ))}
                             </ul>
 
-                            <Button
-                                variant={plan.recommended ? 'primary' : 'outline'}
-                                className="w-full"
-                            >
+                            <Button variant={plan.recommended ? 'primary' : 'outline'} className="w-full">
                                 {plan.buttonText}
                             </Button>
                         </div>

@@ -12,7 +12,11 @@ const BlogSidebarCTA: React.FC = () => {
     return (
         <div className="bg-[#111] border border-white/10 rounded-2xl p-6 mb-8 text-center">
             <h3 className="text-xl font-bold text-white mb-2 leading-snug">
-                Download and try<br />Co-Interview for free<br />today
+                Download and try
+                <br />
+                Co-Interview for free
+                <br />
+                today
             </h3>
             <a
                 href="#download-cta"

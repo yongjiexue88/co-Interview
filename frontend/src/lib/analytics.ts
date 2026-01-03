@@ -1,6 +1,6 @@
-import { logEvent, Analytics } from "firebase/analytics";
-import { analytics, db } from "./firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { logEvent, Analytics } from 'firebase/analytics';
+import { analytics, db } from './firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // Helper to log analytic events safely
 export const trackEvent = async (eventName: string, eventParams?: { [key: string]: any }) => {
@@ -23,18 +23,17 @@ export const trackEvent = async (eventName: string, eventParams?: { [key: string
                 eventName,
                 params: eventParams || {},
                 createdAt: serverTimestamp(),
-                url: window.location.pathname
+                url: window.location.pathname,
             });
         } catch (dbError) {
-            console.warn("Failed to log event to Firestore:", dbError);
+            console.warn('Failed to log event to Firestore:', dbError);
         }
-
     } catch (error) {
-        console.error("Failed to log analytics event:", error);
+        console.error('Failed to log analytics event:', error);
     }
 };
 
 // Use this for page views specifically if manual tracking is needed beyond SPA hook
 export const trackPageView = async (page_path: string) => {
-    trackEvent("page_view", { page_path });
+    trackEvent('page_view', { page_path });
 };

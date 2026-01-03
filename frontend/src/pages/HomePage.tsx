@@ -24,12 +24,7 @@ const HomePage: React.FC = () => {
                 title="Co-Interview — AI Interview Copilot for Technical Interviews"
                 description="The premier real-time interview assistant for technical coding interviews. Co-Interview provides undetectable support for Zoom, Teams, and Google Meet to help you ace FAANG, HackerRank, and LeetCode assessments."
                 canonicalUrl="https://co-interview.com/"
-                jsonLd={[
-                    generateOrganizationSchema(),
-                    generateWebSiteSchema(),
-                    generateProductSchema(pricingTiers),
-                    generateFAQSchema(faqItems)
-                ]}
+                jsonLd={[generateOrganizationSchema(), generateWebSiteSchema(), generateProductSchema(pricingTiers), generateFAQSchema(faqItems)]}
             />
             <Banner />
             <Navbar />
@@ -50,4 +45,3 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
-

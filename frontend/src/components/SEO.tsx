@@ -15,7 +15,7 @@ const SEO: React.FC<SEOProps> = ({ title, description, canonicalUrl, type = 'web
         <Helmet>
             {/* Standard metadata tags */}
             <title>{title}</title>
-            <meta name='description' content={description} />
+            <meta name="description" content={description} />
             <link rel="canonical" href={canonicalUrl} />
 
             {/* End of standard metadata tags */}
@@ -35,13 +35,14 @@ const SEO: React.FC<SEOProps> = ({ title, description, canonicalUrl, type = 'web
             {/* End of Twitter tags */}
 
             {/* Schema.org JSON-LD */}
-            {jsonLd && jsonLd.map((schema, index) => (
-                <script key={index} type="application/ld+json">
-                    {JSON.stringify(schema)}
-                </script>
-            ))}
+            {jsonLd &&
+                jsonLd.map((schema, index) => (
+                    <script key={index} type="application/ld+json">
+                        {JSON.stringify(schema)}
+                    </script>
+                ))}
         </Helmet>
     );
-}
+};
 
 export default SEO;

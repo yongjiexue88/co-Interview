@@ -12,41 +12,41 @@ export const features: Feature[] = [
         title: 'Invisible on Dock',
         description: 'Completely hidden from macOS Dock and Windows taskbar. Zero visual footprint.',
         icon: '👻',
-        category: 'stealth'
+        category: 'stealth',
     },
     {
         id: 'screen-detection',
         title: 'Screen Share Detection',
         description: 'Auto-hides when screen sharing is detected. Works with Zoom, Teams, Meet.',
         icon: '🛡️',
-        category: 'stealth'
+        category: 'stealth',
     },
     {
         id: 'ai-solutions',
         title: 'AI-Powered Solutions',
         description: 'Get instant solutions to LeetCode, HackerRank, and custom problems.',
         icon: '🤖',
-        category: 'ai'
+        category: 'ai',
     },
     {
         id: 'audio-support',
         title: 'Audio Interview Support',
         description: 'Real-time transcription and AI assistance during voice interviews.',
         icon: '🎙️',
-        category: 'ai'
+        category: 'ai',
     },
     {
         id: 'browser-integration',
         title: 'Browser Integration',
         description: 'Works seamlessly with Chrome, Firefox, Safari, and Edge.',
         icon: '🌐',
-        category: 'integration'
+        category: 'integration',
     },
     {
         id: 'hotkey-control',
         title: 'Hotkey Control',
         description: 'Instant show/hide with customizable keyboard shortcuts.',
         icon: '⌨️',
-        category: 'integration'
-    }
+        category: 'integration',
+    },
 ];

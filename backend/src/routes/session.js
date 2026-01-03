@@ -5,12 +5,7 @@ const authMiddleware = require('../middleware/auth');
 const { db } = require('../config/firebase');
 const { PLANS } = require('../config/stripe');
 const { rateLimiter } = require('../config/redis');
-const {
-    PaymentRequiredError,
-    ForbiddenError,
-    QuotaExceededError,
-    ConcurrencyLimitError
-} = require('../middleware/errorHandler');
+const { PaymentRequiredError, ForbiddenError, QuotaExceededError, ConcurrencyLimitError } = require('../middleware/errorHandler');
 
 /**
  * POST /v1/realtime/session
@@ -68,7 +63,7 @@ router.post('/session', authMiddleware, async (req, res, next) => {
             expiresAt,
             endedAt: null,
             durationSeconds: 0,
-            status: 'active'
+            status: 'active',
         };
 
         await db.collection('sessions').doc(sessionId).set(session);
@@ -84,9 +79,8 @@ router.post('/session', authMiddleware, async (req, res, next) => {
             token: process.env.GEMINI_MASTER_API_KEY,
             expires_at: Math.floor(expiresAt.getTime() / 1000),
             max_duration_sec: planConfig.sessionMaxDuration,
-            quota_remaining_seconds: quotaRemaining
+            quota_remaining_seconds: quotaRemaining,
         });
-
     } catch (error) {
         next(error);
     }
@@ -122,7 +116,7 @@ router.post('/session/:sessionId/end', authMiddleware, async (req, res, next) =>
             endedAt: new Date(),
             durationSeconds: duration_seconds,
             status: 'ended',
-            endReason: reason
+            endReason: reason,
         });
 
         // 4. Update user quota
@@ -133,7 +127,7 @@ router.post('/session/:sessionId/end', authMiddleware, async (req, res, next) =>
 
         const newQuotaUsed = (user.quotaSecondsUsed || 0) + duration_seconds;
         await userRef.update({
-            quotaSecondsUsed: newQuotaUsed
+            quotaSecondsUsed: newQuotaUsed,
         });
 
         // 5. Release concurrency lock
@@ -143,9 +137,8 @@ router.post('/session/:sessionId/end', authMiddleware, async (req, res, next) =>
         res.json({
             session_id: sessionId,
             duration_seconds,
-            quota_remaining_seconds: planConfig.quotaSecondsMonth - newQuotaUsed
+            quota_remaining_seconds: planConfig.quotaSecondsMonth - newQuotaUsed,
         });
-
     } catch (error) {
         next(error);
     }
@@ -172,7 +165,7 @@ router.post('/heartbeat', authMiddleware, async (req, res, next) => {
             return res.status(402).json({
                 continue: false,
                 reason: 'quota_exceeded',
-                message: "You've used all your minutes this month. Upgrade to continue."
+                message: "You've used all your minutes this month. Upgrade to continue.",
             });
         }
 
@@ -182,9 +175,8 @@ router.post('/heartbeat', authMiddleware, async (req, res, next) => {
         res.json({
             continue: true,
             quota_remaining_seconds: quotaRemaining,
-            extend_until: Math.floor(Date.now() / 1000) + planConfig.sessionMaxDuration
+            extend_until: Math.floor(Date.now() / 1000) + planConfig.sessionMaxDuration,
         });
-
     } catch (error) {
         next(error);
     }

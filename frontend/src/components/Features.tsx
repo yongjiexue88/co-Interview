@@ -10,7 +10,8 @@ const Features: React.FC = () => {
                         Unfair advantage? <span className="text-[#EFCC3A]">Maybe.</span>
                     </h2>
                     <p className="text-gray-400 max-w-2xl mx-auto text-lg font-light">
-                        We've built the most advanced interview assistant on the market. It's not just an overlay; it's a complete stealth intelligence suite.
+                        We've built the most advanced interview assistant on the market. It's not just an overlay; it's a complete stealth
+                        intelligence suite.
                     </p>
                 </div>
 

@@ -50,7 +50,7 @@ describe('ProtectedAdminRoute', () => {
     it('shows Access Denied if email is not in ADMIN_EMAILS', () => {
         vi.mocked(UseAuth.useAuth).mockReturnValue({
             user: { email: 'random@example.com' } as any,
-            loading: false
+            loading: false,
         });
 
         render(
@@ -66,7 +66,7 @@ describe('ProtectedAdminRoute', () => {
     it('renders Outlet (dashboard) if authorized', () => {
         vi.mocked(UseAuth.useAuth).mockReturnValue({
             user: { email: 'yongjiexue88@gmail.com' } as any,
-            loading: false
+            loading: false,
         });
 
         render(

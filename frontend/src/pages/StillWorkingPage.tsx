@@ -29,7 +29,16 @@ const StillWorkingPage: React.FC = () => {
             {/* Floating Chat Bubble */}
             <div className="fixed bottom-6 right-6 z-50">
                 <button className="w-12 h-12 bg-[#FACC15] rounded-full flex items-center justify-center text-black shadow-lg hover:scale-105 transition-transform">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                 </button>

@@ -46,9 +46,8 @@ const KPISummaryPanel: React.FC<KPISummaryPanelProps> = ({ users, events }) => {
     const topSourceName = topSource ? topSource[0] : '-';
 
     // 4. Pricing Interest (Nav Clicks on 'Pricing')
-    const pricingClicks = events.filter(e =>
-        (e.eventName === 'nav_click' || e.eventName === 'mobile_nav_click') &&
-        e.params?.label === 'Pricing'
+    const pricingClicks = events.filter(
+        e => (e.eventName === 'nav_click' || e.eventName === 'mobile_nav_click') && e.params?.label === 'Pricing'
     ).length;
 
     return (

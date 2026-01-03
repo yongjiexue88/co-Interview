@@ -12,43 +12,45 @@ const changelogEntries: ChangelogEntry[] = [
     {
         date: 'Dec 21, 2025',
         title: 'Custom Prompt Manager Panel',
-        description: 'You can now create, edit, and organize custom prompts in the new Prompt Manager panel. Quickly set an active prompt, reset to defaults, and keep your interview instructions consistent across sessions. (Mac only, windows coming soon)',
+        description:
+            'You can now create, edit, and organize custom prompts in the new Prompt Manager panel. Quickly set an active prompt, reset to defaults, and keep your interview instructions consistent across sessions. (Mac only, windows coming soon)',
         tag: 'NEW FEATURE',
         images: [
             'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&h=200&fit=crop',
-            'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=300&h=200&fit=crop'
-        ]
+            'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=300&h=200&fit=crop',
+        ],
     },
     {
         date: 'Dec 7, 2025',
         title: 'Improved Password Reset Flow',
-        description: 'We\'ve streamlined the password reset process to make recovering your account faster and easier.',
-        tag: 'IMPROVEMENT'
+        description: "We've streamlined the password reset process to make recovering your account faster and easier.",
+        tag: 'IMPROVEMENT',
     },
     {
         date: 'Dec 6, 2025',
         title: 'Password Security Enhancements',
-        description: 'We\'ve added a password strength indicator to help you create more secure passwords and improved the overall password update experience.',
-        tag: 'NEW FEATURE'
+        description:
+            "We've added a password strength indicator to help you create more secure passwords and improved the overall password update experience.",
+        tag: 'NEW FEATURE',
     },
     {
         date: 'Dec 6, 2025',
         title: 'Platform Updates & Bug Fixes',
-        description: 'We\'ve made performance and security improvements across the platform and fixed several bugs.',
-        tag: 'IMPROVEMENT'
+        description: "We've made performance and security improvements across the platform and fixed several bugs.",
+        tag: 'IMPROVEMENT',
     },
     {
         date: 'Dec 5, 2025',
         title: 'Enhanced Account Security',
-        description: 'We\'ve strengthened our authentication system and password validation to keep your account more secure.',
-        tag: 'NEW FEATURE'
+        description: "We've strengthened our authentication system and password validation to keep your account more secure.",
+        tag: 'NEW FEATURE',
     },
     {
         date: 'Dec 4, 2025',
         title: 'Performance Improvements',
-        description: 'We\'ve optimized the platform for faster load times and improved overall performance.',
-        tag: 'IMPROVEMENT'
-    }
+        description: "We've optimized the platform for faster load times and improved overall performance.",
+        tag: 'IMPROVEMENT',
+    },
 ];
 
 const ChangelogPage: React.FC = () => {
@@ -66,10 +68,11 @@ const ChangelogPage: React.FC = () => {
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                                 <h3 className="text-white font-semibold">{entry.title}</h3>
-                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${entry.tag === 'NEW FEATURE'
-                                        ? 'bg-[#FACC15]/20 text-[#FACC15]'
-                                        : 'bg-green-500/20 text-green-400'
-                                    }`}>
+                                <span
+                                    className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                                        entry.tag === 'NEW FEATURE' ? 'bg-[#FACC15]/20 text-[#FACC15]' : 'bg-green-500/20 text-green-400'
+                                    }`}
+                                >
                                     {entry.tag}
                                 </span>
                             </div>

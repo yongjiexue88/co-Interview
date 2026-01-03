@@ -1,28 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar,
-    Legend
-} from 'recharts';
-import {
-    Download,
-    Search,
-    Users,
-    LogOut,
-    TrendingUp,
-    Calendar,
-    MousePointer,
-    Activity
-} from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+import { Download, Search, Users, LogOut, TrendingUp, Calendar, MousePointer, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import KPISummaryPanel from '../components/KPISummaryPanel';
@@ -52,39 +32,8 @@ const AdminDashboard: React.FC = () => {
         total: 0,
         today: 0,
         thisWeek: 0,
-        bySource: { hero: 0, final_cta: 0, navbar: 0 } as Record<string, number>
+        bySource: { hero: 0, final_cta: 0, navbar: 0 } as Record<string, number>,
     });
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        try {
-            const q = query(collection(db, 'preregistrations'), orderBy('createdAt', 'desc'));
-            const snapshot = await getDocs(q);
-            const data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as UserData[];
-
-            // Fetch Analytics Events
-            const analyticsQ = query(collection(db, 'analytics_events'), orderBy('createdAt', 'desc'));
-            const analyticsSnapshot = await getDocs(analyticsQ);
-            const analyticsData = analyticsSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as AnalyticsEvent[];
-
-            setUsers(data);
-            setAnalyticsEvents(analyticsData);
-            calculateStats(data);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            setLoading(false);
-        }
-    };
 
     const calculateStats = (data: UserData[]) => {
         const now = new Date();
@@ -95,7 +44,7 @@ const AdminDashboard: React.FC = () => {
             total: data.length,
             today: 0,
             thisWeek: 0,
-            bySource: { hero: 0, final_cta: 0, navbar: 0 }
+            bySource: { hero: 0, final_cta: 0, navbar: 0 },
         };
 
         data.forEach(user => {
@@ -115,20 +64,45 @@ const AdminDashboard: React.FC = () => {
         setStats(newStats);
     };
 
+    const fetchData = async () => {
+        try {
+            const q = query(collection(db, 'preregistrations'), orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
+            const data = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            })) as UserData[];
+
+            // Fetch Analytics Events
+            const analyticsQ = query(collection(db, 'analytics_events'), orderBy('createdAt', 'desc'));
+            const analyticsSnapshot = await getDocs(analyticsQ);
+            const analyticsData = analyticsSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            })) as AnalyticsEvent[];
+
+            setUsers(data);
+            setAnalyticsEvents(analyticsData);
+            calculateStats(data);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
     const handleExportCSV = () => {
         const headers = ['Email', 'Source', 'Intent', 'Date Joined', 'Time'];
         const csvContent = [
             headers.join(','),
             ...users.map(user => {
                 const date = user.createdAt?.toDate ? user.createdAt.toDate() : new Date();
-                return [
-                    user.email,
-                    user.source,
-                    user.intent || '-',
-                    date.toLocaleDateString(),
-                    date.toLocaleTimeString()
-                ].join(',');
-            })
+                return [user.email, user.source, user.intent || '-', date.toLocaleDateString(), date.toLocaleTimeString()].join(',');
+            }),
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -200,22 +174,22 @@ const AdminDashboard: React.FC = () => {
             });
 
         return {
-            navClicks: Object.entries(navClicks).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
+            navClicks: Object.entries(navClicks)
+                .map(([name, value]) => ({ name, value }))
+                .sort((a, b) => b.value - a.value),
             funnel: [
                 { name: 'Page Views', value: pageViews, fill: '#8884d8' },
-                { name: 'Signups', value: signups, fill: '#82ca9d' }
+                { name: 'Signups', value: signups, fill: '#82ca9d' },
             ],
             conversionRate,
             avgDuration,
-            scrollDepths: Object.entries(scrollDepths).map(([name, value]) => ({ name, value }))
+            scrollDepths: Object.entries(scrollDepths).map(([name, value]) => ({ name, value })),
         };
     };
 
     const analyticsStats = getAnalyticsStats();
 
-    const filteredUsers = users.filter(user =>
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredUsers = users.filter(user => user.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
     if (loading) {
         return (
@@ -402,7 +376,7 @@ const AdminDashboard: React.FC = () => {
                                 type="text"
                                 placeholder="Search emails..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={e => setSearchTerm(e.target.value)}
                                 className="w-full bg-black border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#FACC15]/50 transition-colors"
                             />
                         </div>
@@ -419,14 +393,19 @@ const AdminDashboard: React.FC = () => {
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {filteredUsers.length > 0 ? (
-                                    filteredUsers.map((user) => (
+                                    filteredUsers.map(user => (
                                         <tr key={user.id} className="hover:bg-white/5 transition-colors">
                                             <td className="px-6 py-4 font-medium">{user.email}</td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded text-xs ${user.source === 'hero' ? 'bg-blue-500/20 text-blue-400' :
-                                                    user.source === 'final_cta' ? 'bg-purple-500/20 text-purple-400' :
-                                                        'bg-gray-500/20 text-gray-400'
-                                                    }`}>
+                                                <span
+                                                    className={`px-2 py-1 rounded text-xs ${
+                                                        user.source === 'hero'
+                                                            ? 'bg-blue-500/20 text-blue-400'
+                                                            : user.source === 'final_cta'
+                                                              ? 'bg-purple-500/20 text-purple-400'
+                                                              : 'bg-gray-500/20 text-gray-400'
+                                                    }`}
+                                                >
                                                     {user.source}
                                                 </span>
                                             </td>

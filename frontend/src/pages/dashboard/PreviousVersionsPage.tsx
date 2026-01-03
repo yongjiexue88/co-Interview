@@ -13,13 +13,13 @@ const versions: VersionInfo[] = [
         name: 'Interview Coder Pro 2.0',
         version: 'v2.0.0',
         description: 'Audio support and upgraded undetectability and performance.',
-        isLatest: true
+        isLatest: true,
     },
     {
         name: 'Interview Coder 1.0',
         version: 'v1.0.33',
-        description: 'Streaming answers, improved prompt engineering.'
-    }
+        description: 'Streaming answers, improved prompt engineering.',
+    },
 ];
 
 const PreviousVersionsPage: React.FC = () => {
@@ -31,11 +31,7 @@ const PreviousVersionsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-xl flex items-center justify-center">
-                            <img
-                                src="https://www.interviewcoder.co/logo.svg"
-                                alt="Pro"
-                                className="w-8 h-8"
-                            />
+                            <img src="https://www.interviewcoder.co/logo.svg" alt="Pro" className="w-8 h-8" />
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
@@ -58,18 +54,11 @@ const PreviousVersionsPage: React.FC = () => {
             <h2 className="text-xl font-semibold text-white mb-6">Previous Version</h2>
             <div className="space-y-4">
                 {versions.slice(1).map((version, index) => (
-                    <div
-                        key={index}
-                        className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6"
-                    >
+                    <div key={index} className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-[#2a2a2a] rounded-xl flex items-center justify-center">
-                                    <img
-                                        src="https://www.interviewcoder.co/logo.svg"
-                                        alt="Version"
-                                        className="w-8 h-8 opacity-60"
-                                    />
+                                    <img src="https://www.interviewcoder.co/logo.svg" alt="Version" className="w-8 h-8 opacity-60" />
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-3">

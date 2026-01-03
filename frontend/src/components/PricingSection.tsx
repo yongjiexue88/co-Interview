@@ -7,7 +7,7 @@ const PricingSection: React.FC = () => {
     const handleNotifyClick = (tierId: string, price: string) => {
         trackEvent('pricing_tier_click', {
             tier_id: tierId,
-            price_displayed: price
+            price_displayed: price,
         });
         alert("Thanks for your interest! We'll notify you when subscriptions open.");
     };
@@ -36,12 +36,14 @@ const PricingSection: React.FC = () => {
                             <p className="text-sm text-gray-400 mt-2">Perfect for a specific interview loop.</p>
                         </div>
                         <ul className="space-y-4 mb-8">
-                            {['Unlimited Interview Support', 'Real-time Audio & Screen Analysis', 'All Languages Supported', 'Undetectable Mode'].map((feature, i) => (
-                                <li key={i} className="flex items-center gap-3 text-sm text-gray-300">
-                                    <Check className="w-4 h-4 text-[#FACC15]" />
-                                    {feature}
-                                </li>
-                            ))}
+                            {['Unlimited Interview Support', 'Real-time Audio & Screen Analysis', 'All Languages Supported', 'Undetectable Mode'].map(
+                                (feature, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-sm text-gray-300">
+                                        <Check className="w-4 h-4 text-[#FACC15]" />
+                                        {feature}
+                                    </li>
+                                )
+                            )}
                         </ul>
                         <Button
                             variant="outline"
@@ -75,11 +77,7 @@ const PricingSection: React.FC = () => {
                                 </li>
                             ))}
                         </ul>
-                        <Button
-                            variant="primary"
-                            className="w-full justify-center"
-                            onClick={() => handleNotifyClick('monthly', '$99')}
-                        >
+                        <Button variant="primary" className="w-full justify-center" onClick={() => handleNotifyClick('monthly', '$99')}>
                             Get Early Access
                         </Button>
                     </div>

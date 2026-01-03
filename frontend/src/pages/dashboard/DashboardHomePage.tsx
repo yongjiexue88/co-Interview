@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import {
-    Download,
-    Play,
-    ChevronDown,
-    ChevronUp
-} from 'lucide-react';
+import { Download, Play, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Platform data with icons and status
 const platforms = [
@@ -54,9 +49,7 @@ const DashboardHomePage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-8 py-12">
             {/* Welcome Section */}
             <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold text-white mb-2">
-                    Welcome {userName.toUpperCase()},
-                </h1>
+                <h1 className="text-4xl font-bold text-white mb-2">Welcome {userName.toUpperCase()},</h1>
                 <p className="text-3xl text-white">Let's start your free trial:</p>
             </div>
 
@@ -67,11 +60,7 @@ const DashboardHomePage: React.FC = () => {
                 </p>
                 <div className="bg-[#1a1a1a] border border-[#FACC15]/30 rounded-xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img
-                            src="https://www.interviewcoder.co/logo.svg"
-                            alt="Pro"
-                            className="w-8 h-8"
-                        />
+                        <img src="https://www.interviewcoder.co/logo.svg" alt="Pro" className="w-8 h-8" />
                         <span className="text-white font-semibold">Co-Interview Pro</span>
                     </div>
                     <div className="flex items-center gap-6">
@@ -99,11 +88,7 @@ const DashboardHomePage: React.FC = () => {
                 {/* Mac Download */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 text-center">
                     <div className="w-16 h-16 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <img
-                            src="https://www.interviewcoder.co/logo.svg"
-                            alt="Mac"
-                            className="w-10 h-10"
-                        />
+                        <img src="https://www.interviewcoder.co/logo.svg" alt="Mac" className="w-10 h-10" />
                     </div>
                     <div className="text-xs text-gray-500 mb-1">🍎</div>
                     <h3 className="text-white font-semibold mb-1">Co-Interview Free</h3>
@@ -131,11 +116,7 @@ const DashboardHomePage: React.FC = () => {
                 {/* Windows Download */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 text-center">
                     <div className="w-16 h-16 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <img
-                            src="https://www.interviewcoder.co/logo.svg"
-                            alt="Windows"
-                            className="w-10 h-10"
-                        />
+                        <img src="https://www.interviewcoder.co/logo.svg" alt="Windows" className="w-10 h-10" />
                     </div>
                     <div className="text-xs text-gray-500 mb-1">⊞</div>
                     <h3 className="text-white font-semibold mb-1">Co-Interview Free</h3>
@@ -162,7 +143,9 @@ const DashboardHomePage: React.FC = () => {
                         </button>
                     </div>
                     <div className="absolute bottom-4 left-4 right-4 text-center">
-                        <span className="text-xl font-bold">Inside <span className="text-[#FACC15]">Co-Interview</span> 2.0</span>
+                        <span className="text-xl font-bold">
+                            Inside <span className="text-[#FACC15]">Co-Interview</span> 2.0
+                        </span>
                     </div>
                 </div>
             </div>
@@ -173,11 +156,8 @@ const DashboardHomePage: React.FC = () => {
 
                 {/* Platform List */}
                 <div className="space-y-3">
-                    {platforms.map((platform) => (
-                        <div
-                            key={platform.id}
-                            className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden"
-                        >
+                    {platforms.map(platform => (
+                        <div key={platform.id} className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
                             <button
                                 onClick={() => setExpandedPlatform(expandedPlatform === platform.id ? null : platform.id)}
                                 className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
@@ -238,11 +218,7 @@ const DashboardHomePage: React.FC = () => {
 
                                             {/* Platform Icons */}
                                             <div className="flex justify-center items-center gap-8 mb-8">
-                                                <img
-                                                    src="https://www.interviewcoder.co/logo.svg"
-                                                    alt="Co-Interview"
-                                                    className="w-12 h-12"
-                                                />
+                                                <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-12 h-12" />
                                                 <span className="text-3xl">{platform.icon}</span>
                                             </div>
                                         </div>
@@ -253,7 +229,9 @@ const DashboardHomePage: React.FC = () => {
                                             <div className="bg-[#1a1a1a] rounded-lg p-4 border border-white/10">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <h4 className="text-white font-semibold text-lg">Candidate View</h4>
-                                                    <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/30">Hidden</span>
+                                                    <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/30">
+                                                        Hidden
+                                                    </span>
                                                 </div>
                                                 <div className="aspect-video bg-[#111] rounded-lg flex items-center justify-center border border-white/5">
                                                     <div className="text-center">
@@ -268,7 +246,9 @@ const DashboardHomePage: React.FC = () => {
                                             <div className="bg-[#1a1a1a] rounded-lg p-4 border border-white/10">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <h4 className="text-white font-semibold text-lg">Interviewer View</h4>
-                                                    <span className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs rounded-full border border-blue-500/30">What they see</span>
+                                                    <span className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs rounded-full border border-blue-500/30">
+                                                        What they see
+                                                    </span>
                                                 </div>
                                                 <div className="aspect-video bg-[#111] rounded-lg flex items-center justify-center border border-white/5">
                                                     <div className="text-center">
@@ -291,7 +271,10 @@ const DashboardHomePage: React.FC = () => {
             <div className="text-center py-8">
                 <p className="text-[#FACC15] text-lg mb-2">and all the interview softwares...</p>
                 <p className="text-gray-400">
-                    Here's why: <Link to="/still_working" className="text-[#FACC15] underline hover:brightness-110 transition-all">a detailed technological blog</Link>
+                    Here's why:{' '}
+                    <Link to="/still_working" className="text-[#FACC15] underline hover:brightness-110 transition-all">
+                        a detailed technological blog
+                    </Link>
                 </p>
             </div>
         </div>

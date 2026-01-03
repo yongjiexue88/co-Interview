@@ -6,10 +6,10 @@ let redis = null;
 if (process.env.REDIS_URL) {
     redis = new Redis(process.env.REDIS_URL, {
         maxRetriesPerRequest: 3,
-        retryDelayOnFailover: 100
+        retryDelayOnFailover: 100,
     });
 
-    redis.on('error', (err) => {
+    redis.on('error', err => {
         console.error('Redis connection error:', err);
     });
 
@@ -56,7 +56,7 @@ const rateLimiter = {
     async deleteLock(key) {
         if (!redis) return;
         return redis.del(key);
-    }
+    },
 };
 
 module.exports = { redis, rateLimiter };

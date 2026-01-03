@@ -24,5 +24,5 @@ export enum DemoState {
     IDLE = 'IDLE',
     LOADING = 'LOADING',
     SUCCESS = 'SUCCESS',
-    ERROR = 'ERROR'
+    ERROR = 'ERROR',
 }

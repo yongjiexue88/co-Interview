@@ -12,11 +12,7 @@ router.post('/stripe', async (req, res) => {
     let event;
 
     try {
-        event = stripe.webhooks.constructEvent(
-            req.body,
-            sig,
-            process.env.STRIPE_WEBHOOK_SECRET
-        );
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
         console.error('Webhook signature verification failed:', err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -47,7 +43,6 @@ router.post('/stripe', async (req, res) => {
         }
 
         res.json({ received: true });
-
     } catch (error) {
         console.error('Webhook handler error:', error);
         res.status(500).json({ error: 'Webhook handler failed' });
@@ -68,15 +63,18 @@ async function handleCheckoutComplete(session) {
     const subscription = await stripe.subscriptions.retrieve(session.subscription);
     const planConfig = PLANS[plan] || PLANS.free;
 
-    await db.collection('users').doc(firebase_uid).update({
-        plan,
-        status: 'active',
-        subscriptionId: subscription.id,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        quotaSecondsMonth: planConfig.quotaSecondsMonth,
-        concurrencyLimit: planConfig.concurrencyLimit,
-        features: planConfig.features
-    });
+    await db
+        .collection('users')
+        .doc(firebase_uid)
+        .update({
+            plan,
+            status: 'active',
+            subscriptionId: subscription.id,
+            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            quotaSecondsMonth: planConfig.quotaSecondsMonth,
+            concurrencyLimit: planConfig.concurrencyLimit,
+            features: planConfig.features,
+        });
 
     console.log(`✅ User ${firebase_uid} upgraded to ${plan}`);
 }
@@ -107,14 +105,17 @@ async function handleSubscriptionUpdated(subscription) {
     if (subscription.status === 'canceled') status = 'canceled';
     if (subscription.status === 'trialing') status = 'trialing';
 
-    await db.collection('users').doc(firebaseUid).update({
-        plan,
-        status,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        quotaSecondsMonth: planConfig.quotaSecondsMonth,
-        concurrencyLimit: planConfig.concurrencyLimit,
-        features: planConfig.features
-    });
+    await db
+        .collection('users')
+        .doc(firebaseUid)
+        .update({
+            plan,
+            status,
+            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            quotaSecondsMonth: planConfig.quotaSecondsMonth,
+            concurrencyLimit: planConfig.concurrencyLimit,
+            features: planConfig.features,
+        });
 
     console.log(`📝 Subscription updated for ${firebaseUid}: ${plan} (${status})`);
 }
@@ -136,7 +137,7 @@ async function handleSubscriptionDeleted(subscription) {
         subscriptionId: null,
         quotaSecondsMonth: freeConfig.quotaSecondsMonth,
         concurrencyLimit: freeConfig.concurrencyLimit,
-        features: freeConfig.features
+        features: freeConfig.features,
     });
 
     console.log(`❌ Subscription canceled for ${firebaseUid}, downgraded to free`);
@@ -152,7 +153,7 @@ async function handlePaymentFailed(invoice) {
     if (!firebaseUid) return;
 
     await db.collection('users').doc(firebaseUid).update({
-        status: 'past_due'
+        status: 'past_due',
     });
 
     console.log(`⚠️ Payment failed for ${firebaseUid}`);

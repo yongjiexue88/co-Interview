@@ -63,9 +63,7 @@ if (!gotTheLock) {
 // Open Google Sign In (Server-Side Flow)
 ipcMain.handle('auth:open-google', async () => {
     try {
-        const authUrl = app.isPackaged
-            ? 'https://co-interview.com/api/v1/auth/google'
-            : 'http://localhost:8080/api/v1/auth/google';
+        const authUrl = app.isPackaged ? 'https://co-interview.com/api/v1/auth/google' : 'http://localhost:8080/api/v1/auth/google';
 
         console.log('Opening Google Auth:', authUrl);
         await shell.openExternal(authUrl);
@@ -79,9 +77,7 @@ ipcMain.handle('auth:open-google', async () => {
 // Open Email/Password Login (Frontend Page)
 ipcMain.handle('auth:open-login', async () => {
     try {
-        const authUrl = app.isPackaged
-            ? 'https://co-interview.com/signin?electron=true'
-            : 'http://localhost:3000/signin?electron=true';
+        const authUrl = app.isPackaged ? 'https://co-interview.com/signin?electron=true' : 'http://localhost:3000/signin?electron=true';
 
         console.log('Opening Login Page:', authUrl);
         await shell.openExternal(authUrl);
@@ -108,9 +104,7 @@ async function handleAuthCallback(url) {
         console.log('Parsed host:', urlObj.host);
 
         // Check if this is an auth-callback
-        const isAuthCallback = urlObj.pathname === '/auth-callback' ||
-            urlObj.pathname === '//auth-callback' ||
-            url.includes('auth-callback');
+        const isAuthCallback = urlObj.pathname === '/auth-callback' || urlObj.pathname === '//auth-callback' || url.includes('auth-callback');
 
         console.log('Is auth callback:', isAuthCallback);
 
@@ -121,7 +115,7 @@ async function handleAuthCallback(url) {
                 if (mainWindow && mainWindow.webContents) {
                     mainWindow.webContents.send('auth-complete', {
                         success: false,
-                        error: 'Authentication cancelled'
+                        error: 'Authentication cancelled',
                     });
                 }
                 return;
@@ -168,9 +162,9 @@ async function handleAuthCallback(url) {
                             const response = await fetch(apiUrl, {
                                 method: 'POST',
                                 headers: {
-                                    'Authorization': `Bearer ${idToken}`,
-                                    'Content-Type': 'application/json'
-                                }
+                                    Authorization: `Bearer ${idToken}`,
+                                    'Content-Type': 'application/json',
+                                },
                             });
 
                             if (response.ok) {
@@ -195,7 +189,7 @@ async function handleAuthCallback(url) {
                         plan: entitlements?.plan || 'free',
                         status: entitlements?.status || 'active',
                         quotaRemainingSeconds: entitlements?.quota_remaining_seconds || null,
-                        features: entitlements?.features || []
+                        features: entitlements?.features || [],
                     };
                     console.log('Storing auth data:', { ...authData, idToken: '***' });
                     storage.setAuthData(authData);
@@ -208,7 +202,7 @@ async function handleAuthCallback(url) {
                             userId: user.uid,
                             email: user.email,
                             displayName: user.displayName,
-                            plan: entitlements?.plan || 'free'
+                            plan: entitlements?.plan || 'free',
                         });
                         console.log('auth-complete sent successfully');
                     } else {
@@ -222,7 +216,7 @@ async function handleAuthCallback(url) {
                     if (mainWindow && mainWindow.webContents) {
                         mainWindow.webContents.send('auth-complete', {
                             success: false,
-                            error: 'Authentication failed: ' + error.message
+                            error: 'Authentication failed: ' + error.message,
                         });
                         console.log('auth-complete (error) sent successfully');
                     }
@@ -232,7 +226,7 @@ async function handleAuthCallback(url) {
                 if (mainWindow && mainWindow.webContents) {
                     mainWindow.webContents.send('auth-complete', {
                         success: false,
-                        error: 'No authentication token received'
+                        error: 'No authentication token received',
                     });
                 }
             }
@@ -244,7 +238,7 @@ async function handleAuthCallback(url) {
         if (mainWindow && mainWindow.webContents) {
             mainWindow.webContents.send('auth-complete', {
                 success: false,
-                error: error.message
+                error: error.message,
             });
         }
     }
@@ -547,9 +541,7 @@ function setupAuthIpcHandlers() {
         try {
             // Open the website auth page in browser
             // Use localhost in development, production URL in build
-            const authUrl = app.isPackaged
-                ? 'https://co-interview.com/electron-auth'
-                : 'http://localhost:3000/electron-auth';
+            const authUrl = app.isPackaged ? 'https://co-interview.com/electron-auth' : 'http://localhost:3000/electron-auth';
 
             console.log('Opening auth URL:', authUrl);
             await shell.openExternal(authUrl);

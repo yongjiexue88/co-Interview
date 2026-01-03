@@ -45,18 +45,13 @@ const ForgotPasswordPage: React.FC = () => {
                 <div className="w-full max-w-md text-center space-y-6">
                     {/* Yellow Logo */}
                     <div className="w-16 h-16 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-full flex items-center justify-center mx-auto">
-                        <img
-                            src="https://www.interviewcoder.co/logo.svg"
-                            alt="Co-Interview"
-                            className="w-10 h-10"
-                        />
+                        <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-10 h-10" />
                     </div>
 
                     {/* Title */}
                     <h1 className="text-3xl font-bold text-white">Check your email</h1>
                     <p className="text-gray-400">
-                        We've sent a password reset link to{' '}
-                        <span className="text-white font-medium">{email}</span>
+                        We've sent a password reset link to <span className="text-white font-medium">{email}</span>
                     </p>
 
                     {/* Email Sent Box */}
@@ -66,7 +61,8 @@ const ForgotPasswordPage: React.FC = () => {
                             <span className="text-white font-semibold">Email Sent!</span>
                         </div>
                         <p className="text-gray-400 text-sm">
-                            Password reset instructions have been sent to your email. Please check your inbox and click the link to reset your password.
+                            Password reset instructions have been sent to your email. Please check your inbox and click the link to reset your
+                            password.
                         </p>
                     </div>
 
@@ -100,10 +96,7 @@ const ForgotPasswordPage: React.FC = () => {
                         >
                             Send Another Email
                         </button>
-                        <Link
-                            to="/signin"
-                            className="block text-gray-400 hover:text-white transition-colors text-sm"
-                        >
+                        <Link to="/signin" className="block text-gray-400 hover:text-white transition-colors text-sm">
                             Back to Sign In
                         </Link>
                     </div>
@@ -116,32 +109,22 @@ const ForgotPasswordPage: React.FC = () => {
         <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">
             {/* Logo */}
             <div className="mb-8 flex flex-col items-center">
-                <img
-                    src="https://www.interviewcoder.co/logo.svg"
-                    alt="Co-Interview"
-                    className="w-12 h-12 mb-4"
-                />
+                <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-12 h-12 mb-4" />
                 <h1 className="text-2xl font-semibold text-white">Reset your password</h1>
-                <p className="text-gray-400 mt-2 text-center">
-                    Enter your email and we'll send you a reset link
-                </p>
+                <p className="text-gray-400 mt-2 text-center">Enter your email and we'll send you a reset link</p>
             </div>
 
             {/* Reset Form */}
             <div className="w-full max-w-md space-y-6">
                 {/* Error Message */}
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm px-4 py-3 rounded-lg">
-                        {error}
-                    </div>
-                )}
+                {error && <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm px-4 py-3 rounded-lg">{error}</div>}
 
                 <form onSubmit={handleResetPassword} className="space-y-4">
                     <div>
                         <input
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={e => setEmail(e.target.value)}
                             placeholder="Email address"
                             className="w-full bg-[#2a2a2a] border border-white/10 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FACC15]/50 focus:border-transparent transition-colors"
                         />

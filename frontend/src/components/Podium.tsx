@@ -43,9 +43,7 @@ const Podium: React.FC = () => {
                 </div>
 
                 {/* Caption */}
-                <p className="text-center text-gray-500 mt-8 text-sm">
-                    The Original. Accept No Substitutes.
-                </p>
+                <p className="text-center text-gray-500 mt-8 text-sm">The Original. Accept No Substitutes.</p>
             </div>
         </section>
     );

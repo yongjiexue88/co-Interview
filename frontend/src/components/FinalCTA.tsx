@@ -32,9 +32,7 @@ const FinalCTA: React.FC = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     {/* Mac Dropdown Button */}
                     <div className="relative group">
-                        <button
-                            className="flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40"
-                        >
+                        <button className="flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40">
                             <AppleIcon />
                             <span>Get for Mac</span>
                         </button>
@@ -67,9 +65,7 @@ const FinalCTA: React.FC = () => {
                     </a>
                 </div>
 
-                <p className="mt-8 text-sm text-gray-500">
-                    Free to download • No credit card required • Works on macOS 12+ & Windows 10+
-                </p>
+                <p className="mt-8 text-sm text-gray-500">Free to download • No credit card required • Works on macOS 12+ & Windows 10+</p>
                 {/* === END DOWNLOAD BUTTONS === */}
             </div>
         </section>

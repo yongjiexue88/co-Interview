@@ -11,7 +11,11 @@ export class CoInterviewApp extends LitElement {
     static styles = css`
         * {
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family:
+                'Inter',
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
             margin: 0px;
             padding: 0px;
             cursor: default;
@@ -140,20 +144,14 @@ export class CoInterviewApp extends LitElement {
 
     async _loadFromStorage() {
         try {
-            const [config, prefs] = await Promise.all([
-                cheatingDaddy.storage.getConfig(),
-                cheatingDaddy.storage.getPreferences()
-            ]);
+            const [config, prefs] = await Promise.all([cheatingDaddy.storage.getConfig(), cheatingDaddy.storage.getPreferences()]);
 
             // Check onboarding status
             // FOR DEBUGGING: Always show onboarding
             this.currentView = 'onboarding'; // config.onboarded ? 'main' : 'onboarding';
 
             // Apply background appearance (color + transparency)
-            this.applyBackgroundAppearance(
-                prefs.backgroundColor ?? '#1e1e1e',
-                prefs.backgroundTransparency ?? 0.8
-            );
+            this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.8);
 
             // Load preferences
             this.selectedProfile = prefs.selectedProfile || 'interview';
@@ -174,18 +172,20 @@ export class CoInterviewApp extends LitElement {
 
     hexToRgb(hex) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : { r: 30, g: 30, b: 30 };
+        return result
+            ? {
+                  r: parseInt(result[1], 16),
+                  g: parseInt(result[2], 16),
+                  b: parseInt(result[3], 16),
+              }
+            : { r: 30, g: 30, b: 30 };
     }
 
     lightenColor(rgb, amount) {
         return {
             r: Math.min(255, rgb.r + amount),
             g: Math.min(255, rgb.g + amount),
-            b: Math.min(255, rgb.b + amount)
+            b: Math.min(255, rgb.b + amount),
         };
     }
 
@@ -492,11 +492,11 @@ export class CoInterviewApp extends LitElement {
                         .shouldAnimateResponse=${this.shouldAnimateResponse}
                         @response-index-changed=${this.handleResponseIndexChanged}
                         @response-animation-complete=${() => {
-                        this.shouldAnimateResponse = false;
-                        this._currentResponseIsComplete = true;
-                        console.log('[response-animation-complete] Marked current response as complete');
-                        this.requestUpdate();
-                    }}
+                            this.shouldAnimateResponse = false;
+                            this._currentResponseIsComplete = true;
+                            console.log('[response-animation-complete] Marked current response as complete');
+                            this.requestUpdate();
+                        }}
                     ></assistant-view>
                 `;
 
@@ -507,11 +507,11 @@ export class CoInterviewApp extends LitElement {
 
     render() {
         const viewClassMap = {
-            'assistant': 'assistant-view',
-            'onboarding': 'onboarding-view',
-            'customize': 'settings-view',
-            'help': 'help-view',
-            'history': 'history-view',
+            assistant: 'assistant-view',
+            onboarding: 'onboarding-view',
+            customize: 'settings-view',
+            help: 'help-view',
+            history: 'history-view',
         };
         const mainContentClass = `main-content ${viewClassMap[this.currentView] || 'with-border'}`;
 

@@ -27,7 +27,7 @@ router.post('/verify', authMiddleware, async (req, res, next) => {
                 quotaSecondsUsed: 0,
                 quotaResetAt: getNextMonthStart(),
                 concurrencyLimit: PLANS.free.concurrencyLimit,
-                features: PLANS.free.features
+                features: PLANS.free.features,
             };
             await userRef.set(newUser);
             userDoc = await userRef.get();
@@ -39,7 +39,7 @@ router.post('/verify', authMiddleware, async (req, res, next) => {
         if (new Date() > userData.quotaResetAt?.toDate()) {
             await userRef.update({
                 quotaSecondsUsed: 0,
-                quotaResetAt: getNextMonthStart()
+                quotaResetAt: getNextMonthStart(),
             });
             userData.quotaSecondsUsed = 0;
         }
@@ -52,7 +52,7 @@ router.post('/verify', authMiddleware, async (req, res, next) => {
             plan: userData.plan,
             status: userData.status,
             quota_remaining_seconds: planConfig.quotaSecondsMonth - userData.quotaSecondsUsed,
-            features: planConfig.features
+            features: planConfig.features,
         });
     } catch (error) {
         next(error);
@@ -65,19 +65,12 @@ router.post('/verify', authMiddleware, async (req, res, next) => {
  */
 router.get('/google', (req, res) => {
     const { OAuth2Client } = require('google-auth-library');
-    const client = new OAuth2Client(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        process.env.GOOGLE_REDIRECT_URI
-    );
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
     const authorizeUrl = client.generateAuthUrl({
         access_type: 'offline',
         prompt: 'select_account',
-        scope: [
-            'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/userinfo.email'
-        ]
+        scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'],
     });
 
     res.redirect(authorizeUrl);
@@ -95,11 +88,7 @@ router.get('/google/callback', async (req, res, next) => {
         }
 
         const { OAuth2Client } = require('google-auth-library');
-        const client = new OAuth2Client(
-            process.env.GOOGLE_CLIENT_ID,
-            process.env.GOOGLE_CLIENT_SECRET,
-            process.env.GOOGLE_REDIRECT_URI
-        );
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
         // Exchange code for tokens
         const { tokens } = await client.getToken(code);
@@ -108,7 +97,7 @@ router.get('/google/callback', async (req, res, next) => {
         // Get user info
         const ticket = await client.verifyIdToken({
             idToken: tokens.id_token,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
         const { email, sub: googleUid, name, picture } = payload;
@@ -126,7 +115,7 @@ router.get('/google/callback', async (req, res, next) => {
                     email,
                     displayName: name,
                     photoURL: picture,
-                    emailVerified: true
+                    emailVerified: true,
                 });
             } else {
                 throw error;
@@ -151,7 +140,7 @@ router.get('/google/callback', async (req, res, next) => {
                 // Helper needed or copy logic
                 quotaResetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
                 concurrencyLimit: PLANS.free.concurrencyLimit,
-                features: PLANS.free.features
+                features: PLANS.free.features,
             };
             await userRef.set(newUser);
         }
@@ -240,7 +229,6 @@ router.get('/google/callback', async (req, res, next) => {
 </html>
         `;
         res.send(successHtml);
-
     } catch (error) {
         console.error('OAuth Callback Error:', error);
         // Show error page

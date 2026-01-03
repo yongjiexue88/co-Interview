@@ -26,9 +26,7 @@ const BlogPage: React.FC = () => {
                     // The loader provides a formatted date string usually, but let's try to parse it for sorting/grouping
                     const dateObj = new Date(post.date);
                     // If invalid date, maybe put at end?
-                    const key = isNaN(dateObj.getTime())
-                        ? 'Recent Posts'
-                        : dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    const key = isNaN(dateObj.getTime()) ? 'Recent Posts' : dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
                     if (!groupsMap[key]) {
                         groupsMap[key] = [];
@@ -45,7 +43,7 @@ const BlogPage: React.FC = () => {
 
                 const blogGroups: MonthGroup[] = sortedKeys.map(key => ({
                     month: key,
-                    posts: groupsMap[key]
+                    posts: groupsMap[key],
                 }));
 
                 setGroups(blogGroups);
@@ -58,11 +56,11 @@ const BlogPage: React.FC = () => {
                         title: first.title,
                         date: first.date,
                         href: first.href,
-                        imageUrl: first.imageUrl
+                        imageUrl: first.imageUrl,
                     });
                 }
             } catch (error) {
-                console.error("Failed to load blog posts", error);
+                console.error('Failed to load blog posts', error);
             } finally {
                 setLoading(false);
             }

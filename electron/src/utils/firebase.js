@@ -12,7 +12,7 @@ const firebaseConfig = {
     storageBucket: 'co-interview-481814.firebasestorage.app',
     messagingSenderId: '391576745300',
     appId: '1:391576745300:web:4078bf13caea97a3c504c1',
-    measurementId: 'G-3ENXT54XQN'
+    measurementId: 'G-3ENXT54XQN',
 };
 
 // Initialize Firebase
@@ -45,7 +45,7 @@ function getCurrentUser() {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
-        photoURL: user.photoURL
+        photoURL: user.photoURL,
     };
 }
 
@@ -74,5 +74,5 @@ module.exports = {
     signOut,
     onAuthChange,
     signInWithCredential,
-    signInWithCustomToken
+    signInWithCustomToken,
 };

@@ -6,12 +6,11 @@ export const BlogHero: React.FC = () => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-12">
                 {/* Left Text */}
                 <div className="flex-1 space-y-6 text-center md:text-left">
-                    <h1 className="text-6xl md:text-8xl font-bold text-gray-200 tracking-tight">
-                        Blog
-                    </h1>
+                    <h1 className="text-6xl md:text-8xl font-bold text-gray-200 tracking-tight">Blog</h1>
 
                     <p className="text-lg text-gray-400 max-w-lg leading-relaxed mx-auto md:mx-0">
-                        Learn more about Co-Interview, and how we can double your salary by using AI to one-shot your Leetcode assessments and interviews.
+                        Learn more about Co-Interview, and how we can double your salary by using AI to one-shot your Leetcode assessments and
+                        interviews.
                     </p>
                 </div>
 

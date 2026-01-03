@@ -33,28 +33,25 @@ const ProfilePage: React.FC = () => {
             <div className="flex gap-6 border-b border-white/10 mb-8">
                 <button
                     onClick={() => setActiveTab('account')}
-                    className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'account'
-                            ? 'text-white border-b-2 border-white'
-                            : 'text-gray-400 hover:text-white'
-                        }`}
+                    className={`pb-3 text-sm font-medium transition-colors ${
+                        activeTab === 'account' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
+                    }`}
                 >
                     Your Account
                 </button>
                 <button
                     onClick={() => setActiveTab('billing')}
-                    className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'billing'
-                            ? 'text-white border-b-2 border-white'
-                            : 'text-gray-400 hover:text-white'
-                        }`}
+                    className={`pb-3 text-sm font-medium transition-colors ${
+                        activeTab === 'billing' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
+                    }`}
                 >
                     Billing
                 </button>
                 <button
                     onClick={() => setActiveTab('affiliate')}
-                    className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'affiliate'
-                            ? 'text-white border-b-2 border-white'
-                            : 'text-gray-400 hover:text-white'
-                        }`}
+                    className={`pb-3 text-sm font-medium transition-colors ${
+                        activeTab === 'affiliate' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
+                    }`}
                 >
                     Affiliate
                 </button>
@@ -72,17 +69,13 @@ const ProfilePage: React.FC = () => {
                     {/* Name */}
                     <div>
                         <label className="block text-gray-400 text-sm mb-2">Name</label>
-                        <div className="bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white">
-                            {userName.toUpperCase()}
-                        </div>
+                        <div className="bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white">{userName.toUpperCase()}</div>
                     </div>
 
                     {/* Email */}
                     <div>
                         <label className="block text-gray-400 text-sm mb-2">Email</label>
-                        <div className="bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white">
-                            {userEmail}
-                        </div>
+                        <div className="bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white">{userEmail}</div>
                     </div>
 
                     {/* Actions */}
@@ -95,10 +88,7 @@ const ProfilePage: React.FC = () => {
                             <Trash2 className="w-4 h-4" />
                             <span className="text-sm">Delete Account</span>
                         </button>
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors"
-                        >
+                        <button onClick={handleLogout} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors">
                             <LogOut className="w-4 h-4" />
                             <span className="text-sm">Log Out</span>
                         </button>

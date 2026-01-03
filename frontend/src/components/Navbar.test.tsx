@@ -50,7 +50,7 @@ describe('Navbar', () => {
 
         // After clicking toggle, mobile menu should show download options
         // Check for mobile download section
-        expect(screen.getByText('Download for Free')).toBeInTheDocument();
+        expect(screen.getAllByText('Download for Free')[0]).toBeInTheDocument();
     });
 
     it('updates style on scroll', () => {
@@ -70,7 +70,7 @@ describe('Navbar', () => {
         // Note: setting scrollY on window event target might not update global window.scrollY depending on implementation
         // Better to set window.scrollY manually (it's read-only in real browser but jsdom might allow or need stub)
 
-        // Skip strictly verifying class change if difficult in jsdom without setup, 
+        // Skip strictly verifying class change if difficult in jsdom without setup,
         // but ensuring no crash is good.
     });
 });

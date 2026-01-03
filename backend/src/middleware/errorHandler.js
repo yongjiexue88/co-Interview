@@ -8,7 +8,7 @@ function errorHandler(err, req, res, next) {
     if (err.statusCode) {
         return res.status(err.statusCode).json({
             error: err.name || 'Error',
-            message: err.message
+            message: err.message,
         });
     }
 
@@ -16,7 +16,7 @@ function errorHandler(err, req, res, next) {
     if (err.type === 'StripeCardError') {
         return res.status(400).json({
             error: 'PaymentError',
-            message: err.message
+            message: err.message,
         });
     }
 
@@ -24,16 +24,14 @@ function errorHandler(err, req, res, next) {
     if (err.code?.startsWith('auth/')) {
         return res.status(401).json({
             error: 'AuthError',
-            message: err.message
+            message: err.message,
         });
     }
 
     // Default 500 error
     res.status(500).json({
         error: 'InternalServerError',
-        message: process.env.NODE_ENV === 'production'
-            ? 'An unexpected error occurred'
-            : err.message
+        message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message,
     });
 }
 

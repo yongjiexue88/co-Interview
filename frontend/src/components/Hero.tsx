@@ -19,24 +19,24 @@ const WindowsIcon = () => (
 
 const Hero: React.FC = () => {
     const variant = useExperiment('hero_headline_v1', ['A', 'B']);
-    const headlineText = variant === 'A'
-        ? "Pass Any Technical Interview"
-        : "Never Freeze During a Coding Interview Again";
+    const headlineText = variant === 'A' ? 'Pass Any Technical Interview' : 'Never Freeze During a Coding Interview Again';
 
     return (
         <div className="relative pt-12 pb-20 lg:pt-20 lg:pb-32 overflow-hidden bg-black">
-
             {/* Background Glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
                 <div className="absolute top-[-100px] left-1/4 w-[600px] h-[600px] bg-white/5 rounded-full blur-[120px]"></div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-
                 {/* Badge */}
-                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-10 hover:bg-white/10 transition-colors cursor-pointer group backdrop-blur-sm"
-                    onClick={() => import('../lib/analytics').then(m => m.trackEvent('hero_badge_click', { label: '2.0 Announcement' }))}>
-                    <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">🎉 2.0 is here <span className="text-gray-500 mx-1">|</span> See what's new</span>
+                <div
+                    className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-10 hover:bg-white/10 transition-colors cursor-pointer group backdrop-blur-sm"
+                    onClick={() => import('../lib/analytics').then(m => m.trackEvent('hero_badge_click', { label: '2.0 Announcement' }))}
+                >
+                    <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+                        🎉 2.0 is here <span className="text-gray-500 mx-1">|</span> See what's new
+                    </span>
                     <ArrowRight className="w-3 h-3 text-gray-500 group-hover:text-white transition-colors" />
                 </div>
 
@@ -44,12 +44,15 @@ const Hero: React.FC = () => {
                     <span className="block text-white mb-2">{headlineText}</span>
                     <span className="block text-[#4b5563] relative inline-block">
                         Co-Interview 2.0
-                        <span className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-b from-white/10 to-transparent blur-[2px]">Co-Interview 2.0</span>
+                        <span className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-b from-white/10 to-transparent blur-[2px]">
+                            Co-Interview 2.0
+                        </span>
                     </span>
                 </h1>
 
                 <p className="mt-6 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed font-light">
-                    Now upgraded with <span className="text-white font-medium">audio support</span> and 20+ <span className="text-white font-medium">cutting-edge</span> undetectability <br className="hidden md:block" />
+                    Now upgraded with <span className="text-white font-medium">audio support</span> and 20+{' '}
+                    <span className="text-white font-medium">cutting-edge</span> undetectability <br className="hidden md:block" />
                     features to keep you invisible across every interview check.
                 </p>
 
@@ -57,9 +60,7 @@ const Hero: React.FC = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24">
                     {/* Mac Dropdown Button */}
                     <div className="relative group">
-                        <button
-                            className="flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40 min-w-[200px] justify-center"
-                        >
+                        <button className="flex items-center gap-3 bg-[#EFCC3A] hover:bg-[#f5d742] text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg shadow-[#EFCC3A]/20 hover:shadow-[#EFCC3A]/40 min-w-[200px] justify-center">
                             <AppleIcon />
                             <span>Get for Mac</span>
                         </button>
@@ -98,7 +99,6 @@ const Hero: React.FC = () => {
                     <div className="absolute -inset-1 bg-gradient-to-r from-[#EFCC3A] via-yellow-500 to-[#EFCC3A] rounded-2xl blur opacity-20"></div>
 
                     <div className="relative rounded-2xl bg-[#0a0a0a] border border-white/10 shadow-2xl overflow-hidden text-left transform rotate-x-10 transition-transform duration-700 hover:scale-[1.01]">
-
                         {/* Overlay Elements for effect */}
                         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#EFCC3A] text-black text-[10px] font-bold px-3 py-1 rounded-full shadow-lg z-20 flex items-center space-x-2">
                             <span className="w-2 h-2 rounded-full bg-black animate-pulse"></span>
@@ -112,9 +112,7 @@ const Hero: React.FC = () => {
                                 <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
                                 <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
                             </div>
-                            <div className="flex-1 text-center text-xs text-gray-500 font-mono">
-                                LeetCode Problem List
-                            </div>
+                            <div className="flex-1 text-center text-xs text-gray-500 font-mono">LeetCode Problem List</div>
                         </div>
 
                         <div className="flex flex-col md:flex-row h-[600px] bg-black">
@@ -129,14 +127,20 @@ const Hero: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-4 text-gray-400 text-sm leading-relaxed mb-8">
-                                    <p>Given an unsorted array of integers <code className="text-[#EFCC3A]">nums</code>, return the length of the longest consecutive elements sequence.</p>
-                                    <p>You must write an algorithm that runs in <code className="text-[#EFCC3A]">O(n)</code> time.</p>
+                                    <p>
+                                        Given an unsorted array of integers <code className="text-[#EFCC3A]">nums</code>, return the length of the
+                                        longest consecutive elements sequence.
+                                    </p>
+                                    <p>
+                                        You must write an algorithm that runs in <code className="text-[#EFCC3A]">O(n)</code> time.
+                                    </p>
                                 </div>
 
                                 <div className="bg-[#111] p-4 rounded-xl border border-white/5 mb-6">
                                     <p className="font-mono text-xs text-gray-500 mb-2">Example 1:</p>
                                     <div className="font-mono text-xs text-gray-300">
-                                        Input: nums = [100, 4, 200, 1, 3, 2]<br />
+                                        Input: nums = [100, 4, 200, 1, 3, 2]
+                                        <br />
                                         Output: 4<br />
                                         Explanation: The longest consecutive elements sequence is [1, 2, 3, 4]. Therefore its length is 4.
                                     </div>
@@ -163,20 +167,32 @@ const Hero: React.FC = () => {
 
                                     <div className="font-mono text-[10px] text-gray-300 leading-relaxed mb-4">
                                         <span className="text-purple-400">class</span> <span className="text-yellow-200">Solution</span>:<br />
-                                        &nbsp;&nbsp;<span className="text-purple-400">def</span> <span className="text-blue-400">longestConsecutive</span>(self, nums):<br />
-                                        &nbsp;&nbsp;&nbsp;&nbsp;num_set = <span className="text-purple-400">set</span>(nums)<br />
+                                        &nbsp;&nbsp;<span className="text-purple-400">def</span>{' '}
+                                        <span className="text-blue-400">longestConsecutive</span>(self, nums):
+                                        <br />
+                                        &nbsp;&nbsp;&nbsp;&nbsp;num_set = <span className="text-purple-400">set</span>(nums)
+                                        <br />
                                         &nbsp;&nbsp;&nbsp;&nbsp;longest = 0<br />
                                         <br />
-                                        &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">for</span> num <span className="text-purple-400">in</span> num_set:<br />
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">if</span> num - 1 <span className="text-purple-400">not in</span> num_set:<br />
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current_num = num<br />
+                                        &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">for</span> num{' '}
+                                        <span className="text-purple-400">in</span> num_set:
+                                        <br />
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">if</span> num - 1{' '}
+                                        <span className="text-purple-400">not in</span> num_set:
+                                        <br />
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current_num = num
+                                        <br />
                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current_streak = 1<br />
                                         <br />
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">while</span> current_num + 1 <span className="text-purple-400">in</span> num_set:<br />
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">while</span> current_num + 1{' '}
+                                        <span className="text-purple-400">in</span> num_set:
+                                        <br />
                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current_num += 1<br />
                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current_streak += 1<br />
                                         <br />
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;longest = <span className="text-purple-400">max</span>(longest, current_streak)<br />
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;longest = <span className="text-purple-400">max</span>
+                                        (longest, current_streak)
+                                        <br />
                                         &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">return</span> longest
                                     </div>
 
@@ -195,12 +211,27 @@ const Hero: React.FC = () => {
                     <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-60">
                         {/* Google */}
                         <svg className="h-6 md:h-8" viewBox="0 0 272 92" fill="currentColor">
-                            <path fill="#4285F4" d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" />
-                            <path fill="#EA4335" d="M163.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18c0-12.85 9.99-22.18 22.25-22.18s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44s-12.51 5.46-12.51 13.44c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" />
-                            <path fill="#FBBC05" d="M209.75 26.34v39.82c0 16.38-9.66 23.07-21.08 23.07-10.75 0-17.22-7.19-19.66-13.07l8.48-3.53c1.51 3.61 5.21 7.87 11.17 7.87 7.31 0 11.84-4.51 11.84-13v-3.19h-.34c-2.18 2.69-6.38 5.04-11.68 5.04-11.09 0-21.25-9.66-21.25-22.09 0-12.52 10.16-22.26 21.25-22.26 5.29 0 9.49 2.35 11.68 4.96h.34v-3.61h9.25zm-8.56 20.92c0-7.81-5.21-13.52-11.84-13.52-6.72 0-12.35 5.71-12.35 13.52 0 7.73 5.63 13.36 12.35 13.36 6.63 0 11.84-5.63 11.84-13.36z" />
+                            <path
+                                fill="#4285F4"
+                                d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z"
+                            />
+                            <path
+                                fill="#EA4335"
+                                d="M163.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18c0-12.85 9.99-22.18 22.25-22.18s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44s-12.51 5.46-12.51 13.44c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z"
+                            />
+                            <path
+                                fill="#FBBC05"
+                                d="M209.75 26.34v39.82c0 16.38-9.66 23.07-21.08 23.07-10.75 0-17.22-7.19-19.66-13.07l8.48-3.53c1.51 3.61 5.21 7.87 11.17 7.87 7.31 0 11.84-4.51 11.84-13v-3.19h-.34c-2.18 2.69-6.38 5.04-11.68 5.04-11.09 0-21.25-9.66-21.25-22.09 0-12.52 10.16-22.26 21.25-22.26 5.29 0 9.49 2.35 11.68 4.96h.34v-3.61h9.25zm-8.56 20.92c0-7.81-5.21-13.52-11.84-13.52-6.72 0-12.35 5.71-12.35 13.52 0 7.73 5.63 13.36 12.35 13.36 6.63 0 11.84-5.63 11.84-13.36z"
+                            />
                             <path fill="#4285F4" d="M225 3v65h-9.5V3h9.5z" />
-                            <path fill="#34A853" d="M262.02 54.48l7.56 5.04c-2.44 3.61-8.32 9.83-18.48 9.83-12.6 0-22.01-9.74-22.01-22.18 0-13.19 9.49-22.18 20.92-22.18 11.51 0 17.14 9.16 18.98 14.11l1.01 2.52-29.65 12.28c2.27 4.45 5.8 6.72 10.75 6.72 4.96 0 8.4-2.44 10.92-6.14zm-23.27-7.98l19.82-8.23c-1.09-2.77-4.37-4.7-8.23-4.7-4.95 0-11.84 4.37-11.59 12.93z" />
-                            <path fill="#EA4335" d="M35.29 41.41V32H67c.31 1.64.47 3.58.47 5.68 0 7.06-1.93 15.79-8.15 22.01-6.05 6.3-13.78 9.66-24.02 9.66C16.32 69.35.36 53.89.36 34.91.36 15.93 16.32.47 35.3.47c10.5 0 17.98 4.12 23.6 9.49l-6.64 6.64c-4.03-3.78-9.49-6.72-16.97-6.72-13.86 0-24.7 11.17-24.7 25.03 0 13.86 10.84 25.03 24.7 25.03 8.99 0 14.11-3.61 17.39-6.89 2.66-2.66 4.41-6.46 5.1-11.65l-22.49.01z" />
+                            <path
+                                fill="#34A853"
+                                d="M262.02 54.48l7.56 5.04c-2.44 3.61-8.32 9.83-18.48 9.83-12.6 0-22.01-9.74-22.01-22.18 0-13.19 9.49-22.18 20.92-22.18 11.51 0 17.14 9.16 18.98 14.11l1.01 2.52-29.65 12.28c2.27 4.45 5.8 6.72 10.75 6.72 4.96 0 8.4-2.44 10.92-6.14zm-23.27-7.98l19.82-8.23c-1.09-2.77-4.37-4.7-8.23-4.7-4.95 0-11.84 4.37-11.59 12.93z"
+                            />
+                            <path
+                                fill="#EA4335"
+                                d="M35.29 41.41V32H67c.31 1.64.47 3.58.47 5.68 0 7.06-1.93 15.79-8.15 22.01-6.05 6.3-13.78 9.66-24.02 9.66C16.32 69.35.36 53.89.36 34.91.36 15.93 16.32.47 35.3.47c10.5 0 17.98 4.12 23.6 9.49l-6.64 6.64c-4.03-3.78-9.49-6.72-16.97-6.72-13.86 0-24.7 11.17-24.7 25.03 0 13.86 10.84 25.03 24.7 25.03 8.99 0 14.11-3.61 17.39-6.89 2.66-2.66 4.41-6.46 5.1-11.65l-22.49.01z"
+                            />
                         </svg>
                         {/* Amazon */}
                         <svg className="h-5 md:h-6" viewBox="0 0 603 182" fill="#FF9900">
@@ -222,7 +253,6 @@ const Hero: React.FC = () => {
                         </svg>
                     </div>
                 </div>
-
             </div>
         </div>
     );

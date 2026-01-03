@@ -28,9 +28,9 @@ describe('useAuth Hook', () => {
     it('should set user and loading=false when auth state changes', () => {
         // Mock onAuthStateChanged to immediately call the callback with a user
         const mockUser = { uid: '123', email: 'test@example.com' };
-        vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
+        vi.mocked(onAuthStateChanged).mockImplementation((auth, callback: any) => {
             callback(mockUser as any);
-            return () => { }; // Unsubscribe function
+            return () => {}; // Unsubscribe function
         });
 
         const { result } = renderHook(() => useAuth());
@@ -40,9 +40,9 @@ describe('useAuth Hook', () => {
     });
 
     it('should set user=null and loading=false when auth state changes to null', () => {
-        vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
+        vi.mocked(onAuthStateChanged).mockImplementation((auth, callback: any) => {
             callback(null);
-            return () => { };
+            return () => {};
         });
 
         const { result } = renderHook(() => useAuth());

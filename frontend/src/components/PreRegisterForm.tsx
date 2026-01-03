@@ -38,7 +38,7 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
                 email: email.toLowerCase(),
                 source,
                 createdAt: serverTimestamp(),
-                ...trackingProps // Store tracking props in Firestore too for easy debugging
+                ...trackingProps, // Store tracking props in Firestore too for easy debugging
             });
 
             // Track signup immediately
@@ -46,7 +46,7 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
                 trackEvent('sign_up', {
                     method: 'email',
                     source: source,
-                    ...trackingProps
+                    ...trackingProps,
                 });
             });
 
@@ -66,14 +66,14 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
             try {
                 await updateDoc(doc(db, 'preregistrations', email.toLowerCase()), {
                     intent,
-                    intentCapturedAt: serverTimestamp()
+                    intentCapturedAt: serverTimestamp(),
                 });
 
                 import('../lib/analytics').then(({ trackEvent }) => {
                     trackEvent('qualifier_submitted', {
                         intent,
                         source,
-                        ...trackingProps
+                        ...trackingProps,
                     });
                 });
             } catch (error) {
@@ -90,14 +90,14 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
             { id: 'faang', label: 'FAANG' },
             { id: 'startup', label: 'Startup' },
             { id: 'internship', label: 'Internship' },
-            { id: 'unsure', label: 'Not sure yet' }
+            { id: 'unsure', label: 'Not sure yet' },
         ];
 
         return (
             <div className="w-full animate-fadeIn">
                 <p className="text-white font-medium mb-3">What are you preparing for?</p>
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                    {intents.map((item) => (
+                    {intents.map(item => (
                         <button
                             key={item.id}
                             onClick={() => handleQualifierSelect(item.label)}
@@ -126,13 +126,14 @@ const PreRegisterForm: React.FC<PreRegisterFormProps> = ({ source, variant = 'de
                     <input
                         type="email"
                         value={email}
-                        onChange={(e) => {
+                        onChange={e => {
                             setEmail(e.target.value);
                             if (formState === 'error') setFormState('idle');
                         }}
                         placeholder="Enter your email"
-                        className={`w-full pl-12 pr-4 py-4 bg-[#1a1a1a] border rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FACC15]/50 transition-all ${formState === 'error' ? 'border-red-500' : 'border-white/10 hover:border-white/20'
-                            }`}
+                        className={`w-full pl-12 pr-4 py-4 bg-[#1a1a1a] border rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FACC15]/50 transition-all ${
+                            formState === 'error' ? 'border-red-500' : 'border-white/10 hover:border-white/20'
+                        }`}
                         disabled={formState === 'loading'}
                     />
                 </div>

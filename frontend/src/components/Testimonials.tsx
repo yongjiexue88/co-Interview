@@ -36,7 +36,8 @@ const Testimonials: React.FC = () => {
                         {/* Caption */}
                         <div className="p-6">
                             <p className="text-gray-300">
-                                "I'll show you how I got an offer from Amazon using Co-Interview. Throughout this whole video, you'll see me use Co-Interview for both the OA and the final round."
+                                "I'll show you how I got an offer from Amazon using Co-Interview. Throughout this whole video, you'll see me use
+                                Co-Interview for both the OA and the final round."
                             </p>
                             <a href="#" className="inline-flex items-center gap-2 text-[#FACC15] text-sm mt-4 hover:underline">
                                 Full video here →
@@ -48,10 +49,7 @@ const Testimonials: React.FC = () => {
                 {/* Testimonials Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {testimonials.map((testimonial, index) => (
-                        <div
-                            key={index}
-                            className="bg-[#111] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors"
-                        >
+                        <div key={index} className="bg-[#111] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors">
                             {/* Header */}
                             <div className="flex items-center gap-3 mb-4">
                                 {/* Avatar */}
@@ -61,20 +59,14 @@ const Testimonials: React.FC = () => {
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <span className="text-white font-medium">{testimonial.name}</span>
-                                        {testimonial.verified && (
-                                            <CheckCircle className="w-4 h-4 text-[#FACC15]" />
-                                        )}
+                                        {testimonial.verified && <CheckCircle className="w-4 h-4 text-[#FACC15]" />}
                                     </div>
-                                    {testimonial.company && (
-                                        <span className="text-xs text-gray-500">{testimonial.company}</span>
-                                    )}
+                                    {testimonial.company && <span className="text-xs text-gray-500">{testimonial.company}</span>}
                                 </div>
                             </div>
 
                             {/* Content */}
-                            <p className="text-gray-400 text-sm leading-relaxed">
-                                "{testimonial.content}"
-                            </p>
+                            <p className="text-gray-400 text-sm leading-relaxed">"{testimonial.content}"</p>
                         </div>
                     ))}
                 </div>

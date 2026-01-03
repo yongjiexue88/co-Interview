@@ -8,7 +8,7 @@ export const usePageTracking = () => {
     useEffect(() => {
         // Track page view on route change
         trackEvent('page_view', {
-            page_path: location.pathname + location.search
+            page_path: location.pathname + location.search,
         });
     }, [location]);
 };

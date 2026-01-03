@@ -27,13 +27,13 @@ router.get('/subscription', authMiddleware, async (req, res, next) => {
                 current_period_start: null,
                 current_period_end: null,
                 cancel_at_period_end: false,
-                payment_method: null
+                payment_method: null,
             });
         }
 
         // Get subscription from Stripe
         const subscription = await stripe.subscriptions.retrieve(user.subscriptionId, {
-            expand: ['default_payment_method']
+            expand: ['default_payment_method'],
         });
 
         const paymentMethod = subscription.default_payment_method;
@@ -44,13 +44,14 @@ router.get('/subscription', authMiddleware, async (req, res, next) => {
             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
             cancel_at_period_end: subscription.cancel_at_period_end,
-            payment_method: paymentMethod ? {
-                type: paymentMethod.type,
-                last4: paymentMethod.card?.last4,
-                brand: paymentMethod.card?.brand
-            } : null
+            payment_method: paymentMethod
+                ? {
+                      type: paymentMethod.type,
+                      last4: paymentMethod.card?.last4,
+                      brand: paymentMethod.card?.brand,
+                  }
+                : null,
         });
-
     } catch (error) {
         next(error);
     }
@@ -79,7 +80,7 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
         if (!customerId) {
             const customer = await stripe.customers.create({
                 email,
-                metadata: { firebase_uid: uid }
+                metadata: { firebase_uid: uid },
             });
             customerId = customer.id;
             await userRef.update({ stripeCustomerId: customerId });
@@ -89,21 +90,22 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
             payment_method_types: ['card'],
-            line_items: [{
-                price: PRICES[plan],
-                quantity: 1
-            }],
+            line_items: [
+                {
+                    price: PRICES[plan],
+                    quantity: 1,
+                },
+            ],
             mode: 'subscription',
             success_url: success_url || `${process.env.FRONTEND_URL}/dashboard?success=true`,
             cancel_url: cancel_url || `${process.env.FRONTEND_URL}/pricing`,
             metadata: {
                 firebase_uid: uid,
-                plan
-            }
+                plan,
+            },
         });
 
         res.json({ checkout_url: session.url });
-
     } catch (error) {
         next(error);
     }
@@ -126,11 +128,10 @@ router.post('/portal', authMiddleware, async (req, res, next) => {
 
         const session = await stripe.billingPortal.sessions.create({
             customer: user.stripeCustomerId,
-            return_url: `${process.env.FRONTEND_URL}/dashboard`
+            return_url: `${process.env.FRONTEND_URL}/dashboard`,
         });
 
         res.json({ portal_url: session.url });
-
     } catch (error) {
         next(error);
     }

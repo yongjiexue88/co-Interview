@@ -6,7 +6,7 @@ const iconMap: Record<string, React.ReactNode> = {
     '👻': <EyeOff className="w-8 h-8" />,
     '🔒': <Monitor className="w-8 h-8" />,
     '📹': <Eye className="w-8 h-8" />,
-    '🖱️': <MousePointer className="w-8 h-8" />
+    '🖱️': <MousePointer className="w-8 h-8" />,
 };
 
 const UndetectableFeatures: React.FC = () => {
@@ -25,7 +25,7 @@ const UndetectableFeatures: React.FC = () => {
 
                 {/* Feature Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {undetectableFeatures.map((feature) => (
+                    {undetectableFeatures.map(feature => (
                         <div
                             key={feature.id}
                             className="group relative bg-[#1a1a1a] border border-white/5 rounded-2xl p-6 hover:border-[#FACC15]/30 transition-all duration-300"
@@ -40,14 +40,10 @@ const UndetectableFeatures: React.FC = () => {
                                 </div>
 
                                 {/* Title */}
-                                <h3 className="text-lg font-bold text-white mb-2">
-                                    {feature.title}
-                                </h3>
+                                <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
 
                                 {/* Description */}
-                                <p className="text-gray-400 text-sm leading-relaxed">
-                                    {feature.description}
-                                </p>
+                                <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
                             </div>
                         </div>
                     ))}

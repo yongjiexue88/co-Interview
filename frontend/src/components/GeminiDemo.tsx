@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { Sparkles, Send, RefreshCw, AlertCircle, Code, Terminal } from 'lucide-react';
 import Button from './ui/Button';
 import { DemoState } from '../types';
@@ -13,12 +13,12 @@ const GeminiDemo: React.FC = () => {
     const handleGenerate = async () => {
         if (!prompt.trim()) return;
 
-        // Check for API key (in a real app, this would be handled differently, 
+        // Check for API key (in a real app, this would be handled differently,
         // but per prompt instructions we check process.env.API_KEY)
         const apiKey = process.env.API_KEY;
 
         if (!apiKey) {
-            setError("No API Key detected. This is a frontend demo. In a real environment, the API key would be securely loaded.");
+            setError('No API Key detected. This is a frontend demo. In a real environment, the API key would be securely loaded.');
             setState(DemoState.ERROR);
             // Fallback for visual demo purposes if no key
             setTimeout(() => {
@@ -55,11 +55,11 @@ class Solution {
                 contents: `Provide a concise code solution in Java for the following interview problem: ${prompt}. Include time/space complexity comments.`,
             });
 
-            setResponse(result.text || "No response generated.");
+            setResponse(result.text || 'No response generated.');
             setState(DemoState.SUCCESS);
         } catch (err: any) {
-            console.error("Gemini API Error:", err);
-            setError("Failed to connect to AI. Please try again later.");
+            console.error('Gemini API Error:', err);
+            setError('Failed to connect to AI. Please try again later.');
             setState(DemoState.ERROR);
         }
     };
@@ -74,16 +74,11 @@ class Solution {
                         <Sparkles className="w-4 h-4 text-[#EFCC3A]" />
                         <span className="text-sm font-bold text-[#EFCC3A]">Powered by Gemini 2.0 Flash</span>
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                        Try the magic
-                    </h2>
-                    <p className="text-gray-400 font-light">
-                        Experience the speed and accuracy of our AI engine right here.
-                    </p>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Try the magic</h2>
+                    <p className="text-gray-400 font-light">Experience the speed and accuracy of our AI engine right here.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-[#111] rounded-3xl border border-white/10 p-2 md:p-8 backdrop-blur-sm shadow-2xl">
-
                     {/* Input Area */}
                     <div className="flex flex-col space-y-4">
                         <label className="text-sm font-medium text-gray-300 flex items-center">
@@ -92,15 +87,11 @@ class Solution {
                         </label>
                         <textarea
                             value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
+                            onChange={e => setPrompt(e.target.value)}
                             className="flex-1 w-full bg-[#0a0a0a] border border-white/10 rounded-xl p-4 text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#EFCC3A]/50 focus:border-[#EFCC3A]/50 resize-none min-h-[300px] font-mono text-sm placeholder-gray-700"
                             placeholder="e.g. Find the longest substring without repeating characters..."
                         />
-                        <Button
-                            onClick={handleGenerate}
-                            disabled={state === DemoState.LOADING}
-                            className="w-full"
-                        >
+                        <Button onClick={handleGenerate} disabled={state === DemoState.LOADING} className="w-full">
                             {state === DemoState.LOADING ? (
                                 <span className="flex items-center justify-center">
                                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -137,13 +128,14 @@ class Solution {
                             )}
 
                             {(state === DemoState.SUCCESS || state === DemoState.LOADING) && (
-                                <pre className={`font-mono text-xs md:text-sm text-gray-300 whitespace-pre-wrap ${state === DemoState.LOADING ? 'opacity-50 blur-sm' : 'opacity-100'} h-full overflow-y-auto custom-scrollbar`}>
-                                    {response || "Thinking..."}
+                                <pre
+                                    className={`font-mono text-xs md:text-sm text-gray-300 whitespace-pre-wrap ${state === DemoState.LOADING ? 'opacity-50 blur-sm' : 'opacity-100'} h-full overflow-y-auto custom-scrollbar`}
+                                >
+                                    {response || 'Thinking...'}
                                 </pre>
                             )}
                         </div>
                     </div>
-
                 </div>
             </div>
         </section>

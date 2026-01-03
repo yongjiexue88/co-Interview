@@ -31,7 +31,7 @@ export const useScrollTracking = () => {
                         milestones.current.add(milestone);
                         trackEvent('scroll_depth', {
                             percentage: milestone,
-                            path: location.pathname
+                            path: location.pathname,
                         });
                     }
                 });

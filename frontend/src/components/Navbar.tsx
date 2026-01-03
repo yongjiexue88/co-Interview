@@ -64,7 +64,9 @@ const Navbar: React.FC = () => {
     };
 
     return (
-        <nav className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-black/90 backdrop-blur-md border-white/10' : 'bg-black border-transparent'}`}>
+        <nav
+            className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-black/90 backdrop-blur-md border-white/10' : 'bg-black border-transparent'}`}
+        >
             <div className="w-full px-6 sm:px-10 lg:px-16">
                 <div className="flex items-center justify-between h-16">
                     <Link to="/" className="flex items-center space-x-3 cursor-pointer">
@@ -74,11 +76,41 @@ const Navbar: React.FC = () => {
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex items-center space-x-10">
-                        <a href="/#proof" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Proof' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">Proof</a>
-                        <a href="/#pricing" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Pricing' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">Pricing</a>
-                        <a href="/#help" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Help' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">Help</a>
-                        <Link to="/blog" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Blog' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">Blog</Link>
-                        <Link to="/still_working" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'How it works' }))} className="text-base font-medium text-gray-400 hover:text-white transition-colors">How it works</Link>
+                        <a
+                            href="/#proof"
+                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Proof' }))}
+                            className="text-base font-medium text-gray-400 hover:text-white transition-colors"
+                        >
+                            Proof
+                        </a>
+                        <a
+                            href="/#pricing"
+                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Pricing' }))}
+                            className="text-base font-medium text-gray-400 hover:text-white transition-colors"
+                        >
+                            Pricing
+                        </a>
+                        <a
+                            href="/#help"
+                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Help' }))}
+                            className="text-base font-medium text-gray-400 hover:text-white transition-colors"
+                        >
+                            Help
+                        </a>
+                        <Link
+                            to="/blog"
+                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Blog' }))}
+                            className="text-base font-medium text-gray-400 hover:text-white transition-colors"
+                        >
+                            Blog
+                        </Link>
+                        <Link
+                            to="/still_working"
+                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'How it works' }))}
+                            className="text-base font-medium text-gray-400 hover:text-white transition-colors"
+                        >
+                            How it works
+                        </Link>
                     </div>
 
                     {/* Desktop Right Side - Conditional based on auth state */}
@@ -86,10 +118,7 @@ const Navbar: React.FC = () => {
                         {user ? (
                             /* Logged In - Show User Avatar with Dropdown */
                             <div className="relative" ref={dropdownRef}>
-                                <button
-                                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    className="flex items-center gap-2"
-                                >
+                                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-2">
                                     <ChevronDown className="w-4 h-4 text-gray-400" />
                                     <div className="relative">
                                         <div className="w-10 h-10 rounded-full bg-[#E91E63] flex items-center justify-center text-white font-bold text-sm">
@@ -131,7 +160,13 @@ const Navbar: React.FC = () => {
                         ) : (
                             /* Not Logged In - Show Login & Download for Free */
                             <>
-                                <Link to="/signin" onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Login' }))} className="px-5 py-2 text-sm font-medium text-gray-400 hover:text-white transition-all">Login</Link>
+                                <Link
+                                    to="/signin"
+                                    onClick={() => import('../lib/analytics').then(m => m.trackEvent('nav_click', { label: 'Login' }))}
+                                    className="px-5 py-2 text-sm font-medium text-gray-400 hover:text-white transition-all"
+                                >
+                                    Login
+                                </Link>
 
                                 {/* Download for Free Dropdown */}
                                 <div className="relative" ref={downloadDropdownRef}>
@@ -182,10 +217,7 @@ const Navbar: React.FC = () => {
 
                     {/* Mobile Toggle */}
                     <div className="md:hidden">
-                        <button
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="text-gray-300 hover:text-white p-2"
-                        >
+                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-300 hover:text-white p-2">
                             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
                     </div>
@@ -196,9 +228,27 @@ const Navbar: React.FC = () => {
             {isMobileMenuOpen && (
                 <div className="md:hidden bg-[#111] border-b border-white/10">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        <a href="/#proof" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Proof' }))} className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Proof</a>
-                        <a href="/#pricing" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Pricing' }))} className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Pricing</a>
-                        <Link to="/still_working" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'How it Works' }))} className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">How it Works</Link>
+                        <a
+                            href="/#proof"
+                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Proof' }))}
+                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
+                        >
+                            Proof
+                        </a>
+                        <a
+                            href="/#pricing"
+                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Pricing' }))}
+                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
+                        >
+                            Pricing
+                        </a>
+                        <Link
+                            to="/still_working"
+                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'How it Works' }))}
+                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
+                        >
+                            How it Works
+                        </Link>
                         <div className="mt-4 pt-4 border-t border-white/10 flex flex-col space-y-3 px-3">
                             {user ? (
                                 /* Mobile - Logged In */
@@ -209,14 +259,35 @@ const Navbar: React.FC = () => {
                                         </div>
                                         <span className="text-white font-medium">{userName}</span>
                                     </div>
-                                    <Link to="/dashboard" className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all">Dashboard</Link>
-                                    <Link to="/still_working" className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all">Help</Link>
-                                    <button onClick={handleLogout} className="w-full text-left py-2 px-3 text-[#FACC15] hover:bg-white/5 rounded-md transition-all">Log out</button>
+                                    <Link
+                                        to="/dashboard"
+                                        className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <Link
+                                        to="/still_working"
+                                        className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all"
+                                    >
+                                        Help
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full text-left py-2 px-3 text-[#FACC15] hover:bg-white/5 rounded-md transition-all"
+                                    >
+                                        Log out
+                                    </button>
                                 </>
                             ) : (
                                 /* Mobile - Not Logged In */
                                 <>
-                                    <Link to="/signin" onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Login' }))} className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all">Login</Link>
+                                    <Link
+                                        to="/signin"
+                                        onClick={() => import('../lib/analytics').then(m => m.trackEvent('mobile_nav_click', { label: 'Login' }))}
+                                        className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all"
+                                    >
+                                        Login
+                                    </Link>
 
                                     {/* Mobile Download Options */}
                                     <div className="space-y-2 pt-2">
@@ -260,4 +331,3 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
-
