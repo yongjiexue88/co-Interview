@@ -432,8 +432,8 @@ export class OnboardingView extends LitElement {
         super();
         this.currentSlide = 0;
         this.contextText = '';
-        this.onComplete = () => { };
-        this.onClose = () => { };
+        this.onComplete = () => {};
+        this.onClose = () => {};
         // Auth state
         this.authEmail = '';
         this.authPassword = '';
@@ -832,7 +832,7 @@ export class OnboardingView extends LitElement {
                     ${slide.title ? html`<div class="slide-title">${slide.title}</div>` : ''}
                     ${slide.content ? html`<div class="slide-content">${slide.content}</div>` : ''}
                     ${slide.showTextarea
-                ? html`
+                        ? html`
                               <textarea
                                   class="context-textarea"
                                   placeholder="Paste your resume, job description, or any relevant context here..."
@@ -840,9 +840,9 @@ export class OnboardingView extends LitElement {
                                   @input=${this.handleContextInput}
                               ></textarea>
                           `
-                : ''}
+                        : ''}
                     ${slide.showFeatures
-                ? html`
+                        ? html`
                               <div class="feature-list">
                                   <div class="feature-item">
                                       <span class="feature-icon">-</span>
@@ -858,9 +858,9 @@ export class OnboardingView extends LitElement {
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                     ${slide.showAuth
-                ? html`
+                        ? html`
                               <div class="auth-container">
                                   <!-- Logo -->
                                   <div class="auth-logo">
@@ -927,24 +927,24 @@ export class OnboardingView extends LitElement {
                                       <a
                                           href="#"
                                           @click=${e => {
-                        e.preventDefault();
-                        this.openExternal('https://co-interview.com/policies/terms');
-                    }}
+                                              e.preventDefault();
+                                              this.openExternal('https://co-interview.com/policies/terms');
+                                          }}
                                           >Terms of Service</a
                                       >
                                       and
                                       <a
                                           href="#"
                                           @click=${e => {
-                        e.preventDefault();
-                        this.openExternal('https://co-interview.com/policies/privacy');
-                    }}
+                                              e.preventDefault();
+                                              this.openExternal('https://co-interview.com/policies/privacy');
+                                          }}
                                           >Privacy Policy</a
                                       >
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                 </div>
 
                 <div class="navigation">
@@ -956,25 +956,25 @@ export class OnboardingView extends LitElement {
 
                     <div class="progress-dots">
                         ${[0, 1, 2, 3, 4, 5].map(
-                    index => html`
+                            index => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
-                            if (index !== this.currentSlide && index !== 0) {
-                                this.startColorTransition(index);
-                            }
-                        }}
+                                        if (index !== this.currentSlide && index !== 0) {
+                                            this.startColorTransition(index);
+                                        }
+                                    }}
                                 ></div>
                             `
-                )}
+                        )}
                     </div>
 
                     <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
                         ${this.currentSlide === 5
-                ? 'Get Started'
-                : this.currentSlide === 0
-                    ? 'Skip'
-                    : html`
+                            ? 'Get Started'
+                            : this.currentSlide === 0
+                              ? 'Skip'
+                              : html`
                                     <svg
                                         width="16px"
                                         height="16px"
