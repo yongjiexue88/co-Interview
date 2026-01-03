@@ -80,91 +80,44 @@ router.get('/google', (req, res) => {
  * GET /v1/auth/google/callback
  * Handle Google OAuth callback, mint custom token, and redirect to Electron
  */
-router.get('/google/callback', (req, res) => {
-    const { code } = req.query;
-    if (!code) {
-        return res.status(400).send('No code provided');
-    }
-
-    // Serve a loading page that POSTs the code to the backend
-    // This prevents browser pre-fetching from burning the auth code
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Processing Login...</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .loader {
-            border: 4px solid #333;
-            border-top: 4px solid #FACC15;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        p { color: #9ca3af; }
-    </style>
-</head>
-<body>
-    <div class="loader"></div>
-    <p>Completing secure sign-in...</p>
-    <script>
-        async function completeLogin() {
-            try {
-                const response = await fetch('/api/v1/auth/google/exchange', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: '${code}' })
-                });
-                
-                const data = await response.json();
-                
-                if (data.redirectUrl) {
-                    window.location.href = data.redirectUrl;
-                    setTimeout(() => window.close(), 2000);
-                } else {
-                    document.body.innerHTML = '<h1 style="color:red">Login Failed</h1><p>' + (data.error || 'Unknown error') + '</p>';
-                }
-            } catch (err) {
-                document.body.innerHTML = '<h1 style="color:red">Network Error</h1><p>' + err.message + '</p>';
-            }
-        }
-        // Run immediately
-        completeLogin();
-    </script>
-</body>
-</html>
-    `;
-    res.send(html);
-});
-
-/**
- * POST /v1/auth/google/exchange
- * Actual token exchange logic, moved here to be effectively "idempotent" from browser perspective
- * (only the active tab will execute the POST)
- */
-router.post('/google/exchange', async (req, res) => {
+router.get('/google/callback', async (req, res, next) => {
     try {
-        const { code } = req.body;
-        if (!code) throw new Error('No code provided');
+        const { code } = req.query;
+        if (!code) {
+            throw new Error('No code provided');
+        }
+
+        // --- PREVENT DOUBLE REQUESTS (Pre-fetch / Scanning) ---
+        // 1. Disable Caching
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+        res.set('Surrogate-Control', 'no-store');
+
+        // 2. Detect Pre-fetch Headers
+        const purpose = req.headers['sec-purpose'] || req.headers['purpose'] || req.headers['x-purpose'] || req.headers['x-moz'];
+        if (purpose && (purpose.toString().toLowerCase().includes('prefetch') || purpose.toString().toLowerCase().includes('preview'))) {
+            console.log('Blocking pre-fetch request for auth callback');
+            return res.status(204).send();
+        }
+
+        // 3. Log Headers for Debugging (to see if we missed any)
+        console.log(
+            'Callback Headers:',
+            JSON.stringify(req.headers, (key, value) => {
+                if (key.toLowerCase() === 'cookie' || key.toLowerCase() === 'authorization') return '[REDACTED]';
+                return value;
+            })
+        );
+        // ------------------------------------------------------
 
         const { OAuth2Client } = require('google-auth-library');
+        console.log('[Auth Debug] Init Client:', {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            redirectUri: process.env.GOOGLE_REDIRECT_URI,
+            hasSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+        });
         const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
-
-        console.log('[Auth Exchange] Exchanging code:', code.substring(0, 10) + '...');
 
         // Exchange code for tokens
         const { tokens } = await client.getToken(code);
@@ -176,16 +129,17 @@ router.post('/google/exchange', async (req, res) => {
             audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
-        const { email, name, picture } = payload; // sub is googleUid
+        const { email, sub: googleUid, name, picture } = payload;
 
         // Get or Create Firebase User
-        const { auth: adminAuth, db } = require('../config/firebase');
+        const { auth: adminAuth, db } = require('../config/firebase'); // Re-import to ensure admin context
 
         let firebaseUser;
         try {
             firebaseUser = await adminAuth.getUserByEmail(email);
         } catch (error) {
             if (error.code === 'auth/user-not-found') {
+                // Create new user
                 firebaseUser = await adminAuth.createUser({
                     email,
                     displayName: name,
@@ -200,7 +154,7 @@ router.post('/google/exchange', async (req, res) => {
         // Mint Custom Token
         const customToken = await adminAuth.createCustomToken(firebaseUser.uid);
 
-        // Ensure user document exists
+        // Ensure user document exists (sync with /verify logic)
         const userRef = db.collection('users').doc(firebaseUser.uid);
         const userDoc = await userRef.get();
         if (!userDoc.exists) {
@@ -212,14 +166,15 @@ router.post('/google/exchange', async (req, res) => {
                 status: 'active',
                 quotaSecondsMonth: PLANS.free.quotaSecondsMonth,
                 quotaSecondsUsed: 0,
-                quotaResetAt: getNextMonthStart(),
+                // Helper needed or copy logic
+                quotaResetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
                 concurrencyLimit: PLANS.free.concurrencyLimit,
                 features: PLANS.free.features,
             };
             await userRef.set(newUser);
         }
 
-        // Build Redirect URL
+        // Build the Electron protocol URL
         const redirectUrl = new URL('co-interview://auth-callback');
         redirectUrl.searchParams.set('token', customToken);
         redirectUrl.searchParams.set('uid', firebaseUser.uid);
@@ -227,14 +182,193 @@ router.post('/google/exchange', async (req, res) => {
         redirectUrl.searchParams.set('name', name);
         if (picture) redirectUrl.searchParams.set('photo', picture);
 
-        res.json({ redirectUrl: redirectUrl.toString() });
-
+        // Serve an HTML page that redirects to Electron and shows success message
+        // This solves the browser "stuck" issue after custom protocol redirect
+        const successHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Successful</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+            border-radius: 20px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo svg {
+            width: 48px;
+            height: 48px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: #22c55e;
+        }
+        p {
+            color: #9ca3af;
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        .hint {
+            font-size: 14px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2">
+                <path d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h1>✓ Login Successful!</h1>
+        <p>You can now return to the Co-Interview app.</p>
+        <p class="hint">This tab will close automatically...</p>
+    </div>
+    <script>
+        // Redirect to Electron app
+        window.location.href = '${redirectUrl.toString()}';
+        // Try to close the tab after a short delay
+        setTimeout(function() {
+            window.close();
+        }, 2000);
+    </script>
+</body>
+</html>
+        `;
+        // Relax CSP to allow inline script for redirection
+        res.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
+        res.send(successHtml);
     } catch (error) {
-        console.error('Auth Exchange Error:', error);
-        res.status(400).json({
-            error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
+        const status = error?.response?.status;
+        const errorData = error?.response?.data;
+        const safeDetails = {
+            message: error?.message,
+            code: error?.code,
+            status,
+            error: errorData?.error,
+            error_description: errorData?.error_description,
+        };
+        console.error('OAuth Callback Error:', safeDetails);
+        if (error?.stack) {
+            console.error('OAuth Callback Error stack:', error.stack);
+        }
+
+        // DEBUGGING INFO
+        const debugInfo = {
+            message: error.message,
+            configuredRedirectUri: process.env.GOOGLE_REDIRECT_URI,
+            clientIdPrefix: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.substring(0, 15) + '...' : 'undefined',
+            env: process.env.NODE_ENV,
+            // Secret Diagnostics
+            secretLen: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.length : 0,
+            secretHasWhitespace: process.env.GOOGLE_CLIENT_SECRET ? /\s/.test(process.env.GOOGLE_CLIENT_SECRET) : false,
+            secretStart: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.substring(0, 3) : 'N/A',
+            secretEnd: process.env.GOOGLE_CLIENT_SECRET
+                ? process.env.GOOGLE_CLIENT_SECRET.substring(process.env.GOOGLE_CLIENT_SECRET.length - 3)
+                : 'N/A',
+            // Code Diagnostics
+            codeLen: req.query.code ? req.query.code.length : 0,
+            codePrefix: req.query.code ? req.query.code.substring(0, 10) + '...' : 'undefined',
+        };
+        console.error('Debug Info:', debugInfo);
+
+        // Show error page
+        const errorHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Failed - Debug Mode</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container { text-align: center; padding: 40px; max-width: 700px; }
+        h1 { color: #ef4444; }
+        p { color: #9ca3af; }
+        a { color: #FACC15; }
+        .debug { 
+            text-align: left; 
+            background: #202020; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            font-family: monospace; 
+            font-size: 13px;
+            overflow-x: auto;
+            border: 1px solid #333;
+            color: #d1d5db;
+            line-height: 1.6;
+        }
+        .warning { color: #f59e0b; font-weight: bold; }
+        .good { color: #10b981; }
+        .bad { color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login Failed</h1>
+        <p>${error.message}</p>
+        
+        <div class="debug">
+            <strong>Configuration Diagnostics:</strong><hr style="border-color: #444;"/>
+            
+            <strong>Redirect URI:</strong> ${debugInfo.configuredRedirectUri}<br/>
+            <strong>Environment:</strong> ${debugInfo.env}<br/>
+            <strong>Client ID:</strong> ${debugInfo.clientIdPrefix}<br/>
+            <br/>
+            
+            <strong>Secret Health Check:</strong><br/>
+            &bull; Length: ${debugInfo.secretLen} chars <span class="${debugInfo.secretLen > 20 ? 'good' : 'bad'}">(${debugInfo.secretLen > 20 ? 'OK' : 'Suspicious'})</span><br/>
+            &bull; Whitespace Check: <span class="${debugInfo.secretHasWhitespace ? 'bad' : 'good'}">${debugInfo.secretHasWhitespace ? 'WARNING: Contains Whitespace!' : 'Pass'}</span><br/>
+            &bull; Start/End: <code>${debugInfo.secretStart} ... ${debugInfo.secretEnd}</code><br/>
+            <br/>
+
+            <strong>Auth Code:</strong><br/>
+            &bull; Received Length: ${debugInfo.codeLen}<br/>
+            &bull; Prefix: ${debugInfo.codePrefix}<br/>
+
+            <br/>
+            <details>
+                <summary>Full Error Stack</summary>
+                <pre style="margin-top: 10px; font-size: 11px;">${error.stack}</pre>
+            </details>
+        </div>
+
+        <p><br/><a href="javascript:window.close()">Close this tab</a> and try again.</p>
+    </div>
+</body>
+</html>
+        `;
+        res.status(500).send(errorHtml);
     }
 });
 
