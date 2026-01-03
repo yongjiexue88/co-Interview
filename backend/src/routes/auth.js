@@ -102,13 +102,21 @@ router.get('/google/callback', async (req, res, next) => {
         }
 
         // 3. Log Headers for Debugging (to see if we missed any)
-        console.log('Callback Headers:', JSON.stringify(req.headers, (key, value) => {
-            if (key.toLowerCase() === 'cookie' || key.toLowerCase() === 'authorization') return '[REDACTED]';
-            return value;
-        }));
+        console.log(
+            'Callback Headers:',
+            JSON.stringify(req.headers, (key, value) => {
+                if (key.toLowerCase() === 'cookie' || key.toLowerCase() === 'authorization') return '[REDACTED]';
+                return value;
+            })
+        );
         // ------------------------------------------------------
 
         const { OAuth2Client } = require('google-auth-library');
+        console.log('[Auth Debug] Init Client:', {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            redirectUri: process.env.GOOGLE_REDIRECT_URI,
+            hasSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+        });
         const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
         // Exchange code for tokens
@@ -277,10 +285,12 @@ router.get('/google/callback', async (req, res, next) => {
             secretLen: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.length : 0,
             secretHasWhitespace: process.env.GOOGLE_CLIENT_SECRET ? /\s/.test(process.env.GOOGLE_CLIENT_SECRET) : false,
             secretStart: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.substring(0, 3) : 'N/A',
-            secretEnd: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.substring(process.env.GOOGLE_CLIENT_SECRET.length - 3) : 'N/A',
+            secretEnd: process.env.GOOGLE_CLIENT_SECRET
+                ? process.env.GOOGLE_CLIENT_SECRET.substring(process.env.GOOGLE_CLIENT_SECRET.length - 3)
+                : 'N/A',
             // Code Diagnostics
             codeLen: req.query.code ? req.query.code.length : 0,
-            codePrefix: req.query.code ? req.query.code.substring(0, 10) + '...' : 'undefined'
+            codePrefix: req.query.code ? req.query.code.substring(0, 10) + '...' : 'undefined',
         };
         console.error('Debug Info:', debugInfo);
 
