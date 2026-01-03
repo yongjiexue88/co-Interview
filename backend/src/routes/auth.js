@@ -68,7 +68,7 @@ router.get('/google', (req, res) => {
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
     const authorizeUrl = client.generateAuthUrl({
-        access_type: 'offline',
+        // access_type: 'offline', // Removing offline access to see if it fixes invalid_grant (we don't need refresh token here)
         prompt: 'select_account',
         scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'],
     });
