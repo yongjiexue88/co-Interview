@@ -11,7 +11,7 @@ npm install
 # Copy environment template
 cp .env.example .env
 
-# Edit .env with your credentials
+# Edit .env with your credential
 
 # Start development server
 npm run dev
