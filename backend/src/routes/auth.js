@@ -73,6 +73,7 @@ router.get('/google', (req, res) => {
 
     const authorizeUrl = client.generateAuthUrl({
         access_type: 'offline',
+        prompt: 'select_account',
         scope: [
             'https://www.googleapis.com/auth/userinfo.profile',
             'https://www.googleapis.com/auth/userinfo.email'
@@ -155,7 +156,7 @@ router.get('/google/callback', async (req, res, next) => {
             await userRef.set(newUser);
         }
 
-        // Redirect to Electron Protocol
+        // Build the Electron protocol URL
         const redirectUrl = new URL('co-interview://auth-callback');
         redirectUrl.searchParams.set('token', customToken);
         redirectUrl.searchParams.set('uid', firebaseUser.uid);
@@ -163,12 +164,118 @@ router.get('/google/callback', async (req, res, next) => {
         redirectUrl.searchParams.set('name', name);
         if (picture) redirectUrl.searchParams.set('photo', picture);
 
-        res.redirect(redirectUrl.toString());
+        // Serve an HTML page that redirects to Electron and shows success message
+        // This solves the browser "stuck" issue after custom protocol redirect
+        const successHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Successful</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+            border-radius: 20px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo svg {
+            width: 48px;
+            height: 48px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: #22c55e;
+        }
+        p {
+            color: #9ca3af;
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        .hint {
+            font-size: 14px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2">
+                <path d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h1>✓ Login Successful!</h1>
+        <p>You can now return to the Co-Interview app.</p>
+        <p class="hint">This tab will close automatically...</p>
+    </div>
+    <script>
+        // Redirect to Electron app
+        window.location.href = '${redirectUrl.toString()}';
+        // Try to close the tab after a short delay
+        setTimeout(function() {
+            window.close();
+        }, 2000);
+    </script>
+</body>
+</html>
+        `;
+        res.send(successHtml);
 
     } catch (error) {
         console.error('OAuth Callback Error:', error);
-        // Redirect to Electron with error or show error page
-        res.status(500).send(`Authentication failed: ${error.message}. Please try again.`);
+        // Show error page
+        const errorHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Failed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container { text-align: center; padding: 40px; }
+        h1 { color: #ef4444; }
+        p { color: #9ca3af; }
+        a { color: #FACC15; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login Failed</h1>
+        <p>${error.message}</p>
+        <p><a href="javascript:window.close()">Close this tab</a> and try again.</p>
+    </div>
+</body>
+</html>
+        `;
+        res.status(500).send(errorHtml);
     }
 });
 
