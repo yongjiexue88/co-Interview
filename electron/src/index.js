@@ -64,6 +64,7 @@ if (!gotTheLock) {
 ipcMain.handle('auth:open-google', async () => {
     try {
         const authUrl = app.isPackaged ? 'https://co-interview.com/api/v1/auth/google' : 'http://localhost:8080/api/v1/auth/google';
+        // const authUrl = 'http://localhost:8080/api/v1/auth/google'; // Force local for testing
 
         console.log('Opening Google Auth:', authUrl);
         await shell.openExternal(authUrl);
@@ -78,6 +79,7 @@ ipcMain.handle('auth:open-google', async () => {
 ipcMain.handle('auth:open-login', async () => {
     try {
         const authUrl = app.isPackaged ? 'https://co-interview.com/signin?electron=true' : 'http://localhost:3000/signin?electron=true';
+        // const authUrl = 'http://localhost:3000/signin?electron=true'; // Force local for testing
 
         console.log('Opening Login Page:', authUrl);
         await shell.openExternal(authUrl);

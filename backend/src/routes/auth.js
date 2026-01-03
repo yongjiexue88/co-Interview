@@ -228,6 +228,8 @@ router.get('/google/callback', async (req, res, next) => {
 </body>
 </html>
         `;
+        // Relax CSP to allow inline script for redirection
+        res.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
         res.send(successHtml);
     } catch (error) {
         console.error('OAuth Callback Error:', error);
