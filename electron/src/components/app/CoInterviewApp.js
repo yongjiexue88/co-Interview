@@ -174,10 +174,10 @@ export class CoInterviewApp extends LitElement {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result
             ? {
-                  r: parseInt(result[1], 16),
-                  g: parseInt(result[2], 16),
-                  b: parseInt(result[3], 16),
-              }
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16),
+            }
             : { r: 30, g: 30, b: 30 };
     }
 
@@ -492,11 +492,11 @@ export class CoInterviewApp extends LitElement {
                         .shouldAnimateResponse=${this.shouldAnimateResponse}
                         @response-index-changed=${this.handleResponseIndexChanged}
                         @response-animation-complete=${() => {
-                            this.shouldAnimateResponse = false;
-                            this._currentResponseIsComplete = true;
-                            console.log('[response-animation-complete] Marked current response as complete');
-                            this.requestUpdate();
-                        }}
+                        this.shouldAnimateResponse = false;
+                        this._currentResponseIsComplete = true;
+                        console.log('[response-animation-complete] Marked current response as complete');
+                        this.requestUpdate();
+                    }}
                     ></assistant-view>
                 `;
 

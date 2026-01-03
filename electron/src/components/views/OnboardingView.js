@@ -83,10 +83,13 @@ export class OnboardingView extends LitElement {
             display: flex;
             flex-direction: column;
             justify-content: center;
+            align-items: center;
             padding: 32px 48px;
             max-width: 500px;
+            margin: 0 auto;
             color: #e5e5e5;
             overflow: hidden;
+            text-align: center;
         }
 
         .slide-icon {
@@ -103,6 +106,7 @@ export class OnboardingView extends LitElement {
             margin-bottom: 12px;
             color: #ffffff;
             line-height: 1.3;
+            text-align: center;
         }
 
         .slide-content {
@@ -111,6 +115,7 @@ export class OnboardingView extends LitElement {
             margin-bottom: 24px;
             color: #b8b8b8;
             font-weight: 400;
+            text-align: center;
         }
 
         .context-textarea {
@@ -141,6 +146,9 @@ export class OnboardingView extends LitElement {
 
         .feature-list {
             max-width: 100%;
+            width: fit-content;
+            margin: 0 auto;
+            text-align: left;
         }
 
         .feature-item {
@@ -424,8 +432,8 @@ export class OnboardingView extends LitElement {
         super();
         this.currentSlide = 0;
         this.contextText = '';
-        this.onComplete = () => {};
-        this.onClose = () => {};
+        this.onComplete = () => { };
+        this.onClose = () => { };
         // Auth state
         this.authEmail = '';
         this.authPassword = '';
@@ -731,9 +739,18 @@ export class OnboardingView extends LitElement {
 
         window.addEventListener('resize', () => this.resizeCanvas());
 
-        // Listen for auth callback
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
+
+            // Check if already logged in
+            ipcRenderer.invoke('auth:is-logged-in').then(result => {
+                if (result && result.success && result.data === true) {
+                    console.log('OnboardingView: User already logged in, skipping sign-in slide');
+                    // Skip to welcome slide
+                    this.startColorTransition(1);
+                }
+            });
+
             console.log('OnboardingView: Setting up auth-complete listener');
             ipcRenderer.on('auth-complete', (event, data) => {
                 console.log('OnboardingView: Received auth-complete event:', data);
@@ -815,7 +832,7 @@ export class OnboardingView extends LitElement {
                     ${slide.title ? html`<div class="slide-title">${slide.title}</div>` : ''}
                     ${slide.content ? html`<div class="slide-content">${slide.content}</div>` : ''}
                     ${slide.showTextarea
-                        ? html`
+                ? html`
                               <textarea
                                   class="context-textarea"
                                   placeholder="Paste your resume, job description, or any relevant context here..."
@@ -823,9 +840,9 @@ export class OnboardingView extends LitElement {
                                   @input=${this.handleContextInput}
                               ></textarea>
                           `
-                        : ''}
+                : ''}
                     ${slide.showFeatures
-                        ? html`
+                ? html`
                               <div class="feature-list">
                                   <div class="feature-item">
                                       <span class="feature-icon">-</span>
@@ -841,9 +858,9 @@ export class OnboardingView extends LitElement {
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                     ${slide.showAuth
-                        ? html`
+                ? html`
                               <div class="auth-container">
                                   <!-- Logo -->
                                   <div class="auth-logo">
@@ -910,24 +927,24 @@ export class OnboardingView extends LitElement {
                                       <a
                                           href="#"
                                           @click=${e => {
-                                              e.preventDefault();
-                                              this.openExternal('https://co-interview.com/policies/terms');
-                                          }}
+                        e.preventDefault();
+                        this.openExternal('https://co-interview.com/policies/terms');
+                    }}
                                           >Terms of Service</a
                                       >
                                       and
                                       <a
                                           href="#"
                                           @click=${e => {
-                                              e.preventDefault();
-                                              this.openExternal('https://co-interview.com/policies/privacy');
-                                          }}
+                        e.preventDefault();
+                        this.openExternal('https://co-interview.com/policies/privacy');
+                    }}
                                           >Privacy Policy</a
                                       >
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                 </div>
 
                 <div class="navigation">
@@ -939,25 +956,25 @@ export class OnboardingView extends LitElement {
 
                     <div class="progress-dots">
                         ${[0, 1, 2, 3, 4, 5].map(
-                            index => html`
+                    index => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
-                                        if (index !== this.currentSlide && index !== 0) {
-                                            this.startColorTransition(index);
-                                        }
-                                    }}
+                            if (index !== this.currentSlide && index !== 0) {
+                                this.startColorTransition(index);
+                            }
+                        }}
                                 ></div>
                             `
-                        )}
+                )}
                     </div>
 
                     <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
                         ${this.currentSlide === 5
-                            ? 'Get Started'
-                            : this.currentSlide === 0
-                              ? 'Skip'
-                              : html`
+                ? 'Get Started'
+                : this.currentSlide === 0
+                    ? 'Skip'
+                    : html`
                                     <svg
                                         width="16px"
                                         height="16px"
