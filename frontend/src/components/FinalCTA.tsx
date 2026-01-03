@@ -1,5 +1,4 @@
 import React from 'react';
-import PreRegisterForm from './PreRegisterForm';
 
 // Simple Icons as SVG components (preserved for future use)
 const AppleIcon = () => (

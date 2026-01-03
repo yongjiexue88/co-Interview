@@ -32,7 +32,7 @@ const BlogPostPage: React.FC = () => {
                 } else {
                     setError('Post not found');
                 }
-            } catch (err) {
+            } catch {
                 console.error('Error fetching blog post:', err);
                 setError('Failed to load post');
             } finally {
@@ -43,22 +43,7 @@ const BlogPostPage: React.FC = () => {
         fetchPost();
     }, [slug]);
 
-    const handleShare = async () => {
-        if (navigator.share && post) {
-            try {
-                await navigator.share({
-                    title: post.title,
-                    url: window.location.href,
-                });
-            } catch (err) {
-                // User cancelled or error
-            }
-        } else {
-            // Fallback: copy to clipboard
-            navigator.clipboard.writeText(window.location.href);
-            alert('Link copied to clipboard!');
-        }
-    };
+
 
     if (loading) {
         return (

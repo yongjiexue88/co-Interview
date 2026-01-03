@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { Loader2 } from 'lucide-react';
 
@@ -65,7 +65,7 @@ const ElectronAuthPage: React.FC = () => {
             hasRun.current = true;
             handleGoogleAuth();
         }
-    }, []);
+    }, [handleGoogleAuth]);
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">

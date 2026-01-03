@@ -24,6 +24,14 @@ vi.mock('firebase/analytics', () => ({
     getAnalytics: vi.fn(),
 }));
 
+// Mock firebase/firestore
+vi.mock('firebase/firestore', () => ({
+    getFirestore: vi.fn(),
+    collection: vi.fn(),
+    addDoc: vi.fn(),
+    serverTimestamp: vi.fn(),
+}));
+
 describe('Analytics Utility', () => {
     beforeEach(() => {
         vi.clearAllMocks();

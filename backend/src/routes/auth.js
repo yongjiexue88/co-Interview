@@ -87,6 +87,27 @@ router.get('/google/callback', async (req, res, next) => {
             throw new Error('No code provided');
         }
 
+        // --- PREVENT DOUBLE REQUESTS (Pre-fetch / Scanning) ---
+        // 1. Disable Caching
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+        res.set('Surrogate-Control', 'no-store');
+
+        // 2. Detect Pre-fetch Headers
+        const purpose = req.headers['sec-purpose'] || req.headers['purpose'] || req.headers['x-purpose'] || req.headers['x-moz'];
+        if (purpose && (purpose.toString().toLowerCase().includes('prefetch') || purpose.toString().toLowerCase().includes('preview'))) {
+            console.log('Blocking pre-fetch request for auth callback');
+            return res.status(204).send();
+        }
+
+        // 3. Log Headers for Debugging (to see if we missed any)
+        console.log('Callback Headers:', JSON.stringify(req.headers, (key, value) => {
+            if (key.toLowerCase() === 'cookie' || key.toLowerCase() === 'authorization') return '[REDACTED]';
+            return value;
+        }));
+        // ------------------------------------------------------
+
         const { OAuth2Client } = require('google-auth-library');
         const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
@@ -232,7 +253,19 @@ router.get('/google/callback', async (req, res, next) => {
         res.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
         res.send(successHtml);
     } catch (error) {
-        console.error('OAuth Callback Error:', error);
+        const status = error?.response?.status;
+        const errorData = error?.response?.data;
+        const safeDetails = {
+            message: error?.message,
+            code: error?.code,
+            status,
+            error: errorData?.error,
+            error_description: errorData?.error_description,
+        };
+        console.error('OAuth Callback Error:', safeDetails);
+        if (error?.stack) {
+            console.error('OAuth Callback Error stack:', error.stack);
+        }
 
         // DEBUGGING INFO
         const debugInfo = {

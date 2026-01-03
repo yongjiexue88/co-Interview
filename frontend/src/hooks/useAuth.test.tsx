@@ -1,6 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAuth } from './useAuth';
-import { auth } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
@@ -18,7 +17,7 @@ describe('useAuth', () => {
     });
 
     it('should initialize with loading true', () => {
-        (onAuthStateChanged as any).mockImplementation(() => () => {});
+        (onAuthStateChanged as any).mockImplementation(() => () => { });
         const { result } = renderHook(() => useAuth());
         expect(result.current.loading).toBe(true);
         expect(result.current.user).toBeNull();
@@ -29,7 +28,7 @@ describe('useAuth', () => {
 
         (onAuthStateChanged as any).mockImplementation((_auth: any, callback: any) => {
             callback(mockUser);
-            return () => {};
+            return () => { };
         });
 
         const { result } = renderHook(() => useAuth());

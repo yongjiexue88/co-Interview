@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
+```javascript
+import { render, screen } from '@testing-library/react';
 import App from './App';
 import { vi, describe, it, expect } from 'vitest';
 

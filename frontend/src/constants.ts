@@ -1,4 +1,4 @@
-import { Shield, Zap, Code2, Globe, Layout, Cpu, CheckCircle2, Lock } from 'lucide-react';
+import { Shield, Zap, Code2, Globe, Layout, Cpu } from 'lucide-react';
 import { Feature, PricingPlan, FaqItem } from './types';
 
 export const FEATURES: Feature[] = [

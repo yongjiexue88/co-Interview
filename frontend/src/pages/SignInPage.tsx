@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { signInWithPopup, signInWithEmailAndPassword, signInWithCustomToken } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
@@ -24,7 +24,7 @@ const SignInPage: React.FC = () => {
             try {
                 const { ipcRenderer } = window.require('electron');
                 const handleAuthComplete = async (event: any, result: any) => {
-                    console.log('Renderer received auth-complete:', result);
+                    // console.log('Renderer received auth-complete:', result);
                     if (result.success && result.token) {
                         try {
                             setIsSubmitting(true);

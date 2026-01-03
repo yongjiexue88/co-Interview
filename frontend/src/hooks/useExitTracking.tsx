@@ -48,5 +48,5 @@ export const useExitTracking = () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('beforeunload', handleExit);
         };
-    }, []);
+    }, [startTime]);
 };

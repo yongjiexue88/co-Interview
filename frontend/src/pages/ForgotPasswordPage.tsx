@@ -5,7 +5,7 @@ import { auth } from '../lib/firebase';
 import { Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 
 const ForgotPasswordPage: React.FC = () => {
-    const navigate = useNavigate();
+    useNavigate();
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);

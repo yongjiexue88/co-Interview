@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Check, Star, Play, ArrowRight } from 'lucide-react';
-import Button from './ui/Button';
+import { Check, ArrowRight } from 'lucide-react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { trackEvent } from '../lib/analytics';

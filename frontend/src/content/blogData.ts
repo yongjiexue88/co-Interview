@@ -1,4 +1,4 @@
-import { BlogPost, MonthGroup, FeaturedPost } from './blogTypes';
+import { MonthGroup, FeaturedPost } from './blogTypes';
 
 export const FEATURED_POST: FeaturedPost = {
     id: 'featured-1',

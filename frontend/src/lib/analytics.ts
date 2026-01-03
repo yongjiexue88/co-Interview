@@ -1,4 +1,4 @@
-import { logEvent, Analytics } from 'firebase/analytics';
+import { logEvent } from 'firebase/analytics';
 import { analytics, db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -12,7 +12,7 @@ export const trackEvent = async (eventName: string, eventParams?: { [key: string
 
             // Log to console in development for debugging
             if (import.meta.env.DEV) {
-                console.log(`[Analytics] Event: ${eventName}`, eventParams);
+                // console.log(`[Analytics] Event: ${eventName}`, eventParams);
             }
         }
 

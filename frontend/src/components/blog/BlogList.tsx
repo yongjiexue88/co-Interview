@@ -66,7 +66,7 @@ const BlogList: React.FC<BlogListProps> = ({ groups, featuredPost }) => {
                 <div className="relative">
                     {/* Desktop Layout */}
                     <div className="hidden lg:block">
-                        {groups.map((group, groupIndex) => (
+                        {groups.map((group, _groupIndex) => (
                             <div key={group.month} className="flex mb-12">
                                 {/* Left Sidebar - Month Label & Timeline */}
                                 <div className="flex-shrink-0 w-48 pr-8">

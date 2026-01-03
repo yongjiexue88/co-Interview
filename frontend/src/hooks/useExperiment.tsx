@@ -33,7 +33,7 @@ export const useExperiment = <T extends string>(experimentId: string, variants: 
 
             // Helpful for debugging
             if (import.meta.env.DEV) {
-                console.log(`[Experiment] ${experimentId}: Assigned ${selectedVariant}`);
+                // console.log(`[Experiment] ${experimentId}: Assigned ${selectedVariant}`);
             }
         }
     }, [experimentId, variants]);

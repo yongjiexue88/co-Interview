@@ -1,7 +1,6 @@
 import React from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import Button from './ui/Button';
-import PreRegisterForm from './PreRegisterForm';
 import { useExperiment } from '../hooks/useExperiment';
 
 // Simple Icons as SVG components

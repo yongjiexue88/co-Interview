@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Download, Search, Users, LogOut, TrendingUp, Calendar, MousePointer, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -64,34 +64,36 @@ const AdminDashboard: React.FC = () => {
         setStats(newStats);
     };
 
-    const fetchData = async () => {
-        try {
-            const q = query(collection(db, 'preregistrations'), orderBy('createdAt', 'desc'));
-            const snapshot = await getDocs(q);
-            const data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            })) as UserData[];
 
-            // Fetch Analytics Events
-            const analyticsQ = query(collection(db, 'analytics_events'), orderBy('createdAt', 'desc'));
-            const analyticsSnapshot = await getDocs(analyticsQ);
-            const analyticsData = analyticsSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            })) as AnalyticsEvent[];
-
-            setUsers(data);
-            setAnalyticsEvents(analyticsData);
-            calculateStats(data);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const q = query(collection(db, 'preregistrations'), orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+                const data = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                })) as UserData[];
+
+                // Fetch Analytics Events
+                const analyticsQ = query(collection(db, 'analytics_events'), orderBy('createdAt', 'desc'));
+                const analyticsSnapshot = await getDocs(analyticsQ);
+                const analyticsData = analyticsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                })) as AnalyticsEvent[];
+
+                setUsers(data);
+                setAnalyticsEvents(analyticsData);
+                calculateStats(data);
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setLoading(false);
+            }
+        };
+
         fetchData();
     }, []);
 
@@ -398,13 +400,12 @@ const AdminDashboard: React.FC = () => {
                                             <td className="px-6 py-4 font-medium">{user.email}</td>
                                             <td className="px-6 py-4">
                                                 <span
-                                                    className={`px-2 py-1 rounded text-xs ${
-                                                        user.source === 'hero'
-                                                            ? 'bg-blue-500/20 text-blue-400'
-                                                            : user.source === 'final_cta'
-                                                              ? 'bg-purple-500/20 text-purple-400'
-                                                              : 'bg-gray-500/20 text-gray-400'
-                                                    }`}
+                                                    className={`px-2 py-1 rounded text-xs ${user.source === 'hero'
+                                                        ? 'bg-blue-500/20 text-blue-400'
+                                                        : user.source === 'final_cta'
+                                                            ? 'bg-purple-500/20 text-purple-400'
+                                                            : 'bg-gray-500/20 text-gray-400'
+                                                        }`}
                                                 >
                                                     {user.source}
                                                 </span>
