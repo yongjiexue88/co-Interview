@@ -233,6 +233,16 @@ router.get('/google/callback', async (req, res, next) => {
         res.send(successHtml);
     } catch (error) {
         console.error('OAuth Callback Error:', error);
+
+        // DEBUGGING INFO
+        const debugInfo = {
+            message: error.message,
+            configuredRedirectUri: process.env.GOOGLE_REDIRECT_URI,
+            clientIdPrefix: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.substring(0, 15) + '...' : 'undefined',
+            env: process.env.NODE_ENV
+        };
+        console.error('Debug Info:', debugInfo);
+
         // Show error page
         const errorHtml = `
 <!DOCTYPE html>
@@ -250,17 +260,42 @@ router.get('/google/callback', async (req, res, next) => {
             height: 100vh;
             margin: 0;
         }
-        .container { text-align: center; padding: 40px; }
+        .container { text-align: center; padding: 40px; max-width: 600px; }
         h1 { color: #ef4444; }
         p { color: #9ca3af; }
         a { color: #FACC15; }
+        .debug { 
+            text-align: left; 
+            background: #202020; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            font-family: monospace; 
+            font-size: 12px;
+            overflow-x: auto;
+            border: 1px solid #333;
+            color: #d1d5db;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Login Failed</h1>
         <p>${error.message}</p>
-        <p><a href="javascript:window.close()">Close this tab</a> and try again.</p>
+        
+        <div class="debug">
+            <strong>Debug Configuration:</strong><br/>
+            GOOGLE_REDIRECT_URI: <strong>${debugInfo.configuredRedirectUri}</strong><br/>
+            NODE_ENV: ${debugInfo.env}<br/>
+            CLIENT_ID_PREFIX: ${debugInfo.clientIdPrefix}<br/>
+            <br/>
+            <details>
+                <summary>Full Error</summary>
+                <pre>${error.stack}</pre>
+            </details>
+        </div>
+
+        <p><br/><a href="javascript:window.close()">Close this tab</a> and try again.</p>
     </div>
 </body>
 </html>
