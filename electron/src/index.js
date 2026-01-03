@@ -201,6 +201,7 @@ async function handleAuthCallback(url) {
                     if (mainWindow && mainWindow.webContents) {
                         mainWindow.webContents.send('auth-complete', {
                             success: true,
+                            token: token, // Pass original custom token to renderer
                             userId: user.uid,
                             email: user.email,
                             displayName: user.displayName,

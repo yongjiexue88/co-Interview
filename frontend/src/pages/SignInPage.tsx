@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithPopup, signInWithEmailAndPassword, signInWithCustomToken } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { Loader2 } from 'lucide-react';
@@ -18,21 +18,69 @@ const SignInPage: React.FC = () => {
             navigate('/dashboard');
         }
     }, [user, navigate]);
+    useEffect(() => {
+        // Electron Auth Handler
+        if (window.require) {
+            try {
+                const { ipcRenderer } = window.require('electron');
+                const handleAuthComplete = async (event: any, result: any) => {
+                    console.log('Renderer received auth-complete:', result);
+                    if (result.success && result.token) {
+                        try {
+                            setIsSubmitting(true);
+                            // Sign in with the custom token passed from Main process
+                            await signInWithCustomToken(auth, result.token);
+                            // Navigation will be handled by the main user auth listener
+                        } catch (err) {
+                            console.error('Renderer custom token sign-in failed:', err);
+                            setError('Authentication failed. Please try again.');
+                            setIsSubmitting(false);
+                        }
+                    } else if (result.error) {
+                        setError(result.error);
+                        setIsSubmitting(false);
+                    }
+                };
+
+                ipcRenderer.on('auth-complete', handleAuthComplete);
+
+                return () => {
+                    ipcRenderer.removeListener('auth-complete', handleAuthComplete);
+                };
+            } catch (err) {
+                console.warn('Electron IPC setup failed:', err);
+            }
+        }
+    }, [navigate]);
 
     const handleGoogleLogin = async () => {
         try {
             setError('');
-            // If in Electron mode, do NOT use popup. Logic should be handled by Electron opening /api/v1/auth/google directly.
-            // But if user manually came here in browser and wants to open Electron?
-            // For now, assume this button is for Web Context.
 
-            // If we are in Electron Webview (unlikely now), popups might fail.
-            // But we are in System Browser now.
+            // Check if running in Electron
+            if (window.require) {
+                try {
+                    const { ipcRenderer } = window.require('electron');
+                    setIsSubmitting(true);
+                    // Trigger the server-side auth flow in main process
+                    await ipcRenderer.invoke('auth:open-google');
+                    // We wait for the 'auth-complete' listener to handle the rest
+                    return;
+                } catch (err) {
+                    console.error('Electron Google Auth trigger failed:', err);
+                    // Fallback to web popup if Electron IPC fails?
+                    // Or just show error
+                    setIsSubmitting(false);
+                }
+            }
+
+            // Web Context: Use Popup
             const result = await signInWithPopup(auth, googleProvider);
             await handleElectronRedirect(result.user);
         } catch (error) {
             console.error('Login failed:', error);
             setError('Failed to log in with Google. Please try again.');
+            setIsSubmitting(false);
         }
     };
 
