@@ -3,13 +3,25 @@ import { trackEvent, trackPageView } from './analytics';
 import { logEvent } from 'firebase/analytics';
 
 // Mock the firebase module to avoid real network calls and initialization
-vi.mock('./firebase', () => ({
-    analytics: Promise.resolve({ app: { name: '[DEFAULT]' } }), // Mock resolved analytics instance
-}));
+vi.mock('./firebase', async importOriginal => {
+    const actual = await importOriginal<typeof import('./firebase')>();
+    return {
+        ...actual,
+        db: {
+            collection: vi.fn(),
+        },
+        analytics: {
+            logEvent: vi.fn(),
+        },
+        app: {},
+    };
+});
 
 // Mock firebase/analytics
 vi.mock('firebase/analytics', () => ({
     logEvent: vi.fn(),
+    isSupported: vi.fn().mockResolvedValue(true),
+    getAnalytics: vi.fn(),
 }));
 
 describe('Analytics Utility', () => {

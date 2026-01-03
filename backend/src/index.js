@@ -52,10 +52,14 @@ app.use('/webhooks', webhookRoutes);
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Co-Interview Backend running on port ${PORT}`);
-    console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`   API routes: /api/v1/* and /api/health`);
-});
+// Start server
+// Start server
+if (require.main === module && process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Co-Interview Backend running on port ${PORT}`);
+        console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`   API routes: /api/v1/* and /api/health`);
+    });
+}
 
 module.exports = app;
