@@ -93,12 +93,31 @@ ipcMain.handle('auth:open-login', async () => {
 });
 
 async function handleAuthCallback(url) {
-    console.log('Auth callback received:', url);
+    console.log('=== Auth callback received ===');
+    console.log('URL:', url);
+    console.log('mainWindow exists:', !!mainWindow);
+    console.log('mainWindow.webContents exists:', !!(mainWindow && mainWindow.webContents));
+
     try {
-        const urlObj = new URL(url);
-        if (urlObj.pathname === '//auth-callback' || urlObj.pathname === '/auth-callback') {
+        // Replace custom protocol with http:// for proper URL parsing
+        // Custom protocols like co-interview:// don't parse correctly with URL class
+        const normalizedUrl = url.replace('co-interview://', 'http://localhost/');
+        const urlObj = new URL(normalizedUrl);
+        console.log('Normalized URL:', normalizedUrl);
+        console.log('Parsed pathname:', urlObj.pathname);
+        console.log('Parsed host:', urlObj.host);
+
+        // Check if this is an auth-callback
+        const isAuthCallback = urlObj.pathname === '/auth-callback' ||
+            urlObj.pathname === '//auth-callback' ||
+            url.includes('auth-callback');
+
+        console.log('Is auth callback:', isAuthCallback);
+
+        if (isAuthCallback) {
             // Check for cancel
             if (urlObj.searchParams.get('cancel') === 'true') {
+                console.log('Auth cancelled by user');
                 if (mainWindow && mainWindow.webContents) {
                     mainWindow.webContents.send('auth-complete', {
                         success: false,
@@ -114,20 +133,28 @@ async function handleAuthCallback(url) {
             const displayName = urlObj.searchParams.get('name');
             const photoURL = urlObj.searchParams.get('photo');
 
-            if (token) {
-                // Try to sign in with Custom Token (from Backend logic)
-                // If it fails, maybe it's an ID token (from Frontend logic) 
-                // but the frontend logic should ideally also use Custom Tokens or we standardize.
+            console.log('Token received:', token ? `${token.substring(0, 50)}...` : 'null');
+            console.log('UID:', uid);
+            console.log('Email:', email);
+            console.log('DisplayName:', displayName);
 
+            if (token) {
                 const { auth, signInWithCustomToken } = require('./utils/firebase');
                 try {
-                    console.log('Signing in with token...');
+                    console.log('Calling signInWithCustomToken...');
                     await signInWithCustomToken(auth, token);
-                    console.log('Sign in successful');
+                    console.log('signInWithCustomToken completed successfully');
 
                     // Now get the FRESH ID token for storage
                     const user = auth.currentUser;
+                    console.log('Current user after sign-in:', user ? user.uid : 'null');
+
+                    if (!user) {
+                        throw new Error('No current user after signInWithCustomToken');
+                    }
+
                     const idToken = await user.getIdToken();
+                    console.log('Got ID token:', idToken ? 'yes' : 'no');
 
                     // Verify with backend if needed (optional since we just got it from there)
                     let entitlements = null;
@@ -137,6 +164,7 @@ async function handleAuthCallback(url) {
                                 ? 'https://co-interview.com/api/v1/auth/verify'
                                 : 'http://localhost:8080/api/v1/auth/verify';
 
+                            console.log('Verifying with backend:', apiUrl);
                             const response = await fetch(apiUrl, {
                                 method: 'POST',
                                 headers: {
@@ -147,7 +175,9 @@ async function handleAuthCallback(url) {
 
                             if (response.ok) {
                                 entitlements = await response.json();
-                                console.log('Backend verification successful');
+                                console.log('Backend verification successful:', entitlements);
+                            } else {
+                                console.warn('Backend verification failed:', response.status);
                             }
                         } catch (error) {
                             console.warn('Backend verification warning:', error.message);
@@ -155,7 +185,7 @@ async function handleAuthCallback(url) {
                     }
 
                     // Store auth data
-                    storage.setAuthData({
+                    const authData = {
                         userId: user.uid,
                         userEmail: user.email,
                         displayName: user.displayName || displayName,
@@ -166,9 +196,12 @@ async function handleAuthCallback(url) {
                         status: entitlements?.status || 'active',
                         quotaRemainingSeconds: entitlements?.quota_remaining_seconds || null,
                         features: entitlements?.features || []
-                    });
+                    };
+                    console.log('Storing auth data:', { ...authData, idToken: '***' });
+                    storage.setAuthData(authData);
 
                     // Notify renderer
+                    console.log('Sending auth-complete to renderer: success=true');
                     if (mainWindow && mainWindow.webContents) {
                         mainWindow.webContents.send('auth-complete', {
                             success: true,
@@ -177,17 +210,34 @@ async function handleAuthCallback(url) {
                             displayName: user.displayName,
                             plan: entitlements?.plan || 'free'
                         });
+                        console.log('auth-complete sent successfully');
+                    } else {
+                        console.error('Cannot send auth-complete: mainWindow or webContents is null');
                     }
                 } catch (error) {
                     console.error('Sign in failed:', error);
+                    console.error('Error code:', error.code);
+                    console.error('Error message:', error.message);
+                    console.log('Sending auth-complete to renderer: success=false');
                     if (mainWindow && mainWindow.webContents) {
                         mainWindow.webContents.send('auth-complete', {
                             success: false,
                             error: 'Authentication failed: ' + error.message
                         });
+                        console.log('auth-complete (error) sent successfully');
                     }
                 }
+            } else {
+                console.error('No token in callback URL');
+                if (mainWindow && mainWindow.webContents) {
+                    mainWindow.webContents.send('auth-complete', {
+                        success: false,
+                        error: 'No authentication token received'
+                    });
+                }
             }
+        } else {
+            console.log('Pathname did not match auth-callback:', urlObj.pathname);
         }
     } catch (error) {
         console.error('Auth callback error:', error);
@@ -198,6 +248,7 @@ async function handleAuthCallback(url) {
             });
         }
     }
+    console.log('=== Auth callback processing complete ===');
 }
 
 app.on('window-all-closed', () => {

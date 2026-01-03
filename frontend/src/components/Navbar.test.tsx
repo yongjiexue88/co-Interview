@@ -43,20 +43,14 @@ describe('Navbar', () => {
         );
 
         // Find toggle button - it's the one inside md:hidden div
-        // We can't query by class easily.
-        // But we know there's a button that triggers the menu.
-        // Let's assume hitting the last button works as it's typically the toggle in DOM order
-        // (Logo link -> Desktop links -> Desktop Login -> Desktop Waitlist -> Mobile Toggle)
-        // Wait, Mobile Toggle is at end of navbar.
-
         const buttons = screen.getAllByRole('button');
         const toggle = buttons[buttons.length - 1];
 
         fireEvent.click(toggle);
 
-        // Expect "Join Waitlist" to appear twice now (one desktop hidden, one mobile visible)
-        // Actually, jsdom renders both. If checking length > 1, it means mobile menu rendered.
-        expect(screen.getAllByText('Join Waitlist').length).toBeGreaterThan(1);
+        // After clicking toggle, mobile menu should show download options
+        // Check for mobile download section
+        expect(screen.getByText('Download for Free')).toBeInTheDocument();
     });
 
     it('updates style on scroll', () => {

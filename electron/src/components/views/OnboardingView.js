@@ -734,16 +734,23 @@ export class OnboardingView extends LitElement {
         // Listen for auth callback
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
+            console.log('OnboardingView: Setting up auth-complete listener');
             ipcRenderer.on('auth-complete', (event, data) => {
+                console.log('OnboardingView: Received auth-complete event:', data);
                 this.authLoading = false;
                 if (data.success) {
+                    console.log('OnboardingView: Auth successful, transitioning to slide 1');
                     // Move to welcome slide on successful auth
                     this.startColorTransition(1);
                 } else {
+                    console.log('OnboardingView: Auth failed:', data.error);
                     this.authError = data.error || 'Authentication failed.';
                 }
                 this.requestUpdate();
             });
+            console.log('OnboardingView: auth-complete listener set up');
+        } else {
+            console.warn('OnboardingView: window.require not available');
         }
     }
 
