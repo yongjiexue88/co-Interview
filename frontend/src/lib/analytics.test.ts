@@ -3,10 +3,8 @@ import { trackEvent, trackPageView } from './analytics';
 import { logEvent } from 'firebase/analytics';
 
 // Mock the firebase module to avoid real network calls and initialization
-vi.mock('./firebase', async importOriginal => {
-    const actual = await importOriginal<typeof import('./firebase')>();
+vi.mock('./firebase', () => {
     return {
-        ...actual,
         db: {
             collection: vi.fn(),
         },
@@ -14,6 +12,8 @@ vi.mock('./firebase', async importOriginal => {
             logEvent: vi.fn(),
         },
         app: {},
+        auth: {},
+        googleProvider: {},
     };
 });
 
