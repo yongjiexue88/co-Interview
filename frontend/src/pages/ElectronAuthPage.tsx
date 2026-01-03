@@ -16,7 +16,7 @@ const ElectronAuthPage: React.FC = () => {
 
     const hasRun = React.useRef(false);
 
-    const handleGoogleAuth = async () => {
+    const handleGoogleAuth = React.useCallback(async () => {
         setStatus('loading');
         setError('');
 
@@ -57,7 +57,7 @@ const ElectronAuthPage: React.FC = () => {
                 setError(err.message || 'Authentication failed. Please try again.');
             }
         }
-    };
+    }, [status]);
 
     useEffect(() => {
         // Auto-start Google sign-in on page load

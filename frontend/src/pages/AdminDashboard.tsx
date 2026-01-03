@@ -64,8 +64,6 @@ const AdminDashboard: React.FC = () => {
         setStats(newStats);
     };
 
-
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -400,12 +398,13 @@ const AdminDashboard: React.FC = () => {
                                             <td className="px-6 py-4 font-medium">{user.email}</td>
                                             <td className="px-6 py-4">
                                                 <span
-                                                    className={`px-2 py-1 rounded text-xs ${user.source === 'hero'
-                                                        ? 'bg-blue-500/20 text-blue-400'
-                                                        : user.source === 'final_cta'
-                                                            ? 'bg-purple-500/20 text-purple-400'
-                                                            : 'bg-gray-500/20 text-gray-400'
-                                                        }`}
+                                                    className={`px-2 py-1 rounded text-xs ${
+                                                        user.source === 'hero'
+                                                            ? 'bg-blue-500/20 text-blue-400'
+                                                            : user.source === 'final_cta'
+                                                              ? 'bg-purple-500/20 text-purple-400'
+                                                              : 'bg-gray-500/20 text-gray-400'
+                                                    }`}
                                                 >
                                                     {user.source}
                                                 </span>

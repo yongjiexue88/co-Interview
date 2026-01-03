@@ -32,7 +32,7 @@ const BlogPostPage: React.FC = () => {
                 } else {
                     setError('Post not found');
                 }
-            } catch {
+            } catch (err) {
                 console.error('Error fetching blog post:', err);
                 setError('Failed to load post');
             } finally {
@@ -42,8 +42,6 @@ const BlogPostPage: React.FC = () => {
 
         fetchPost();
     }, [slug]);
-
-
 
     if (loading) {
         return (
