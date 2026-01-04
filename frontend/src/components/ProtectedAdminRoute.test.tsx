@@ -19,7 +19,7 @@ const Login = () => <div>Login Page</div>;
 
 describe('ProtectedAdminRoute', () => {
     it('shows loader when loading', () => {
-        vi.mocked(UseAuth.useAuth).mockReturnValue({ user: null, loading: true });
+        vi.mocked(UseAuth.useAuth).mockReturnValue({ user: null, loading: true, isAdmin: false });
         render(
             <MemoryRouter>
                 <ProtectedAdminRoute />
@@ -33,7 +33,7 @@ describe('ProtectedAdminRoute', () => {
     });
 
     it('redirects to login if not authenticated', () => {
-        vi.mocked(UseAuth.useAuth).mockReturnValue({ user: null, loading: false });
+        vi.mocked(UseAuth.useAuth).mockReturnValue({ user: null, loading: false, isAdmin: false });
         render(
             <MemoryRouter initialEntries={['/admin']}>
                 <Routes>
@@ -51,6 +51,7 @@ describe('ProtectedAdminRoute', () => {
         vi.mocked(UseAuth.useAuth).mockReturnValue({
             user: { email: 'random@example.com' } as any,
             loading: false,
+            isAdmin: false,
         });
 
         render(
@@ -67,6 +68,7 @@ describe('ProtectedAdminRoute', () => {
         vi.mocked(UseAuth.useAuth).mockReturnValue({
             user: { email: 'yongjiexue88@gmail.com' } as any,
             loading: false,
+            isAdmin: true,
         });
 
         render(

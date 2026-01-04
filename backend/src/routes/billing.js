@@ -87,6 +87,10 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
         }
 
         // Create checkout session
+        // Create checkout session
+        const isSubscription = false; // For now, all our plans (sprint_30d, lifetime) are one-time payments.
+        // If you re-introduce subscriptions, add logic here: const isSubscription = plan === 'some_sub_plan';
+
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
             payment_method_types: ['card'],
@@ -96,13 +100,14 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
                     quantity: 1,
                 },
             ],
-            mode: 'subscription',
-            success_url: success_url || `${process.env.FRONTEND_URL}/dashboard?success=true`,
+            mode: isSubscription ? 'subscription' : 'payment',
+            success_url: success_url || `${process.env.FRONTEND_URL}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: cancel_url || `${process.env.FRONTEND_URL}/pricing`,
             metadata: {
                 firebase_uid: uid,
                 plan,
             },
+            client_reference_id: uid, // Helpful for reconciling if metadata is lost (rare) or using standard integrations
         });
 
         res.json({ checkout_url: session.url });
@@ -132,6 +137,51 @@ router.post('/portal', authMiddleware, async (req, res, next) => {
         });
 
         res.json({ portal_url: session.url });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * GET /v1/billing/checkout-status?session_id=...
+ * Poll status of a checkout session
+ */
+router.get('/checkout-status', authMiddleware, async (req, res, next) => {
+    try {
+        const { uid } = req.user;
+        const { session_id } = req.query;
+
+        if (!session_id) {
+            return res.status(400).json({ error: 'Missing session_id' });
+        }
+
+        const session = await stripe.checkout.sessions.retrieve(session_id);
+
+        // Security check: ensure this session belongs to the user
+        const sessionUid = session.client_reference_id || session.metadata?.firebase_uid;
+
+        if (sessionUid && sessionUid !== uid) {
+            return res.status(403).json({ error: 'Unauthorized access to this session' });
+        }
+
+        if (session.payment_status === 'paid') {
+            // Check if entitlement is already applied
+            const userDoc = await db.collection('users').doc(uid).get();
+            const user = userDoc.data();
+
+            // Should match plan from metadata
+            const plan = session.metadata?.plan;
+
+            if (user.plan === plan && user.status === 'active') {
+                // Simple verification
+                return res.json({ status: 'complete', plan, entitlement: user });
+            }
+
+            // If webhook hasn't processed it yet
+            return res.json({ status: 'processing' });
+        }
+
+        res.json({ status: session.status }); // 'open', 'complete', 'expired'
     } catch (error) {
         next(error);
     }

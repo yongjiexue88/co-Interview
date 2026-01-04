@@ -13,6 +13,7 @@ const sessionRoutes = require('./routes/session');
 const usageRoutes = require('./routes/usage');
 const billingRoutes = require('./routes/billing');
 const webhookRoutes = require('./routes/webhooks');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -38,6 +39,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/realtime', sessionRoutes);
 app.use('/api/v1/usage', usageRoutes);
 app.use('/api/v1/billing', billingRoutes);
+app.use('/api/v1/admin', adminRoutes);
 app.use('/api/webhooks', webhookRoutes);
 
 // Also support root paths for local testing
@@ -51,8 +53,6 @@ app.use('/webhooks', webhookRoutes);
 // Error handler
 app.use(errorHandler);
 
-// Start server
-// Start server
 // Start server
 if (require.main === module && process.env.NODE_ENV !== 'test') {
     app.listen(PORT, () => {

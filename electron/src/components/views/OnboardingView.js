@@ -1164,15 +1164,15 @@ export class OnboardingView extends LitElement {
             const { ipcRenderer } = window.require('electron');
 
             // Check if already logged in
-            ipcRenderer.invoke('auth:is-logged-in').then(result => {
-                if (result && result.success && result.data === true) {
-                    console.log('OnboardingView: User already logged in, auto-advancing to welcome slide');
-                    // Skip sign-in slide
-                    this.startColorTransition(1);
-                } else {
-                    console.log('OnboardingView: User not logged in, staying on sign-in slide');
-                }
-            });
+            // ipcRenderer.invoke('auth:is-logged-in').then(result => {
+            //     if (result && result.success && result.data === true) {
+            //         console.log('OnboardingView: User already logged in, auto-advancing to welcome slide');
+            //         // Skip sign-in slide
+            //         this.startColorTransition(1);
+            //     } else {
+            //         console.log('OnboardingView: User not logged in, staying on sign-in slide');
+            //     }
+            // });
 
             console.log('OnboardingView: Setting up auth-complete listener');
             ipcRenderer.on('auth-complete', (event, data) => {

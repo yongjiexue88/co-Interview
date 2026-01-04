@@ -3,6 +3,7 @@ import { Check, Shield } from 'lucide-react';
 
 import { useAuth } from '../../hooks/useAuth';
 import { pricingTiers } from '../../content/pricing';
+import { api } from '../../lib/api';
 
 const features = [
     'Unlimited monthly access',
@@ -38,12 +39,20 @@ const PricingPage: React.FC = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const handleLifetimeClick = () => {
-        const lifetimeTier = pricingTiers.find(t => t.id === 'lifetime');
-        if (lifetimeTier?.paymentLink && user) {
-            const separator = lifetimeTier.paymentLink.includes('?') ? '&' : '?';
-            const finalLink = `${lifetimeTier.paymentLink}${separator}client_reference_id=${user.uid}&prefilled_email=${encodeURIComponent(user.email || '')}`;
-            window.open(finalLink, '_blank');
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+    const handlePurchase = async (planId: string) => {
+        try {
+            setLoadingPlan(planId);
+            const res = await api.post('/billing/checkout', { planId });
+            if (res.data.checkout_url) {
+                window.location.href = res.data.checkout_url;
+            }
+        } catch (error) {
+            console.error('Checkout error:', error);
+            // Optionally show toast error
+        } finally {
+            setLoadingPlan(null);
         }
     };
 
@@ -66,8 +75,12 @@ const PricingPage: React.FC = () => {
                         Original price: <span className="line-through">$499</span>
                     </p>
 
-                    <button className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-3 px-4 rounded-lg hover:brightness-110 transition-all mb-4">
-                        Subscribe
+                    <button
+                        onClick={() => handlePurchase('sprint_30d')}
+                        disabled={!!loadingPlan}
+                        className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-3 px-4 rounded-lg hover:brightness-110 transition-all mb-4 disabled:opacity-50"
+                    >
+                        {loadingPlan === 'sprint_30d' ? 'Processing...' : 'Subscribe'}
                     </button>
 
                     <div className="flex items-center gap-2 text-gray-400 text-sm mb-6">
@@ -106,10 +119,11 @@ const PricingPage: React.FC = () => {
                     </p>
 
                     <button
-                        onClick={handleLifetimeClick}
-                        className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg hover:brightness-110 transition-all mb-4"
+                        onClick={() => handlePurchase('lifetime')}
+                        disabled={!!loadingPlan}
+                        className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg hover:brightness-110 transition-all mb-4 disabled:opacity-50"
                     >
-                        Buy now
+                        {loadingPlan === 'lifetime' ? 'Processing...' : 'Buy now'}
                     </button>
 
                     <div className="flex items-center gap-2 text-gray-400 text-sm mb-6">

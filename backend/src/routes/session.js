@@ -34,11 +34,27 @@ router.post('/session', authMiddleware, async (req, res, next) => {
         const planConfig = PLANS[user.plan] || PLANS.free;
 
         // 3. Check subscription status
+        // Allow 'active' (standard) or 'trialing'.
+        // Check expiry date if it exists.
+        const now = new Date();
         if (user.status !== 'active' && user.status !== 'trialing') {
             throw new PaymentRequiredError('Your subscription is not active. Please update your payment method.');
         }
 
+        // Check accessEndAt / currentPeriodEnd
+        if (user.currentPeriodEnd) {
+            const endDate = user.currentPeriodEnd.toDate ? user.currentPeriodEnd.toDate() : new Date(user.currentPeriodEnd);
+            if (endDate < now) {
+                throw new PaymentRequiredError('Your access period has expired. Please renew your plan.');
+            }
+        }
+        // If currentPeriodEnd is null, it means Lifetime (forever) -> Pass.
+
         // 4. Check quota
+        // If quotaSecondsMonth is very large (lifetime), this check passes.
+        // We use quotaSecondsUsed which resets manually or via scheduled job?
+        // User said: "Lifetime: choose unlimited or rolling monthly windows."
+        // Config has `quotaSecondsMonth: 1000000000 * 60`.
         const quotaRemaining = planConfig.quotaSecondsMonth - (user.quotaSecondsUsed || 0);
         if (quotaRemaining <= 0) {
             throw new QuotaExceededError('Monthly quota exceeded. Please upgrade your plan or wait for quota reset.');

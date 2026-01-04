@@ -41,6 +41,20 @@ jest.mock('stripe', () => {
             create: jest.fn(),
             list: jest.fn(),
         },
+        checkout: {
+            sessions: {
+                create: jest.fn(),
+                retrieve: jest.fn(),
+            },
+        },
+        billingPortal: {
+            sessions: {
+                create: jest.fn(),
+            },
+        },
+        subscriptions: {
+            retrieve: jest.fn(),
+        },
     }));
 });
 

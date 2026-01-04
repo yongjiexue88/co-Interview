@@ -5,7 +5,7 @@ import { ADMIN_EMAILS } from '../constants';
 import { Loader2, ShieldAlert } from 'lucide-react';
 
 const ProtectedAdminRoute: React.FC = () => {
-    const { user, loading } = useAuth();
+    const { user, loading, isAdmin } = useAuth();
 
     if (loading) {
         return (
@@ -19,7 +19,7 @@ const ProtectedAdminRoute: React.FC = () => {
         return <Navigate to="/admin/login" replace />;
     }
 
-    if (!user.email || !ADMIN_EMAILS.includes(user.email)) {
+    if (!isAdmin) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-4">
                 <ShieldAlert className="w-16 h-16 text-red-500 mb-4" />

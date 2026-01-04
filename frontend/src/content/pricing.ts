@@ -2,11 +2,12 @@ export interface PricingTier {
     id: string;
     name: string;
     price: number;
-    period: 'month' | 'year' | 'lifetime';
+    period: 'free' | '30-days' | 'lifetime';
     description: string;
     features: string[];
     popular?: boolean;
     paymentLink?: string;
+    comingSoon?: boolean;
 }
 
 export const pricingTiers: PricingTier[] = [
@@ -14,26 +15,26 @@ export const pricingTiers: PricingTier[] = [
         id: 'free',
         name: 'Free Trial',
         price: 0,
-        period: 'month',
-        description: 'Try all features for 7 days',
-        features: ['7-day full access', 'All stealth features', 'AI-powered solutions', 'Email support'],
+        period: 'free',
+        description: 'Try before you buy',
+        features: ['3 Interview Sessions', 'Basic AI Support', 'Screen Analysis Only', 'Community Support'],
     },
     {
-        id: 'monthly',
-        name: 'Monthly',
+        id: 'sprint_30d',
+        name: 'Interview Sprint',
         price: 29,
-        period: 'month',
-        description: 'Perfect for interview prep',
-        features: ['Unlimited AI solutions', 'All stealth features', 'Audio interview support', 'Priority support', 'Regular updates'],
+        period: '30-days',
+        description: '30 days of managed access',
+        features: ['Unlimited Interview Support', 'Real-time Audio & Screen Analysis', 'All Languages Supported', 'Undetectable Mode'],
         popular: true,
+        // paymentLink removed in favor of direct API integration
     },
     {
         id: 'lifetime',
         name: 'Lifetime',
-        price: 199,
+        price: 99,
         period: 'lifetime',
         description: 'One-time payment, forever access',
-        features: ['Everything in Monthly', 'Lifetime updates', 'Early access to new features', 'VIP support', 'No recurring fees'],
-        paymentLink: 'https://buy.stripe.com/test_6oU3co7Tq2X9buzbJYb7y00',
+        features: ['Everything in Interview Sprint', 'Priority Support', 'New Features Early Access', 'Lifetime Updates', 'No recurring fees'],
     },
 ];

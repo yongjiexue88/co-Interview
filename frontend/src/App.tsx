@@ -12,6 +12,7 @@ import DashboardHomePage from './pages/dashboard/DashboardHomePage';
 import ChangelogPage from './pages/dashboard/ChangelogPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import PricingPage from './pages/dashboard/PricingPage';
+import BillingSuccessPage from './pages/BillingSuccessPage';
 import PreviousVersionsPage from './pages/dashboard/PreviousVersionsPage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import ActivationPage from './components/ActivationPage';
@@ -42,6 +43,7 @@ function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/still_working" element={<StillWorkingPage />} />
                     <Route path="/success" element={<ActivationPage />} />
+                    <Route path="/billing/success" element={<BillingSuccessPage />} />
                     <Route path="/blog" element={<BlogPage />} />
                     <Route path="/blog/:slug" element={<BlogPostPage />} />
                     <Route path="/signin" element={<SignInPage />} />

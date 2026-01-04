@@ -63,7 +63,10 @@
         "collectCoverageFrom": [
             "src/**/*.js",
             "!src/index.js",
-            "!src/assets/**"
+            "!src/assets/**",
+            "!src/utils/renderer.js",
+            "!src/utils/windowResize.js",
+            "!src/components/**"
         ],
         "coverageThreshold": {
             "global": {

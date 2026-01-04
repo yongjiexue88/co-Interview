@@ -6,7 +6,7 @@ const { getAuth, GoogleAuthProvider, signInWithCredential, signInWithCustomToken
 
 // Firebase config - same as frontend
 const firebaseConfig = {
-    apiKey: 'AIzaSyD8jll92Hm-boH-XL7V-Ym5P8UWeB0ZHTc',
+    apiKey: 'AIzaSyCMCZqDX-HGvXCDRBlE0uXEeddlNC_oXwo',
     authDomain: 'co-interview-481814.firebaseapp.com',
     projectId: 'co-interview-481814',
     storageBucket: 'co-interview-481814.firebasestorage.app',

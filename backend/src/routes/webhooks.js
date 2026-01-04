@@ -60,9 +60,17 @@ async function handleCheckoutComplete(session) {
         firebase_uid = session.client_reference_id;
     }
 
-    // Infer plan for one-time payments (Lifetime deal)
+    // Infer plan for one-time payments if not explicitly in metadata (e.g. from payment links)
+    // Note: This relies on you setting the plan in metadata for your own checkout flow.
+    // For raw payment links, you might need to map price ID to plan if metadata isn't set.
     if (!plan && session.mode === 'payment') {
-        plan = 'lifetime';
+        // Attempt to find plan from line items if expanded, or just default to lifetime if that was the only one-time use case before.
+        // Better safe fallback: check amount or just require metadata/setup.
+        // For this specific requirement, let's assume metadata is populated or we strictly check price_id if possible.
+        // But session object in webhook usually doesn't have line_items expanded by default unless configured.
+        // Let's rely on metadata passed in /checkout or Payment Link query params (client_reference_id).
+        // If we don't know the plan, we might log error.
+        console.warn('Plan not found in metadata for checkout session', session.id);
     }
 
     if (!firebase_uid || !plan) {
@@ -78,28 +86,70 @@ async function handleCheckoutComplete(session) {
     let subscriptionId = null;
     let currentPeriodEnd = null;
 
-    if (session.subscription) {
-        const subscription = await stripe.subscriptions.retrieve(session.subscription);
-        subscriptionId = subscription.id;
-        currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-    } else if (plan === 'lifetime') {
-        // For lifetime, set a far future date (e.g., 100 years from now)
-        const date = new Date();
-        date.setFullYear(date.getFullYear() + 100);
-        currentPeriodEnd = date;
+    if (session.mode === 'subscription') {
+        if (session.subscription) {
+            subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
+            // We need to fetch subscription to get End Date if not present, but usually 'checkout.session.completed' might not have it all.
+            // Actually, simplest is to let 'customer.subscription.updated' handle the precise dates,
+            // and here just mark as active. But user wants blocking flow.
+            // Let's fetch it to be sure.
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+        }
+    } else if (session.mode === 'payment') {
+        // One-time payment (Sprint or Lifetime)
+        if (plan === 'lifetime') {
+            currentPeriodEnd = null; // null means forever
+        } else if (plan === 'sprint_30d') {
+            // Extension logic: max(now, current.accessEndAt) + 30 days
+            const userRef = db.collection('users').doc(firebase_uid);
+            const userDoc = await userRef.get();
+            const userData = userDoc.data() || {};
+
+            const now = Date.now();
+            let currentEnd = 0;
+
+            // Check if user already has active sprint access
+            if (userData.plan === 'sprint_30d' && userData.status === 'active' && userData.currentPeriodEnd) {
+                // Firestore timestamp to millis
+                const exEnd = userData.currentPeriodEnd.toDate
+                    ? userData.currentPeriodEnd.toDate().getTime()
+                    : new Date(userData.currentPeriodEnd).getTime();
+                currentEnd = exEnd;
+            }
+
+            // If currentEnd is in the past, treat as now. If future, start from there.
+            const startPoint = Math.max(now, currentEnd);
+            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+            currentPeriodEnd = new Date(startPoint + thirtyDaysMs);
+        }
     }
 
     const planConfig = PLANS[plan] || PLANS.free;
 
-    await db.collection('users').doc(firebase_uid).update({
-        plan,
-        status: 'active',
-        subscriptionId,
-        currentPeriodEnd,
-        quotaSecondsMonth: planConfig.quotaSecondsMonth,
-        concurrencyLimit: planConfig.concurrencyLimit,
-        features: planConfig.features,
-    });
+    await db
+        .collection('users')
+        .doc(firebase_uid)
+        .set(
+            {
+                plan,
+                status: 'active',
+                subscriptionId, // null for one-time
+                currentPeriodEnd,
+                quotaSecondsMonth: planConfig.quotaSecondsMonth,
+                concurrencyLimit: planConfig.concurrencyLimit,
+                features: planConfig.features,
+                // Optional: track purchases
+                lastPurchase: {
+                    planId: plan,
+                    amount: session.amount_total,
+                    currency: session.currency,
+                    checkoutSessionId: session.id,
+                    purchasedAt: new Date(),
+                },
+            },
+            { merge: true }
+        );
 
     console.log(`✅ User ${firebase_uid} upgraded to ${plan}`);
 }
@@ -119,8 +169,8 @@ async function handleSubscriptionUpdated(subscription) {
     // Determine plan from price
     let plan = 'free';
     const priceId = subscription.items.data[0]?.price.id;
-    if (priceId === process.env.STRIPE_PRICE_PRO_MONTHLY) plan = 'pro';
-    if (priceId === process.env.STRIPE_PRICE_TEAM_MONTHLY) plan = 'team';
+    if (priceId === process.env.STRIPE_PRICE_SPRINT_30D) plan = 'sprint_30d';
+    if (priceId === process.env.STRIPE_PRICE_LIFETIME) plan = 'lifetime';
 
     const planConfig = PLANS[plan];
 
@@ -133,14 +183,17 @@ async function handleSubscriptionUpdated(subscription) {
     await db
         .collection('users')
         .doc(firebaseUid)
-        .update({
-            plan,
-            status,
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            quotaSecondsMonth: planConfig.quotaSecondsMonth,
-            concurrencyLimit: planConfig.concurrencyLimit,
-            features: planConfig.features,
-        });
+        .set(
+            {
+                plan,
+                status,
+                currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                quotaSecondsMonth: planConfig.quotaSecondsMonth,
+                concurrencyLimit: planConfig.concurrencyLimit,
+                features: planConfig.features,
+            },
+            { merge: true }
+        );
 
     console.log(`📝 Subscription updated for ${firebaseUid}: ${plan} (${status})`);
 }
@@ -156,14 +209,17 @@ async function handleSubscriptionDeleted(subscription) {
 
     const freeConfig = PLANS.free;
 
-    await db.collection('users').doc(firebaseUid).update({
-        plan: 'free',
-        status: 'active',
-        subscriptionId: null,
-        quotaSecondsMonth: freeConfig.quotaSecondsMonth,
-        concurrencyLimit: freeConfig.concurrencyLimit,
-        features: freeConfig.features,
-    });
+    await db.collection('users').doc(firebaseUid).set(
+        {
+            plan: 'free',
+            status: 'active',
+            subscriptionId: null,
+            quotaSecondsMonth: freeConfig.quotaSecondsMonth,
+            concurrencyLimit: freeConfig.concurrencyLimit,
+            features: freeConfig.features,
+        },
+        { merge: true }
+    );
 
     console.log(`❌ Subscription canceled for ${firebaseUid}, downgraded to free`);
 }
@@ -177,9 +233,12 @@ async function handlePaymentFailed(invoice) {
 
     if (!firebaseUid) return;
 
-    await db.collection('users').doc(firebaseUid).update({
-        status: 'past_due',
-    });
+    await db.collection('users').doc(firebaseUid).set(
+        {
+            status: 'past_due',
+        },
+        { merge: true }
+    );
 
     console.log(`⚠️ Payment failed for ${firebaseUid}`);
 }

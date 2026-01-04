@@ -133,23 +133,30 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
+const { getIdToken } = require('./firebase');
+
 async function initializeGemini(profile = 'interview', language = 'en-US') {
-    const apiKey = await storage.getApiKey();
-    if (apiKey) {
+    // Get Firebase ID token for Managed Mode
+    const token = await getIdToken();
+
+    if (token) {
         const prefs = await storage.getPreferences();
         // Ensure googleSearchEnabled is included/defaulted if not in prefs
         const fullPrefs = {
             ...prefs,
             googleSearchEnabled: prefs.googleSearchEnabled ?? true,
-            outputLanguage: prefs.outputLanguage || language, // Use arg as fallback or validation? Actually prompts.js uses prefs.outputLanguage
+            outputLanguage: prefs.outputLanguage || language,
         };
 
-        const success = await ipcRenderer.invoke('initialize-gemini', apiKey, fullPrefs, profile);
+        const success = await ipcRenderer.invoke('initialize-gemini', token, fullPrefs, profile);
         if (success) {
             coInterview.setStatus('Live');
         } else {
             coInterview.setStatus('error');
         }
+    } else {
+        console.error('No authenticated user found for Managed Mode.');
+        coInterview.setStatus('error');
     }
 }
 

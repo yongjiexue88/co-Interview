@@ -1,0 +1,59 @@
+const {
+    initAnalytics,
+    trackEvent,
+    trackPageView,
+} = require('../src/utils/analytics');
+
+const { isSupported, getAnalytics, logEvent } = require('firebase/analytics');
+
+jest.mock('firebase/analytics', () => ({
+    getAnalytics: jest.fn(),
+    logEvent: jest.fn(),
+    isSupported: jest.fn(),
+}));
+
+jest.mock('../src/utils/firebase', () => ({
+    app: {},
+}));
+
+describe('Analytics Utils', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should initialize analytics if supported', async () => {
+        isSupported.mockResolvedValue(true);
+        await initAnalytics();
+        expect(getAnalytics).toHaveBeenCalled();
+    });
+
+    it('should not initialize analytics if not supported', async () => {
+        isSupported.mockResolvedValue(false);
+        await initAnalytics();
+        expect(getAnalytics).not.toHaveBeenCalled();
+    });
+
+    it('should track event if enabled', async () => {
+        isSupported.mockResolvedValue(true);
+        await initAnalytics(); // enable it
+
+        await trackEvent('test_event', { param: 1 });
+        expect(logEvent).toHaveBeenCalledWith(undefined, 'test_event', { param: 1 });
+    });
+
+    it('should track page view as event', async () => {
+        isSupported.mockResolvedValue(true);
+        await initAnalytics(); // enable it
+
+        await trackPageView('home', { foo: 'bar' });
+        expect(logEvent).toHaveBeenCalledWith(undefined, 'page_view', expect.objectContaining({ page_title: 'home', foo: 'bar' }));
+    });
+
+    it('should gracefully handle initialization error', async () => {
+        isSupported.mockRejectedValue(new Error('Fail'));
+        await initAnalytics();
+        // Should allow subsequent calls without crash, just log warning
+        await trackEvent('test');
+        expect(logEvent).not.toHaveBeenCalled();
+    });
+});

@@ -77,9 +77,25 @@ const SignInPage: React.FC = () => {
             // Web Context: Use Popup
             const result = await signInWithPopup(auth, googleProvider);
             await handleElectronRedirect(result.user);
-        } catch (error) {
-            console.error('Login failed:', error);
-            setError('Failed to log in with Google. Please try again.');
+        } catch (error: any) {
+            console.error('Login failed details:', {
+                code: error.code,
+                message: error.message,
+                customData: error.customData,
+                fullError: error,
+            });
+
+            if (error.code === 'auth/popup-closed-by-user') {
+                setError('Sign-in popup was closed before completing. Please try again.');
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                setError('Only one sign-in popup can be open at a time.');
+            } else if (error.code === 'auth/network-request-failed') {
+                setError('Network error. Please check your internet connection.');
+            } else if (error.code === 'auth/invalid-credential' || error.message.includes('invalid_client')) {
+                setError('Configuration Error: Invalid Client ID. Please check Firebase Console > Auth > Google Sign-in settings.');
+            } else {
+                setError(`Login failed: ${error.message}`);
+            }
             setIsSubmitting(false);
         }
     };

@@ -1,211 +1,132 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Download, Search, Users, LogOut, TrendingUp, Calendar, MousePointer, Activity } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { Download, Search, Users, LogOut, Ban, CheckCircle, Edit2, X, Save, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-import KPISummaryPanel from '../components/KPISummaryPanel';
+import { auth } from '../lib/firebase';
 
 interface UserData {
     id: string;
     email: string;
-    source: string;
-    createdAt: Timestamp;
-    intent?: string;
+    plan: 'free' | 'pro' | 'lifetime';
+    status: 'active' | 'banned';
+    quotaSecondsMonth?: number;
+    quotaSecondsUsed?: number;
+    concurrencyLimit?: number;
+    createdAt: string;
+    source?: string;
 }
 
-interface AnalyticsEvent {
-    id: string;
-    eventName: string;
-    params: any;
-    createdAt: Timestamp;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
 const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [users, setUsers] = useState<UserData[]>([]);
-    const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [stats, setStats] = useState({
-        total: 0,
-        today: 0,
-        thisWeek: 0,
-        bySource: { hero: 0, final_cta: 0, navbar: 0 } as Record<string, number>,
-    });
+    const [editingUserId, setEditingUserId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState<Partial<UserData>>({});
 
-    const calculateStats = (data: UserData[]) => {
-        const now = new Date();
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-
-        const newStats = {
-            total: data.length,
-            today: 0,
-            thisWeek: 0,
-            bySource: { hero: 0, final_cta: 0, navbar: 0 },
-        };
-
-        data.forEach(user => {
-            const date = user.createdAt?.toDate ? user.createdAt.toDate() : new Date();
-
-            if (date >= startOfDay) newStats.today++;
-            if (date >= startOfWeek) newStats.thisWeek++;
-
-            if (newStats.bySource[user.source] !== undefined) {
-                newStats.bySource[user.source]++;
+    // Fetch users from backend
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const token = await user?.getIdToken();
+            const response = await fetch(`${API_URL}/admin/users?limit=100`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setUsers(data.users);
             } else {
-                // Initialize if undefined source encountered (fallback)
-                newStats.bySource[user.source] = 1;
+                console.error('Failed to fetch users');
             }
-        });
-
-        setStats(newStats);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const q = query(collection(db, 'preregistrations'), orderBy('createdAt', 'desc'));
-                const snapshot = await getDocs(q);
-                const data = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                })) as UserData[];
-
-                // Fetch Analytics Events
-                const analyticsQ = query(collection(db, 'analytics_events'), orderBy('createdAt', 'desc'));
-                const analyticsSnapshot = await getDocs(analyticsQ);
-                const analyticsData = analyticsSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                })) as AnalyticsEvent[];
-
-                setUsers(data);
-                setAnalyticsEvents(analyticsData);
-                calculateStats(data);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    const handleExportCSV = () => {
-        const headers = ['Email', 'Source', 'Intent', 'Date Joined', 'Time'];
-        const csvContent = [
-            headers.join(','),
-            ...users.map(user => {
-                const date = user.createdAt?.toDate ? user.createdAt.toDate() : new Date();
-                return [user.email, user.source, user.intent || '-', date.toLocaleDateString(), date.toLocaleTimeString()].join(',');
-            }),
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `preregistrations_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
+        if (user) {
+            fetchUsers();
+        }
+    }, [user]);
 
     const handleLogout = () => {
         auth.signOut();
         navigate('/admin/login');
     };
 
-    const getDailyData = () => {
-        const dailyCounts: Record<string, number> = {};
-        // Initialize last 7 days with 0
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            dailyCounts[d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })] = 0;
-        }
-
-        // Fill with actual data
-        users.forEach(user => {
-            const date = user.createdAt?.toDate ? user.createdAt.toDate() : new Date();
-            const key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            if (dailyCounts[key] !== undefined) {
-                dailyCounts[key]++;
-            }
+    const handleEditClick = (user: UserData) => {
+        setEditingUserId(user.id);
+        setEditForm({
+            plan: user.plan,
+            status: user.status,
+            quotaSecondsMonth: user.quotaSecondsMonth,
         });
-
-        return Object.entries(dailyCounts).map(([name, count]) => ({ name, count }));
     };
 
-    const getAnalyticsStats = () => {
-        // Interest Heatmap (Nav Clicks)
-        const navClicks: Record<string, number> = {};
-        analyticsEvents
-            .filter(e => e.eventName === 'nav_click' || e.eventName === 'mobile_nav_click')
-            .forEach(e => {
-                const label = e.params?.label || 'Unknown';
-                navClicks[label] = (navClicks[label] || 0) + 1;
-            });
-
-        // Conversion Funnel
-        const pageViews = analyticsEvents.filter(e => e.eventName === 'page_view').length;
-        const signups = users.length;
-        const conversionRate = pageViews > 0 ? ((signups / pageViews) * 100).toFixed(1) : '0';
-
-        // Engagement Metrics
-        const pageLeaves = analyticsEvents.filter(e => e.eventName === 'page_leave');
-        const totalDuration = pageLeaves.reduce((acc, curr) => acc + (curr.params?.duration_seconds || 0), 0);
-        const avgDuration = pageLeaves.length > 0 ? Math.round(totalDuration / pageLeaves.length) : 0;
-
-        // Scroll Depth Distribution
-        const scrollDepths: Record<string, number> = { '25%': 0, '50%': 0, '75%': 0, '100%': 0 };
-        analyticsEvents
-            .filter(e => e.eventName === 'scroll_depth')
-            .forEach(e => {
-                const p = e.params?.percentage;
-                if (p === 25) scrollDepths['25%']++;
-                if (p === 50) scrollDepths['50%']++;
-                if (p === 75) scrollDepths['75%']++;
-                if (p === 90 || p === 100) scrollDepths['100%']++;
-            });
-
-        return {
-            navClicks: Object.entries(navClicks)
-                .map(([name, value]) => ({ name, value }))
-                .sort((a, b) => b.value - a.value),
-            funnel: [
-                { name: 'Page Views', value: pageViews, fill: '#8884d8' },
-                { name: 'Signups', value: signups, fill: '#82ca9d' },
-            ],
-            conversionRate,
-            avgDuration,
-            scrollDepths: Object.entries(scrollDepths).map(([name, value]) => ({ name, value })),
-        };
+    const handleCancelEdit = () => {
+        setEditingUserId(null);
+        setEditForm({});
     };
 
-    const analyticsStats = getAnalyticsStats();
+    const handleSaveEdit = async (userId: string) => {
+        try {
+            const token = await user?.getIdToken();
+            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(editForm),
+            });
 
-    const filteredUsers = users.filter(user => user.email.toLowerCase().includes(searchTerm.toLowerCase()));
+            if (response.ok) {
+                // Refresh list
+                await fetchUsers();
+                setEditingUserId(null);
+            } else {
+                alert('Failed to update user');
+            }
+        } catch (error) {
+            console.error('Update failed:', error);
+            alert('Update failed');
+        }
+    };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-black text-white p-8 pt-24">
-                <div className="max-w-7xl mx-auto animate-pulse space-y-8">
-                    <div className="h-8 bg-gray-800 w-48 rounded mb-8"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="h-32 bg-gray-800 rounded-xl"></div>
-                        ))}
-                    </div>
-                    <div className="h-96 bg-gray-800 rounded-xl"></div>
-                </div>
-            </div>
-        );
-    }
+    const handleToggleBan = async (userId: string, currentStatus: string) => {
+        const action = currentStatus === 'banned' ? 'enable' : 'disable';
+        if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+        try {
+            const token = await user?.getIdToken();
+            const response = await fetch(`${API_URL}/admin/users/${userId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ reason: 'Admin toggle' }),
+            });
+
+            if (response.ok) {
+                await fetchUsers();
+            } else {
+                alert(`Failed to ${action} user`);
+            }
+        } catch (error) {
+            console.error('Action failed:', error);
+            alert('Action failed');
+        }
+    };
+
+    const filteredUsers = users.filter(u => u.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <div className="min-h-screen bg-black text-white p-4 md:p-8 pt-24">
@@ -213,17 +134,13 @@ const AdminDashboard: React.FC = () => {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold">Dashboard</h1>
-                        <p className="text-gray-400">Manage preregistrations and analytics</p>
+                        <h1 className="text-3xl font-bold flex items-center gap-3">
+                            <Shield className="w-8 h-8 text-[#FACC15]" />
+                            Admin Dashboard
+                        </h1>
+                        <p className="text-gray-400">Total Users: {users.length}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button
-                            onClick={handleExportCSV}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#FACC15] text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors"
-                        >
-                            <Download className="w-4 h-4" />
-                            Export CSV
-                        </button>
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
@@ -234,193 +151,134 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <KPISummaryPanel users={users} events={analyticsEvents} />
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-blue-500/20 rounded-lg">
-                                <Users className="w-6 h-6 text-blue-500" />
-                            </div>
-                            <span className="text-green-500 text-sm font-medium flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" /> Live
-                            </span>
-                        </div>
-                        <h3 className="text-2xl font-bold">{stats.total}</h3>
-                        <p className="text-gray-400 text-sm">Total Signups</p>
-                    </div>
-
-                    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-green-500/20 rounded-lg">
-                                <Calendar className="w-6 h-6 text-green-500" />
-                            </div>
-                        </div>
-                        <h3 className="text-2xl font-bold">{stats.today}</h3>
-                        <p className="text-gray-400 text-sm">New Today</p>
-                    </div>
-
-                    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-purple-500/20 rounded-lg">
-                                <TrendingUp className="w-6 h-6 text-purple-500" />
-                            </div>
-                        </div>
-                        <h3 className="text-2xl font-bold">{stats.thisWeek}</h3>
-                        <p className="text-gray-400 text-sm">This Week</p>
-                    </div>
-                </div>
-
-                {/* Charts */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-                        <h3 className="text-lg font-bold mb-6">Signups Over Time (Last 7 Days)</h3>
-                        <div style={{ width: '100%', height: 300 }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={getDailyData()}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                    <XAxis dataKey="name" stroke="#666" fontSize={12} tickLine={false} />
-                                    <YAxis stroke="#666" fontSize={12} tickLine={false} allowDecimals={false} />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '8px' }}
-                                        labelStyle={{ color: '#999' }}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="count"
-                                        stroke="#FACC15"
-                                        strokeWidth={2}
-                                        dot={{ fill: '#FACC15', strokeWidth: 2 }}
-                                        activeDot={{ r: 6 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-                        <h3 className="text-lg font-bold mb-6">Signups by Source</h3>
-                        <div style={{ width: '100%', height: 300 }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={Object.entries(stats.bySource).map(([name, value]) => ({ name, value }))}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                    <XAxis dataKey="name" stroke="#666" fontSize={12} tickLine={false} />
-                                    <YAxis stroke="#666" fontSize={12} tickLine={false} allowDecimals={false} />
-                                    <Tooltip
-                                        cursor={{ fill: '#33333333' }}
-                                        contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '8px' }}
-                                    />
-                                    <Bar dataKey="value" fill="#FACC15" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Analytics Section */}
-                <div>
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                        <Activity className="w-6 h-6 text-[#FACC15]" />
-                        User Behavior Analytics
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Interest Heatmap */}
-                        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-                            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                                <MousePointer className="w-5 h-5 text-blue-400" />
-                                Top Interests (Nav Clicks)
-                            </h3>
-                            <div style={{ width: '100%', height: 300 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={analyticsStats.navClicks} layout="vertical">
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#333" horizontal={false} />
-                                        <XAxis type="number" stroke="#666" fontSize={12} tickLine={false} />
-                                        <YAxis dataKey="name" type="category" stroke="#999" fontSize={12} tickLine={false} width={100} />
-                                        <Tooltip
-                                            cursor={{ fill: '#33333333' }}
-                                            contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '8px' }}
-                                        />
-                                        <Bar dataKey="value" fill="#60A5FA" radius={[0, 4, 4, 0]} barSize={20} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        {/* Conversion Funnel Card */}
-                        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 flex flex-col justify-center items-center text-center">
-                            <h3 className="text-lg font-bold mb-2 text-gray-400">Conversion Rate</h3>
-                            <div className="text-6xl font-bold text-green-500 mb-4">{analyticsStats.conversionRate}%</div>
-                            <div className="flex gap-8 text-sm">
-                                <div>
-                                    <div className="text-2xl font-bold text-white mb-1">{analyticsStats.funnel[0].value}</div>
-                                    <div className="text-gray-500">Page Views</div>
-                                </div>
-                                <div className="text-gray-600 text-2xl">→</div>
-                                <div>
-                                    <div className="text-2xl font-bold text-white mb-1">{analyticsStats.funnel[1].value}</div>
-                                    <div className="text-gray-500">Signups</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Data Table */}
+                {/* Users Table */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
                     <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <h3 className="text-lg font-bold">Recent Signups</h3>
+                        <h3 className="text-lg font-bold flex items-center gap-2">
+                            <Users className="w-5 h-5 text-blue-400" />
+                            User Management
+                        </h3>
                         <div className="relative w-full sm:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search emails..."
+                                placeholder="Search email..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                                 className="w-full bg-black border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#FACC15]/50 transition-colors"
                             />
                         </div>
                     </div>
+
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-black/50 text-gray-400 font-medium">
                                 <tr>
-                                    <th className="px-6 py-4">Email</th>
-                                    <th className="px-6 py-4">Source</th>
-                                    <th className="px-6 py-4">Date</th>
-                                    <th className="px-6 py-4">Time</th>
+                                    <th className="px-6 py-4">User</th>
+                                    <th className="px-6 py-4">Plan</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4">Joined</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {filteredUsers.length > 0 ? (
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                            Loading users...
+                                        </td>
+                                    </tr>
+                                ) : filteredUsers.length > 0 ? (
                                     filteredUsers.map(user => (
                                         <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4 font-medium">{user.email}</td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-medium text-white">{user.email}</div>
+                                                <div className="text-xs text-gray-500 font-mono">{user.id}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {editingUserId === user.id ? (
+                                                    <select
+                                                        value={editForm.plan}
+                                                        onChange={e => setEditForm({ ...editForm, plan: e.target.value as any })}
+                                                        className="bg-black border border-white/20 rounded px-2 py-1 text-white"
+                                                    >
+                                                        <option value="free">Free</option>
+                                                        <option value="pro">Pro</option>
+                                                        <option value="lifetime">Lifetime</option>
+                                                    </select>
+                                                ) : (
+                                                    <span
+                                                        className={`px-2 py-1 rounded text-xs font-semibold ${
+                                                            user.plan === 'pro' || user.plan === 'lifetime'
+                                                                ? 'bg-[#FACC15]/20 text-[#FACC15]'
+                                                                : 'bg-gray-500/20 text-gray-400'
+                                                        }`}
+                                                    >
+                                                        {user.plan.toUpperCase()}
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <span
                                                     className={`px-2 py-1 rounded text-xs ${
-                                                        user.source === 'hero'
-                                                            ? 'bg-blue-500/20 text-blue-400'
-                                                            : user.source === 'final_cta'
-                                                              ? 'bg-purple-500/20 text-purple-400'
-                                                              : 'bg-gray-500/20 text-gray-400'
+                                                        user.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                                                     }`}
                                                 >
-                                                    {user.source}
+                                                    {user.status.toUpperCase()}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-400">
-                                                {user.createdAt?.toDate ? user.createdAt.toDate().toLocaleDateString() : 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-400">
-                                                {user.createdAt?.toDate ? user.createdAt.toDate().toLocaleTimeString() : 'N/A'}
+                                            <td className="px-6 py-4 text-gray-400">{new Date(user.createdAt).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                                {editingUserId === user.id ? (
+                                                    <>
+                                                        <button
+                                                            onClick={handleCancelEdit}
+                                                            className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+                                                            title="Cancel"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleSaveEdit(user.id)}
+                                                            className="p-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg"
+                                                            title="Save"
+                                                        >
+                                                            <Save className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEditClick(user)}
+                                                            className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                                                            title="Edit Details"
+                                                        >
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleToggleBan(user.id, user.status)}
+                                                            className={`p-2 rounded-lg transition-colors ${
+                                                                user.status === 'banned'
+                                                                    ? 'hover:bg-green-500/20 text-green-400'
+                                                                    : 'hover:bg-red-500/20 text-red-400 hover:text-red-500'
+                                                            }`}
+                                                            title={user.status === 'banned' ? 'Enable User' : 'Disable User'}
+                                                        >
+                                                            {user.status === 'banned' ? (
+                                                                <CheckCircle className="w-4 h-4" />
+                                                            ) : (
+                                                                <Ban className="w-4 h-4" />
+                                                            )}
+                                                        </button>
+                                                    </>
+                                                )}
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                                            No users found matching your search.
+                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                            No users found.
                                         </td>
                                     </tr>
                                 )}

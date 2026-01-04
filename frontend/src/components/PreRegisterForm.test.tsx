@@ -140,4 +140,44 @@ describe('PreRegisterForm', () => {
             );
         });
     });
+    it('handles Firestore error during submission', async () => {
+        const { container } = render(
+            <BrowserRouter>
+                <PreRegisterForm source="hero" />
+            </BrowserRouter>
+        );
+
+        vi.mocked(Firestore.setDoc).mockRejectedValueOnce(new Error('DB Error'));
+
+        const input = screen.getByPlaceholderText('Enter your email');
+        fireEvent.change(input, { target: { value: 'error@example.com' } });
+
+        const form = container.querySelector('form');
+        if (form) fireEvent.submit(form);
+
+        expect(await screen.findByText('Something went wrong. Please try again.')).toBeInTheDocument();
+    });
+
+    it('handles skip action in qualifier', async () => {
+        const { container } = render(
+            <BrowserRouter>
+                <PreRegisterForm source="hero" />
+            </BrowserRouter>
+        );
+
+        const input = screen.getByPlaceholderText('Enter your email');
+        fireEvent.change(input, { target: { value: 'skip@example.com' } });
+        const form = container.querySelector('form');
+        if (form) fireEvent.submit(form);
+
+        expect(await screen.findByText('What are you preparing for?')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByText('Skip this step'));
+
+        await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith('/success?email=skip%40example.com');
+            // updateDoc should NOT be called for skip
+            expect(Firestore.updateDoc).not.toHaveBeenCalled();
+        });
+    });
 });

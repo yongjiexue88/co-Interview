@@ -132,7 +132,7 @@ export class CoInterviewApp extends LitElement {
     constructor() {
         super();
         // Set defaults - will be overwritten by storage
-        this.currentView = 'main'; // Will check onboarding after storage loads
+        this.currentView = 'onboarding'; // Will check onboarding after storage loads
         this.statusText = '';
         this.startTime = null;
         this.isRecording = false;
@@ -160,7 +160,8 @@ export class CoInterviewApp extends LitElement {
             const [config, prefs] = await Promise.all([coInterview.storage.getConfig(), coInterview.storage.getPreferences()]);
 
             // Check onboarding status
-            this.currentView = config.onboarded ? 'main' : 'onboarding';
+            // debug: Force onboarding for testing
+            this.currentView = true ? 'onboarding' : 'main';
 
             // Apply background appearance (color + transparency)
             this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.8);

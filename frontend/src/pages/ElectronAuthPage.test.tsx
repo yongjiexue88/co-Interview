@@ -55,4 +55,37 @@ describe('ElectronAuthPage', () => {
             expect(screen.getByText(/Returning to Co-Interview app/i)).toBeInTheDocument();
         });
     });
+    it('handles auth error (popup closed)', async () => {
+        const { signInWithPopup } = await import('firebase/auth');
+        vi.mocked(signInWithPopup).mockRejectedValueOnce({ code: 'auth/popup-closed-by-user' });
+
+        render(
+            <MemoryRouter initialEntries={['/electron-auth']}>
+                <Routes>
+                    <Route path="/electron-auth" element={<ElectronAuthPage />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Sign-in was cancelled. Click below to try again.')).toBeInTheDocument();
+        });
+    });
+
+    it('handles generic auth error', async () => {
+        const { signInWithPopup } = await import('firebase/auth');
+        vi.mocked(signInWithPopup).mockRejectedValueOnce(new Error('Network Error'));
+
+        render(
+            <MemoryRouter initialEntries={['/electron-auth']}>
+                <Routes>
+                    <Route path="/electron-auth" element={<ElectronAuthPage />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Network Error')).toBeInTheDocument();
+        });
+    });
 });
