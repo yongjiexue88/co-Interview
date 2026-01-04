@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ADMIN_EMAILS } from '../constants';
 import { Loader2, ShieldAlert } from 'lucide-react';
 
 const ProtectedAdminRoute: React.FC = () => {

@@ -47,10 +47,22 @@ describe('AdminDashboard', () => {
             { id: '1', email: 'user1@test.com', plan: 'free', status: 'active', createdAt: new Date().toISOString() },
             { id: '2', email: 'user2@test.com', plan: 'pro', status: 'banned', createdAt: new Date().toISOString() },
         ];
+        const mockEvents = [{ id: 'e1', eventName: 'nav_click', params: { label: 'Pricing' }, createdAt: new Date().toISOString() }];
 
-        (global.fetch as any).mockResolvedValue({
-            ok: true,
-            json: async () => ({ users: mockUsers }),
+        (global.fetch as any).mockImplementation((url: string) => {
+            if (url.includes('/admin/users')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({ users: mockUsers }),
+                });
+            }
+            if (url.includes('/admin/analytics')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({ events: mockEvents }),
+                });
+            }
+            return Promise.reject(new Error('Unknown URL'));
         });
 
         render(

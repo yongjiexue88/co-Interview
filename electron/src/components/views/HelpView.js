@@ -266,9 +266,6 @@ export class HelpView extends LitElement {
     }
 
     render() {
-        const isMacOS = coInterview.isMacOS || false;
-        const isLinux = coInterview.isLinux || false;
-
         return html`
             <div class="help-container">
                 <div class="option-group">

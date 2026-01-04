@@ -1,7 +1,7 @@
 /**
  * Global error handler middleware
  */
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
     console.error('Error:', err);
 
     // Custom API errors

@@ -1,4 +1,4 @@
-const { auth, db } = require('../config/firebase');
+const { db } = require('../config/firebase');
 
 // Duplicated from frontend/src/constants.ts to keep backend independent
 const ADMIN_EMAILS = ['yongjiexue88@gmail.com', 'xue515953749@gmail.com'];

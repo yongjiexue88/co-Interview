@@ -1,11 +1,11 @@
 import { html, css, LitElement } from '../../assets/lit-core-2.7.4.min.js';
-import { AppHeader } from './AppHeader.js';
-import { MainView } from '../views/MainView.js';
-import { CustomizeView } from '../views/CustomizeView.js';
-import { HelpView } from '../views/HelpView.js';
-import { HistoryView } from '../views/HistoryView.js';
-import { AssistantView } from '../views/AssistantView.js';
-import { OnboardingView } from '../views/OnboardingView.js';
+import './AppHeader.js';
+import '../views/MainView.js';
+import '../views/CustomizeView.js';
+import '../views/HelpView.js';
+import '../views/HistoryView.js';
+import '../views/AssistantView.js';
+import '../views/OnboardingView.js';
 
 // Import analytics for tracking
 let trackEvent = () => {};
@@ -160,8 +160,7 @@ export class CoInterviewApp extends LitElement {
             const [config, prefs] = await Promise.all([coInterview.storage.getConfig(), coInterview.storage.getPreferences()]);
 
             // Check onboarding status
-            // debug: Force onboarding for testing
-            this.currentView = true ? 'onboarding' : 'main';
+            this.currentView = config?.onboardingComplete ? 'main' : 'onboarding';
 
             // Apply background appearance (color + transparency)
             this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.8);
@@ -462,7 +461,6 @@ export class CoInterviewApp extends LitElement {
 
     renderCurrentView() {
         // Only re-render the view if it hasn't been cached or if critical properties changed
-        const viewKey = `${this.currentView}-${this.selectedProfile}-${this.selectedLanguage}`;
 
         switch (this.currentView) {
             case 'onboarding':

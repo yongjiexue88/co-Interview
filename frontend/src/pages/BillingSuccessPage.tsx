@@ -7,11 +7,12 @@ import { useAuth } from '../hooks/useAuth';
 const BillingSuccessPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { refreshUser } = useAuth();
+    const { user } = useAuth();
     const sessionId = searchParams.get('session_id');
 
     const [status, setStatus] = useState<'loading' | 'success' | 'processing' | 'error'>('loading');
     const [errorMsg, setErrorMsg] = useState('');
+    const [attempts, setAttempts] = useState(0);
 
     useEffect(() => {
         if (!sessionId) {
@@ -20,48 +21,56 @@ const BillingSuccessPage: React.FC = () => {
             return;
         }
 
-        let pollInterval: NodeJS.Timeout;
-        let attempts = 0;
         const maxAttempts = 30; // 60s total
 
         const checkStatus = async () => {
             try {
-                attempts++;
+                let currentAttempts = 0;
+                setAttempts(prev => {
+                    currentAttempts = prev + 1;
+                    return currentAttempts;
+                });
+
                 const res = await api.get(`/billing/checkout-status?session_id=${sessionId}`);
                 const data = res.data;
 
-                if (data.status === 'complete') {
+                if (data.status === 'success' || data.status === 'complete') {
                     setStatus('success');
                     clearInterval(pollInterval);
-                    // Refresh user to get new entitlement in context
-                    await refreshUser();
-                    setTimeout(() => navigate('/dashboard'), 2000);
-                } else if (data.status === 'processing') {
-                    // Keep polling
-                } else if (data.status === 'open') {
-                    // Not paid yet? Strange for success page.
-                }
 
-                if (attempts >= maxAttempts) {
+                    // Force a reload of the current user's profile if possible
+                    if (user) {
+                        try {
+                            await user.reload();
+                        } catch (e) {
+                            console.error('Failed to reload user:', e);
+                        }
+                    }
+
+                    setTimeout(() => navigate('/dashboard'), 2000);
+                } else if (currentAttempts >= maxAttempts) {
                     clearInterval(pollInterval);
                     setStatus('processing'); // Stuck in processing
                 }
             } catch (err: any) {
                 console.error('Error checking status:', err);
-                if (attempts > 5) {
-                    // Allow a few failures
-                    clearInterval(pollInterval);
-                    setStatus('error');
-                    setErrorMsg('Failed to verify payment status. Please contact support.');
-                }
+                // get the latest attempts value for the error check
+                setAttempts(prev => {
+                    if (prev > 5) {
+                        clearInterval(pollInterval);
+                        setStatus('error');
+                        setErrorMsg('Failed to verify payment status. Please contact support.');
+                    }
+                    return prev;
+                });
             }
         };
 
+        const pollInterval = setInterval(checkStatus, 2000);
         checkStatus();
-        pollInterval = setInterval(checkStatus, 2000);
 
         return () => clearInterval(pollInterval);
-    }, [sessionId, navigate, refreshUser]);
+    }, [sessionId, navigate, user]);
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center p-4">

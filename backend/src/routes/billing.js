@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const { db } = require('../config/firebase');
-const { stripe, PRICES, PLANS } = require('../config/stripe');
+const { stripe, PRICES } = require('../config/stripe');
 
 /**
  * GET /v1/billing/subscription

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Download, Search, Users, LogOut, Ban, CheckCircle, Edit2, X, Save, Shield } from 'lucide-react';
+import { Search, Users, LogOut, Ban, CheckCircle, Edit2, X, Save, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../lib/firebase';
+import KPISummaryPanel, { AnalyticsEvent } from '../components/KPISummaryPanel';
 
 interface UserData {
     id: string;
@@ -22,39 +23,49 @@ const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [users, setUsers] = useState<UserData[]>([]);
+    const [events, setEvents] = useState<AnalyticsEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<UserData>>({});
 
-    // Fetch users from backend
-    const fetchUsers = async () => {
+    // Fetch users AND analytics from backend
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
             const token = await user?.getIdToken();
-            const response = await fetch(`${API_URL}/admin/users?limit=100`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (response.ok) {
-                const data = await response.json();
+            const headers = { Authorization: `Bearer ${token}` };
+
+            const [usersRes, analyticsRes] = await Promise.all([
+                fetch(`${API_URL}/admin/users?limit=100`, { headers }),
+                fetch(`${API_URL}/admin/analytics?limit=1000`, { headers }),
+            ]);
+
+            if (usersRes.ok) {
+                const data = await usersRes.json();
                 setUsers(data.users);
             } else {
                 console.error('Failed to fetch users');
             }
+
+            if (analyticsRes.ok) {
+                const data = await analyticsRes.json();
+                setEvents(data.events);
+            } else {
+                console.error('Failed to fetch analytics');
+            }
         } catch (error) {
-            console.error('Error fetching users:', error);
+            console.error('Error fetching dashboard data:', error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
         if (user) {
-            fetchUsers();
+            fetchData();
         }
-    }, [user]);
+    }, [user, fetchData]);
 
     const handleLogout = () => {
         auth.signOut();
@@ -89,7 +100,7 @@ const AdminDashboard: React.FC = () => {
 
             if (response.ok) {
                 // Refresh list
-                await fetchUsers();
+                await fetchData();
                 setEditingUserId(null);
             } else {
                 alert('Failed to update user');
@@ -116,7 +127,7 @@ const AdminDashboard: React.FC = () => {
             });
 
             if (response.ok) {
-                await fetchUsers();
+                await fetchData();
             } else {
                 alert(`Failed to ${action} user`);
             }
@@ -150,6 +161,9 @@ const AdminDashboard: React.FC = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* Analytics Panel */}
+                <KPISummaryPanel users={users as any} events={events} />
 
                 {/* Users Table */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">

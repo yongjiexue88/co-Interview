@@ -14,7 +14,7 @@ router.use(adminMiddleware);
  */
 router.get('/users', async (req, res) => {
     try {
-        const { limit = 20, pageToken, search } = req.query;
+        const { limit = 20, search } = req.query;
         let query = db.collection('users').orderBy('createdAt', 'desc');
 
         // Note: Firestore search is limited. Use a proper search engine (Algolia/Typesense) for prod.
@@ -166,6 +166,34 @@ router.post('/users/:id/enable', async (req, res) => {
     } catch (error) {
         console.error('Enable user error:', error);
         res.status(500).json({ error: 'Failed to enable user' });
+    }
+});
+
+/**
+ * GET /api/v1/admin/analytics
+ * Get analytics events for dashboard
+ */
+router.get('/analytics', async (req, res) => {
+    try {
+        const { limit = 1000 } = req.query;
+        // Fetch last N events
+        const snapshot = await db.collection('analytics_events').orderBy('createdAt', 'desc').limit(parseInt(limit)).get();
+
+        const events = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            events.push({
+                id: doc.id,
+                ...data,
+                // Convert timestamp to ISO string for frontend
+                createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+            });
+        });
+
+        res.json({ events });
+    } catch (error) {
+        console.error('Fetch analytics error:', error);
+        res.status(500).json({ error: 'Failed to fetch analytics' });
     }
 });
 

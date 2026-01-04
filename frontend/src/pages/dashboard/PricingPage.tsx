@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Check, Shield } from 'lucide-react';
 
 import { useAuth } from '../../hooks/useAuth';
-import { pricingTiers } from '../../content/pricing';
 import { api } from '../../lib/api';
 
 const features = [
@@ -15,7 +14,7 @@ const features = [
 ];
 
 const PricingPage: React.FC = () => {
-    const { user } = useAuth();
+    useAuth();
     const [countdown, setCountdown] = useState({ hours: 19, minutes: 13, seconds: 33 });
 
     useEffect(() => {

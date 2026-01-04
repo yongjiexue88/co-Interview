@@ -80,7 +80,7 @@ router.get('/google', (req, res) => {
  * GET /v1/auth/google/callback
  * Handle Google OAuth callback, mint custom token, and redirect to Electron
  */
-router.get('/google/callback', async (req, res, next) => {
+router.get('/google/callback', async (req, res, _next) => {
     try {
         const { code } = req.query;
         if (!code) {
@@ -129,7 +129,7 @@ router.get('/google/callback', async (req, res, next) => {
             audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
-        const { email, sub: googleUid, name, picture } = payload;
+        const { email, name, picture } = payload;
 
         // Get or Create Firebase User
         const { auth: adminAuth, db } = require('../config/firebase'); // Re-import to ensure admin context

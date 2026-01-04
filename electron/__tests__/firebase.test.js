@@ -2,6 +2,7 @@ const {
     getIdToken,
     getCurrentUser,
     signOut,
+    onAuthChange,
     auth,
     googleProvider
 } = require('../src/utils/firebase');
@@ -93,6 +94,15 @@ describe('Electron Firebase Utils', () => {
             auth.signOut.mockRejectedValue(new Error('Sign out failed'));
             const result = await signOut();
             expect(result).toBe(false);
+        });
+    });
+
+    describe('onAuthChange', () => {
+        it('should call onAuthStateChanged', () => {
+            const { onAuthStateChanged } = require('firebase/auth');
+            const callback = jest.fn();
+            onAuthChange(callback);
+            expect(onAuthStateChanged).toHaveBeenCalledWith(expect.any(Object), callback);
         });
     });
 });

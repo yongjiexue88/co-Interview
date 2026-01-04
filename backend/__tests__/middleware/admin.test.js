@@ -1,8 +1,8 @@
-const adminMiddleware = require('./admin');
-const { db } = require('../config/firebase');
+const adminMiddleware = require('../../src/middleware/admin');
+const { db } = require('../../src/config/firebase');
 
 // Mock Firebase config
-jest.mock('../config/firebase', () => ({
+jest.mock('../../src/config/firebase', () => ({
     auth: {},
     db: {
         collection: jest.fn(),

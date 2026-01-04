@@ -1,25 +1,35 @@
 import React from 'react';
 import { Users, CheckCircle, MousePointer, TrendingUp } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
-
-interface UserData {
-    id: string;
-    email: string;
-    source: string;
-    createdAt: Timestamp;
-    intent?: string;
-}
-
-interface AnalyticsEvent {
-    id: string;
-    eventName: string;
-    params: any;
-    createdAt: Timestamp;
-}
+// Helper to safely get Date object
+const getDate = (dateField: Timestamp | string | undefined): Date => {
+    if (!dateField) return new Date();
+    // Check if it's a Firestore Timestamp (has toDate method)
+    if (typeof (dateField as any).toDate === 'function') {
+        return (dateField as any).toDate();
+    }
+    // Assume string or Date object
+    return new Date(dateField as string | Date);
+};
 
 interface KPISummaryPanelProps {
     users: UserData[];
     events: AnalyticsEvent[];
+}
+
+export interface UserData {
+    id: string;
+    email: string;
+    source?: string; // Made optional to match usage
+    createdAt: Timestamp | string; // Support both
+    intent?: string;
+}
+
+export interface AnalyticsEvent {
+    id: string;
+    eventName: string;
+    params: any;
+    createdAt: Timestamp | string; // Support both
 }
 
 const KPISummaryPanel: React.FC<KPISummaryPanelProps> = ({ users, events }) => {
@@ -27,7 +37,7 @@ const KPISummaryPanel: React.FC<KPISummaryPanelProps> = ({ users, events }) => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const signups7d = users.filter(u => {
-        const date = u.createdAt?.toDate ? u.createdAt.toDate() : new Date();
+        const date = getDate(u.createdAt);
         return date >= sevenDaysAgo;
     }).length;
 

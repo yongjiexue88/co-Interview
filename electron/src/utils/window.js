@@ -1,7 +1,5 @@
 const { BrowserWindow, globalShortcut, ipcMain, screen } = require('electron');
 const path = require('node:path');
-const fs = require('node:fs');
-const os = require('os');
 const storage = require('../storage');
 
 let mouseEventsIgnored = false;
