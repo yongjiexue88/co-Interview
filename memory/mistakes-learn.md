@@ -43,11 +43,28 @@
 **Solution:** Removed the duplicate import line
 **Prevention:** Use ESLint `no-duplicate-imports` rule
 
+### 2026-01-04 - Missing Axios Dependency
+**Problem:** Frontend tests failed with `Failed to resolve import "axios"`
+**Root Cause:** `axios` was imported in `src/lib/api.ts` but missing from `package.json` dependencies
+**Solution:** `npm install axios`
+**Prevention:** Check package.json when adding new imports
+
 ### 2026-01-03 - Electron `@electron/remote` Startup Crash
 **Problem:** Electron app showed blank screen after build
 **Root Cause:** `@electron/remote` was not properly initialized in main process
 **Solution:** Ensured `require('@electron/remote/main').initialize()` is called before window creation
 **Prevention:** Test builds after adding new Electron IPC dependencies
+
+---
+
+
+## 🔴 Backend
+
+### 2026-01-04 - Stripe Webhook "No document to update" Error
+**Problem:** `checkout.session.completed` event failed with "Error: 5 NOT_FOUND: No document to update" for new users
+**Root Cause:** Webhook handler used `.update()` which requires an existing document. If the user document was missing (e.g. wiped DB or new signup flow issue), it failed.
+**Solution:** Switched to `.set(..., { merge: true })` in `webhooks.js` to ensure upsert behavior.
+**Prevention:** Always use upsert logic for critical webhook handlers dealing with potentially missing records.
 
 ---
 

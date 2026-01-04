@@ -67,6 +67,13 @@
 - Reverted debug flag in `CoInterviewApp.js` to respect saved onboarding status
 - Added unit tests for prompt generation in `electron/__tests__/prompts.test.js`
 
+### Admin Tools Implementation (2026-01-04)
+- Implemented backend Admin Middleware and API routes (`/api/v1/admin`)
+- Created Frontend Admin Dashboard (`/admin`) with User Management (List, Edit, Ban)
+- Updated `useAuth` hook with `isAdmin` flag based on RBAC
+- Fixed Stripe Webhook bug causing "No document to update" errors
+- Verified end-to-end user management flow
+
 ### Agent Workflow Improvements (2026-01-04)
 - Updated `/verify-app` workflow to run test coverage and invoke `/test-author` if < 80%
 - Updated `/commit` workflow to use dynamic conventional commit messages
