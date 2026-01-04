@@ -32,3 +32,6 @@ firebase-debug.log
 .env.local
 assets_todo/
 assests_todo/
+
+# Testing
+coverage/
