@@ -181,7 +181,7 @@ async function getStoredSetting(key, defaultValue) {
     return defaultValue;
 }
 
-async function initializeGeminiSession(apiKey, customPrompt = '', profile = 'interview', language = 'en-US', isReconnect = false) {
+async function initializeGeminiSession(apiKey, preferences = {}, profile = 'interview', isReconnect = false) {
     if (isInitializingSession) {
         console.log('Session initialization already in progress');
         return false;
@@ -194,7 +194,7 @@ async function initializeGeminiSession(apiKey, customPrompt = '', profile = 'int
 
     // Store params for reconnection
     if (!isReconnect) {
-        sessionParams = { apiKey, customPrompt, profile, language };
+        sessionParams = { apiKey, preferences, profile };
         reconnectAttempts = 0;
     }
 
@@ -208,11 +208,14 @@ async function initializeGeminiSession(apiKey, customPrompt = '', profile = 'int
     const enabledTools = await getEnabledTools();
     const googleSearchEnabled = enabledTools.some(tool => tool.googleSearch);
 
-    const systemPrompt = getSystemPrompt(profile, customPrompt, googleSearchEnabled);
+    // Ensure preferences has the correct search setting
+    const fullPreferences = { ...preferences, googleSearchEnabled };
+
+    const systemPrompt = getSystemPrompt(profile, fullPreferences);
 
     // Initialize new conversation session only on first connect
     if (!isReconnect) {
-        initializeNewSession(profile, customPrompt);
+        initializeNewSession(profile, preferences.customPrompt);
     }
 
     try {
@@ -296,7 +299,7 @@ async function initializeGeminiSession(apiKey, customPrompt = '', profile = 'int
                     maxSpeakerCount: 2,
                 },
                 contextWindowCompression: { slidingWindow: {} },
-                speechConfig: { languageCode: language },
+                speechConfig: { languageCode: preferences.outputLanguage || 'en-US' },
                 systemInstruction: {
                     parts: [{ text: systemPrompt }],
                 },
@@ -334,9 +337,8 @@ async function attemptReconnect() {
     try {
         const session = await initializeGeminiSession(
             sessionParams.apiKey,
-            sessionParams.customPrompt,
+            sessionParams.preferences,
             sessionParams.profile,
-            sessionParams.language,
             true // isReconnect
         );
 
@@ -589,8 +591,8 @@ function setupGeminiIpcHandlers(geminiSessionRef) {
     // Store the geminiSessionRef globally for reconnection access
     global.geminiSessionRef = geminiSessionRef;
 
-    ipcMain.handle('initialize-gemini', async (event, apiKey, customPrompt, profile = 'interview', language = 'en-US') => {
-        const session = await initializeGeminiSession(apiKey, customPrompt, profile, language);
+    ipcMain.handle('initialize-gemini', async (event, apiKey, preferences, profile = 'interview') => {
+        const session = await initializeGeminiSession(apiKey, preferences, profile);
         if (session) {
             geminiSessionRef.current = session;
             return true;

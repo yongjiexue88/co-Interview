@@ -1163,13 +1163,14 @@ export class OnboardingView extends LitElement {
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
 
-            // Removed auto-skip logic to ensure user always sees the login screen first
-            // If they are already logged in, they can click "Skip" or "Continue" manually if we add that logic
-
-            // Check if already logged in (for console context only)
+            // Check if already logged in
             ipcRenderer.invoke('auth:is-logged-in').then(result => {
                 if (result && result.success && result.data === true) {
-                    console.log('OnboardingView: User already logged in, but showing sign-in slide as requested');
+                    console.log('OnboardingView: User already logged in, auto-advancing to welcome slide');
+                    // Skip sign-in slide
+                    this.startColorTransition(1);
+                } else {
+                    console.log('OnboardingView: User not logged in, staying on sign-in slide');
                 }
             });
 

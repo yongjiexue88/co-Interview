@@ -4,6 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { Home, FileText, History, DollarSign, Clock, User, Download, Play, ChevronDown, ChevronUp, LogOut, Loader2 } from 'lucide-react';
+import { pricingTiers } from '../content/pricing';
 
 // Platform data with icons and status
 const platforms = [
@@ -80,6 +81,15 @@ const UserDashboard: React.FC = () => {
 
     const userName = user?.displayName || user?.email?.split('@')[0] || 'User';
 
+    const handleLifetimeClick = () => {
+        const lifetimeTier = pricingTiers.find(t => t.id === 'lifetime');
+        if (lifetimeTier?.paymentLink && user) {
+            const separator = lifetimeTier.paymentLink.includes('?') ? '&' : '?';
+            const finalLink = `${lifetimeTier.paymentLink}${separator}client_reference_id=${user.uid}&prefilled_email=${encodeURIComponent(user.email || '')}`;
+            window.open(finalLink, '_blank');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-black flex">
             {/* Sidebar */}
@@ -132,7 +142,10 @@ const UserDashboard: React.FC = () => {
                                 <div className="text-[10px] text-gray-500">Secs</div>
                             </div>
                         </div>
-                        <button className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg text-sm hover:brightness-110 transition-all">
+                        <button
+                            onClick={handleLifetimeClick}
+                            className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg text-sm hover:brightness-110 transition-all"
+                        >
                             ✦ Get Lifetime package
                         </button>
                     </div>
@@ -182,7 +195,10 @@ const UserDashboard: React.FC = () => {
                                     <span>Mins</span>
                                     <span>Secs</span>
                                 </div>
-                                <button className="bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg text-sm hover:brightness-110 transition-all">
+                                <button
+                                    onClick={handleLifetimeClick}
+                                    className="bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg text-sm hover:brightness-110 transition-all"
+                                >
                                     ✦ Get Lifetime package
                                 </button>
                             </div>

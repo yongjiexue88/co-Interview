@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Shield } from 'lucide-react';
 
+import { useAuth } from '../../hooks/useAuth';
+import { pricingTiers } from '../../content/pricing';
+
 const features = [
     'Unlimited monthly access',
     'New: Audio support for real-time guidance',
@@ -11,6 +14,7 @@ const features = [
 ];
 
 const PricingPage: React.FC = () => {
+    const { user } = useAuth();
     const [countdown, setCountdown] = useState({ hours: 19, minutes: 13, seconds: 33 });
 
     useEffect(() => {
@@ -33,6 +37,15 @@ const PricingPage: React.FC = () => {
 
         return () => clearInterval(timer);
     }, []);
+
+    const handleLifetimeClick = () => {
+        const lifetimeTier = pricingTiers.find(t => t.id === 'lifetime');
+        if (lifetimeTier?.paymentLink && user) {
+            const separator = lifetimeTier.paymentLink.includes('?') ? '&' : '?';
+            const finalLink = `${lifetimeTier.paymentLink}${separator}client_reference_id=${user.uid}&prefilled_email=${encodeURIComponent(user.email || '')}`;
+            window.open(finalLink, '_blank');
+        }
+    };
 
     return (
         <div className="max-w-5xl mx-auto px-8 py-12">
@@ -92,7 +105,10 @@ const PricingPage: React.FC = () => {
                         Original price: <span className="line-through">$1598</span>
                     </p>
 
-                    <button className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-3 px-4 rounded-lg hover:brightness-110 transition-all mb-4">
+                    <button
+                        onClick={handleLifetimeClick}
+                        className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg hover:brightness-110 transition-all mb-4"
+                    >
                         Buy now
                     </button>
 

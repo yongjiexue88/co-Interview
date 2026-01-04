@@ -160,8 +160,7 @@ export class CoInterviewApp extends LitElement {
             const [config, prefs] = await Promise.all([coInterview.storage.getConfig(), coInterview.storage.getPreferences()]);
 
             // Check onboarding status
-            // FOR DEBUGGING: Always show onboarding
-            this.currentView = 'onboarding'; // config.onboarded ? 'main' : 'onboarding';
+            this.currentView = config.onboarded ? 'main' : 'onboarding';
 
             // Apply background appearance (color + transparency)
             this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.8);

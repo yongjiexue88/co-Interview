@@ -53,28 +53,53 @@ router.post('/stripe', async (req, res) => {
  * Handle successful checkout
  */
 async function handleCheckoutComplete(session) {
-    const { firebase_uid, plan } = session.metadata;
+    let { firebase_uid, plan } = session.metadata || {};
+
+    // Fallback for Payment Links which use client_reference_id
+    if (!firebase_uid && session.client_reference_id) {
+        firebase_uid = session.client_reference_id;
+    }
+
+    // Infer plan for one-time payments (Lifetime deal)
+    if (!plan && session.mode === 'payment') {
+        plan = 'lifetime';
+    }
 
     if (!firebase_uid || !plan) {
-        console.error('Missing metadata in checkout session');
+        console.error('Missing identifiers in checkout session', {
+            firebase_uid,
+            plan,
+            client_reference_id: session.client_reference_id,
+            mode: session.mode,
+        });
         return;
     }
 
-    const subscription = await stripe.subscriptions.retrieve(session.subscription);
+    let subscriptionId = null;
+    let currentPeriodEnd = null;
+
+    if (session.subscription) {
+        const subscription = await stripe.subscriptions.retrieve(session.subscription);
+        subscriptionId = subscription.id;
+        currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+    } else if (plan === 'lifetime') {
+        // For lifetime, set a far future date (e.g., 100 years from now)
+        const date = new Date();
+        date.setFullYear(date.getFullYear() + 100);
+        currentPeriodEnd = date;
+    }
+
     const planConfig = PLANS[plan] || PLANS.free;
 
-    await db
-        .collection('users')
-        .doc(firebase_uid)
-        .update({
-            plan,
-            status: 'active',
-            subscriptionId: subscription.id,
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            quotaSecondsMonth: planConfig.quotaSecondsMonth,
-            concurrencyLimit: planConfig.concurrencyLimit,
-            features: planConfig.features,
-        });
+    await db.collection('users').doc(firebase_uid).update({
+        plan,
+        status: 'active',
+        subscriptionId,
+        currentPeriodEnd,
+        quotaSecondsMonth: planConfig.quotaSecondsMonth,
+        concurrencyLimit: planConfig.concurrencyLimit,
+        features: planConfig.features,
+    });
 
     console.log(`✅ User ${firebase_uid} upgraded to ${plan}`);
 }

@@ -6,6 +6,7 @@ export interface PricingTier {
     description: string;
     features: string[];
     popular?: boolean;
+    paymentLink?: string;
 }
 
 export const pricingTiers: PricingTier[] = [
@@ -33,5 +34,6 @@ export const pricingTiers: PricingTier[] = [
         period: 'lifetime',
         description: 'One-time payment, forever access',
         features: ['Everything in Monthly', 'Lifetime updates', 'Early access to new features', 'VIP support', 'No recurring fees'],
+        paymentLink: 'https://buy.stripe.com/test_6oU3co7Tq2X9buzbJYb7y00',
     },
 ];

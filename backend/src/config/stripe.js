@@ -33,6 +33,13 @@ const PLANS = {
         concurrencyLimit: 3,
         features: ['audio', 'priority_support', 'team_features'],
     },
+    lifetime: {
+        name: 'Lifetime',
+        quotaSecondsMonth: 1000000000 * 60, // Effectively infinite
+        sessionMaxDuration: 60 * 60, // 60 minutes
+        concurrencyLimit: 5,
+        features: ['audio', 'priority_support', 'team_features', 'early_access'],
+    },
 };
 
 module.exports = { stripe, PRICES, PLANS };
