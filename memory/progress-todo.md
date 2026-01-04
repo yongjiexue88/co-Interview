@@ -74,6 +74,14 @@
 - Fixed Stripe Webhook bug causing "No document to update" errors
 - Verified end-to-end user management flow
 
+### Stripe Plan Integration (2026-01-04)
+- **Backend:** Implemented `free`, `sprint_30d` (30-day), and `lifetime` plans in `config/stripe.js`.
+- **Billing:** Created Checkout Session endpoint and verification logic.
+- **Session:** Implemented quota enforcement (time-based) and concurrency limits.
+- **Electron:** Implemented Managed Mode to use server-issued tokens for Gemini (heartbeat mechanism).
+- **Frontend:** Updated PricingPage and created BillingSuccessPage.
+- **Verification:** Added automated backend tests for Billing and Session routes (100% pass).
+
 ### Agent Workflow Improvements (2026-01-04)
 - Updated `/verify-app` workflow to run test coverage and invoke `/test-author` if < 80%
 - Updated `/commit` workflow to use dynamic conventional commit messages
