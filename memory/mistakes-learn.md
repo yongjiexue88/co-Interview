@@ -88,6 +88,20 @@
 
 ---
 
+## 🔴 Configuration & Environment
+
+### 2026-01-04 - Firebase `invalid_client` Error
+**Problem:** Local web frontend failed Google Login with `auth/invalid-credential`
+**Root Cause:** Firebase Console's "Web Client Secret" was outdated/mismatched with the actual secret in Google Cloud Console
+**Solution:** Manually updated Firebase Console with the correct secret from GCP
+**Prevention:** When rotating secrets or setting up new environments, sync Firebase Console Authentication providers with GCP Credentials
+
+### 2026-01-04 - Accidental Coverage Files Commit
+**Problem:** `coverage/` directory was committed to the repo, cluttering history
+**Root Cause:** `.gitignore` was missing `coverage/` entry
+**Solution:** Removed files via `git rm -r --cached` and updated `.gitignore`
+**Prevention:** Verify `.gitignore` includes build/test artifacts before first commit
+
 ## 📝 Notes
 
 - Keep entries concise but include enough detail to be useful

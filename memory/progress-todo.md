@@ -88,6 +88,12 @@
 - Updated `/progress` workflow to update memory files (progress-todo, mistakes-learn)
 - Created structured `memory/mistakes-learn.md` with bug/solution template
 
+### Firebase Google Login Fix (2026-01-04)
+- Resolved `auth/invalid-credential` on local web frontend
+- Validated Firebase Console "Google" provider secret against Google Cloud Console
+- Verified Electron App uses a separate backend-mediated flow (which was already correct)
+- Cleaned up git repository (added coverage/ to .gitignore)
+
 ---
 
 ## 🚧 Remaining TODO Items
