@@ -101,6 +101,12 @@
 - Verified Electron App uses a separate backend-mediated flow (which was already correct)
 - Cleaned up git repository (added coverage/ to .gitignore)
 
+### Prompt Customization (2026-01-05)
+- Injected `Device Info` (OS) into system prompt for platform-specific advice
+- Enforced `outputLanguage` to ensure AI respects language preference
+- Verified with unit tests in `electron/__tests__/prompts.test.js`
+- Fixed regression in `backend/__tests__/routes/admin.test.js` (missing mock)
+
 ---
 
 ## 🚧 Remaining TODO Items

@@ -110,6 +110,12 @@
 **Solution:** Used `overwrite=true` (via `write_to_file` or essentially overwriting the whole file) to force the correct content.
 **Prevention:** For major refactors of large files, consider overwriting the file if localized edits are flaky, or ensure `TargetContent` includes sufficient unique context without being excessive.
 
+### 2026-01-05 - Missing Jest Mock for V2 Schema Update
+**Problem:** `backend/__tests__/routes/admin.test.js` failed with `TypeError` in `seed-v2` test.
+**Root Cause:** A new test case using `adminAuth.createUser` was added (likely during V2 schema work), but the file's top-level `jest.mock` for firebase auth was not updated to include `createUser`.
+**Solution:** Added `createUser: jest.fn()` to the mock.
+**Prevention:** When adding new dependencies or methods in code, always search for associated test mocks and update them immediately.
+
 ---
 
 ## 📝 Notes
