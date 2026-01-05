@@ -78,4 +78,46 @@ describe('AdminDashboard', () => {
 
         expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/admin/users'), expect.any(Object));
     });
+    it('calls seed endpoint when Seed Test User is clicked and confirmed', async () => {
+        (global.fetch as any).mockImplementation((url: string) => {
+            if (url.includes('/admin/users/seed-v2')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({ success: true }),
+                });
+            }
+            if (url.includes('/admin/users') || url.includes('/admin/analytics')) {
+                return Promise.resolve({ ok: true, json: async () => ({ users: [], events: [] }) });
+            }
+            return Promise.reject(new Error('Unknown URL'));
+        });
+
+        // Mock window.confirm
+        const confirmSpy = vi.spyOn(window, 'confirm');
+        confirmSpy.mockImplementation(() => true);
+        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Seed Test User')).toBeInTheDocument();
+        });
+
+        const seedButton = screen.getByText('Seed Test User');
+        seedButton.click();
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                expect.stringContaining('/admin/users/seed-v2'),
+                expect.objectContaining({
+                    method: 'POST',
+                })
+            );
+            expect(alertSpy).toHaveBeenCalledWith('Test user created!');
+        });
+    });
 });

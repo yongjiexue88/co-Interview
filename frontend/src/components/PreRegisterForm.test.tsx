@@ -65,7 +65,7 @@ describe('PreRegisterForm', () => {
         const input = screen.getByPlaceholderText('Enter your email');
 
         vi.mocked(Firestore.setDoc).mockImplementation(async () => {
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 200));
         });
 
         fireEvent.change(input, { target: { value: 'test@example.com' } });

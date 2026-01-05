@@ -19,6 +19,17 @@ export default defineConfig(({ mode }) => {
             globals: true,
             environment: 'jsdom',
             setupFiles: './src/test/setup.ts',
+            coverage: {
+                exclude: [
+                    'src/content/blog-html/**',
+                    'src/test/**',
+                    '**/*.d.ts',
+                    '**/*.test.tsx',
+                    '**/*.test.ts',
+                    'src/main.tsx',
+                    'src/vite-env.d.ts'
+                ]
+            }
         },
         define: {
             'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),

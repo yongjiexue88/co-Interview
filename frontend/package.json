@@ -18,11 +18,13 @@
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
+    "@headlessui/react": "^2.2.9",
     "axios": "^1.13.2",
     "firebase": "^12.7.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-ga4": "^2.1.0",
     "react-helmet-async": "^2.0.5",
     "react-router-dom": "^7.11.0",
     "recharts": "^3.6.0"

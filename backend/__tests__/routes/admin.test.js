@@ -7,6 +7,7 @@ const { auth: adminAuth, db } = require('../../src/config/firebase');
 jest.mock('../../src/config/firebase', () => ({
     auth: {
         updateUser: jest.fn(),
+        createUser: jest.fn(),
     },
     db: {
         collection: jest.fn(),
@@ -49,7 +50,6 @@ describe('Admin Routes', () => {
             db.collection.mockReturnValue(mockQuery);
 
             const res = await request(app).get('/api/v1/admin/users').query({ limit: 10 });
-
             expect(res.statusCode).toEqual(200);
             expect(res.body.users).toHaveLength(2);
             expect(db.collection).toHaveBeenCalledWith('users');
@@ -176,6 +176,44 @@ describe('Admin Routes', () => {
 
             expect(res.statusCode).toEqual(200);
             expect(res.body.events).toHaveLength(1);
+        });
+    });
+
+    describe('POST /api/v1/admin/users/seed-v2', () => {
+        it('should create a V2 user with nested fields', async () => {
+            const mockSet = jest.fn().mockResolvedValue(true);
+
+            // Mock chain: db.collection("users").doc("uid").collection("devices").doc("devid").set(...)
+
+            const mockDeviceRef = { set: mockSet };
+            const mockDevicesCollection = { doc: jest.fn().mockReturnValue(mockDeviceRef) };
+
+            const mockUserRef = {
+                set: mockSet,
+                collection: jest.fn().mockReturnValue(mockDevicesCollection)
+            };
+
+            const mockUsersCollection = {
+                doc: jest.fn().mockReturnValue(mockUserRef)
+            };
+
+            db.collection.mockReturnValue(mockUsersCollection);
+
+            adminAuth.createUser.mockResolvedValue({ uid: 'test-seed-uid' });
+
+            const res = await request(app).post('/api/v1/admin/users/seed-v2').send({ email: 'seed@test.com' });
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.email).toBe('seed@test.com');
+
+            // Verify main user document structure
+            expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
+                profile: expect.objectContaining({ email: 'seed@test.com' }),
+                meta: expect.objectContaining({ schemaVersion: 2 })
+            }));
+
+            // Verify subcollection call
+            expect(mockUserRef.collection).toHaveBeenCalledWith('devices');
         });
     });
 });

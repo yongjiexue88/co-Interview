@@ -1003,35 +1003,99 @@ export class OnboardingView extends LitElement {
     }
 
     async completeOnboarding() {
+        // Get ipcRenderer first for all storage operations
+        const electron = window.require ? window.require('electron') : require('electron');
+        const ipcRenderer = electron.ipcRenderer;
+
+        // Helper function for preference updates (direct IPC, no dependency on window.coInterview)
+        const updatePreference = async (key, value) => {
+            return ipcRenderer.invoke('storage:update-preference', key, value);
+        };
+        const updateConfig = async (key, value) => {
+            return ipcRenderer.invoke('storage:update-config', key, value);
+        };
+
         // Save tailor preferences
         if (this.outputLanguage) {
-            await coInterview.storage.updatePreference('outputLanguage', this.outputLanguage);
+            await updatePreference('outputLanguage', this.outputLanguage);
         }
         if (this.programmingLanguage) {
-            await coInterview.storage.updatePreference('programmingLanguage', this.programmingLanguage);
+            await updatePreference('programmingLanguage', this.programmingLanguage);
         }
         if (this.audioLanguage) {
-            await coInterview.storage.updatePreference('audioLanguage', this.audioLanguage);
+            await updatePreference('audioLanguage', this.audioLanguage);
         }
 
         if (this.contextText.trim()) {
-            await coInterview.storage.updatePreference('customPrompt', this.contextText.trim());
+            // Guard: Truncate to 10k chars and basic sanitization
+            let safeContext = this.contextText.trim();
+            if (safeContext.length > 10000) {
+                safeContext = safeContext.substring(0, 10000);
+            }
+            // Remove potential script tags for basic safety (though Lit handles display safety)
+            safeContext = safeContext.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gm, '');
+
+            await updatePreference('customPrompt', safeContext);
             trackEvent('onboarding_context_added', {
-                context_length: this.contextText.trim().length,
+                context_length: safeContext.length,
             });
         }
 
         if (this.userPersona) {
-            await coInterview.storage.updatePreference('userPersona', this.userPersona);
+            await updatePreference('userPersona', this.userPersona);
             trackEvent('onboarding_persona_selected', {
                 persona: this.userPersona,
             });
         }
 
         if (this.userRole) {
-            await coInterview.storage.updatePreference('userRole', this.userRole);
-            await coInterview.storage.updatePreference('userExperience', this.userExperience);
-            await coInterview.storage.updatePreference('userReferral', this.userReferral);
+            await updatePreference('userRole', this.userRole);
+        }
+        if (this.userExperience) {
+            await updatePreference('userExperience', this.userExperience);
+        }
+        if (this.userReferral) {
+            await updatePreference('userReferral', this.userReferral);
+        }
+
+        // Collect device info
+        let ipAddress = 'Unknown';
+        let deviceInfo = 'Unknown';
+
+        try {
+            const systemInfo = await ipcRenderer.invoke('get-system-info');
+            if (systemInfo.success) {
+                ipAddress = systemInfo.data.ipAddress;
+                deviceInfo = systemInfo.data.deviceInfo;
+
+                await updatePreference('ipAddress', ipAddress);
+                await updatePreference('deviceInfo', deviceInfo);
+            }
+        } catch (err) {
+            console.error('Failed to get system info:', err);
+        }
+
+        // Log gathered data to terminal for debugging/verification
+        // This replicates the format requested by the user
+        ipcRenderer.invoke(
+            'log-info',
+            `
+Onboarding preferences collected: {
+  outputLanguage: '${this.outputLanguage || 'English'}',
+  programmingLanguage: '${this.programmingLanguage || 'Python'}',
+  audioLanguage: '${this.audioLanguage || 'en'}',
+  userPersona: '${this.userPersona || ''}',
+  userRole: '${this.userRole || ''}',
+  userExperience: '${this.userExperience || ''}',
+  userReferral: '${this.userReferral || ''}',
+  customContextLength: ${this.contextText ? this.contextText.length : 0},
+  ipAddress: '${ipAddress}',
+  deviceInfo: '${deviceInfo}'
+}
+`
+        );
+        // The trackEvent for onboarding_details should still happen if any of these are set
+        if (this.userRole || this.userExperience || this.userReferral) {
             trackEvent('onboarding_details', {
                 role: this.userRole,
                 experience: this.userExperience,
@@ -1039,7 +1103,7 @@ export class OnboardingView extends LitElement {
             });
         }
 
-        await coInterview.storage.updateConfig('onboarded', true);
+        await updateConfig('onboardingComplete', true);
 
         // Track completion
         trackEvent('onboarding_completed', {

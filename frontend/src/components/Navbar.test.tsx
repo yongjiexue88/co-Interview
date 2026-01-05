@@ -1,9 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Navbar from './Navbar';
 import { MemoryRouter } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
 
-// Mock Firebase to prevent auth/invalid-api-key error
+// Mock Firebase
 vi.mock('../lib/firebase', () => ({
     auth: {},
     googleProvider: {},
@@ -15,14 +16,20 @@ vi.mock('firebase/auth', () => ({
 }));
 
 // Mock useAuth hook
+const mockUseAuth = vi.fn();
 vi.mock('../hooks/useAuth', () => ({
-    useAuth: () => ({
-        user: null,
-        loading: false,
-    }),
+    useAuth: () => mockUseAuth(),
 }));
 
 describe('Navbar', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockUseAuth.mockReturnValue({
+            user: null,
+            loading: false,
+        });
+    });
+
     it('renders desktop links', () => {
         render(
             <MemoryRouter>
@@ -42,35 +49,80 @@ describe('Navbar', () => {
             </MemoryRouter>
         );
 
-        // Find toggle button - it's the one inside md:hidden div
         const buttons = screen.getAllByRole('button');
         const toggle = buttons[buttons.length - 1];
 
         fireEvent.click(toggle);
-
-        // After clicking toggle, mobile menu should show download options
-        // Check for mobile download section
         expect(screen.getAllByText('Download for Free')[0]).toBeInTheDocument();
     });
 
-    it('updates style on scroll', () => {
+    it('renders user avatar when logged in', () => {
+        mockUseAuth.mockReturnValue({
+            user: { displayName: 'Test User', email: 'test@example.com' },
+            loading: false,
+        });
+
         render(
             <MemoryRouter>
                 <Navbar />
             </MemoryRouter>
         );
 
-        const nav = screen.getByRole('navigation');
-        expect(nav).toHaveClass('bg-black');
+        expect(screen.getByText('T')).toBeInTheDocument();
+    });
 
-        // Mock scroll
-        fireEvent.scroll(window, { target: { scrollY: 100 } });
-        // The component listens to window scroll.
-        // check logic: setIsScrolled(window.scrollY > 20)
-        // Note: setting scrollY on window event target might not update global window.scrollY depending on implementation
-        // Better to set window.scrollY manually (it's read-only in real browser but jsdom might allow or need stub)
+    it('toggles user dropdown', () => {
+        mockUseAuth.mockReturnValue({
+            user: { displayName: 'Test User', email: 'test@example.com' },
+            loading: false,
+        });
 
-        // Skip strictly verifying class change if difficult in jsdom without setup,
-        // but ensuring no crash is good.
+        render(
+            <MemoryRouter>
+                <Navbar />
+            </MemoryRouter>
+        );
+
+        const avatarButton = screen.getByText('T').closest('button')!;
+        fireEvent.click(avatarButton);
+
+        expect(screen.getByText('Dashboard')).toBeInTheDocument();
+        expect(screen.getByText('Log out')).toBeInTheDocument();
+    });
+
+    it('handles logout', async () => {
+        mockUseAuth.mockReturnValue({
+            user: { displayName: 'Test User', email: 'test@example.com' },
+            loading: false,
+        });
+
+        render(
+            <MemoryRouter>
+                <Navbar />
+            </MemoryRouter>
+        );
+
+        const avatarButton = screen.getByText('T').closest('button')!;
+        fireEvent.click(avatarButton);
+
+        const logoutButton = screen.getByText('Log out');
+        fireEvent.click(logoutButton);
+
+        expect(signOut).toHaveBeenCalled();
+    });
+
+    it('toggles download dropdown when logged out', () => {
+        render(
+            <MemoryRouter>
+                <Navbar />
+            </MemoryRouter>
+        );
+
+        const downloadButton = screen.getByText('Download for Free');
+        fireEvent.click(downloadButton);
+
+        expect(screen.getByText('Get for Mac (Silicon)')).toBeInTheDocument();
+        expect(screen.getByText('Get for Mac (Intel)')).toBeInTheDocument();
+        expect(screen.getByText('Get for Windows')).toBeInTheDocument();
     });
 });

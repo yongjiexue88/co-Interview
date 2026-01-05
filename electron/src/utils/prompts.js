@@ -215,6 +215,8 @@ function buildUserContext(preferences) {
         { label: 'Persona', value: preferences.userPersona },
         { label: 'Preferred Programming Language', value: preferences.programmingLanguage, note: '(Prioritize this language for code examples)' },
         { label: 'Target Output Language', value: preferences.outputLanguage, note: '(Ensure all responses are in this language)' },
+        { label: 'Device Info', value: preferences.deviceInfo, note: '(Provide OS-specific shortcuts/advice)' },
+        { label: 'IP Address', value: preferences.ipAddress },
     ];
 
     const definedFields = fields.filter(f => f.value && f.value !== 'undefined');
@@ -242,9 +244,15 @@ function buildCustomContext(customPrompt) {
 
 function buildSystemPrompt(promptParts, preferences = {}) {
     const googleSearchEnabled = preferences.googleSearchEnabled !== false; // Default true
-    const { userPersona } = preferences;
+    const { userPersona, outputLanguage } = preferences;
 
-    const sections = [promptParts.intro];
+    // Explicitly reinforce language at the start
+    let promptStart = '';
+    if (outputLanguage && outputLanguage !== 'English') {
+        promptStart = `IMPORTANT: You must answer in ${outputLanguage}.\n\n`;
+    }
+
+    const sections = [promptStart + promptParts.intro];
 
     // User Profile
     const userContext = buildUserContext(preferences);

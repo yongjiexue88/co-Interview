@@ -4,6 +4,7 @@ const { spawn } = require('child_process');
 const { saveDebugAudio } = require('../audioUtils');
 const { getSystemPrompt } = require('./prompts');
 const { getAvailableModel, incrementLimitCount, getApiKey } = require('../storage');
+const Api = require('./api');
 
 // Conversation tracking variables
 let currentSessionId = null;
@@ -182,53 +183,44 @@ async function getStoredSetting(key, defaultValue) {
     return defaultValue;
 }
 
-// Backend API Configuration
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000'; // Ensure this matches prod URL in build
-
-async function getBackendSession(firebaseToken) {
-    try {
-        const response = await fetch(`${BACKEND_URL}/v1/realtime/session`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${firebaseToken}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ mode: 'managed' }),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Backend error ${response.status}: ${errorText}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Failed to get backend session:', error);
-        throw error;
-    }
-}
-
 let heartbeatInterval = null;
 
-function startHeartbeat(sessionId, firebaseToken) {
+function startHeartbeat(sessionId) {
     if (heartbeatInterval) clearInterval(heartbeatInterval);
 
+    // Initial check + Interval
+    const startTime = Date.now();
+
     heartbeatInterval = setInterval(async () => {
-        try {
-            await fetch(`${BACKEND_URL}/v1/realtime/heartbeat`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${firebaseToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ session_id: sessionId }),
+        const elapsed = Math.floor((Date.now() - startTime) / 1000); // Calculate actual elapsed
+
+        const result = await Api.sendHeartbeat(sessionId, elapsed);
+
+        if (result.continue === false) {
+            console.warn('Heartbeat rejected! Closing session.', result.reason);
+            stopHeartbeat();
+
+            // Disconnect Gemini
+            if (systemAudioProc) {
+                // Kill audio process to stop stream
+                systemAudioProc.kill();
+            }
+
+            // Send formatted "System Message" to chat
+            const quotaMsg = '[System]: Session ended. Monthly quota exceeded.';
+            saveConversationTurn('...', quotaMsg); // Fake turn to record event
+
+            // Notify Renderer to show Modal
+            sendToRenderer('session-error', {
+                code: 'QUOTA_EXCEEDED',
+                message: result.message || 'You have used all your available minutes.',
             });
-        } catch (err) {
-            console.error('Heartbeat failed:', err);
-            // If heartbeat fails repeatedly, maybe close session?
-            // For now, let's just log.
+
+            // Force Re-init (Disconnect)
+            isUserClosing = true;
+            // Trigger cleanup... (actual cleanup happens on loop monitoring or explicit close)
         }
-    }, 30000); // 30 seconds
+    }, 45000); // 45 seconds
 }
 
 function stopHeartbeat() {
@@ -249,21 +241,22 @@ async function initializeGeminiSession(firebaseToken, preferences = {}, profile 
         sendToRenderer('session-initializing', true);
     }
 
-    // Store params for reconnection - note: firebaseToken might expire,
-    // ideally we should request a fresh one from renderer on reconnect.
-    // For simplicity, we store it, but in production consider a callback to get fresh token.
+    // Store params for reconnection
     if (!isReconnect) {
         sessionParams = { firebaseToken, preferences, profile };
         reconnectAttempts = 0;
     }
 
     try {
-        // Exchange Firebase ID Token for Gemini Session Token
-        const { token: geminiToken, session_id: serverSessionId } = await getBackendSession(firebaseToken);
+        // Exchange Credentials for Session Token & Limits via Backend
+        const sessionResult = await Api.startSession({
+            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        });
+        const { token: geminiToken, session_id: serverSessionId } = sessionResult;
         currentGeminiToken = geminiToken;
 
-        // Start heartbeat
-        startHeartbeat(serverSessionId, firebaseToken);
+        // Start heartbeat to keep backend updated
+        startHeartbeat(serverSessionId);
 
         const client = new GoogleGenAI({
             vertexai: false,
@@ -514,7 +507,7 @@ function setupGeminiIpcHandlers(geminiSessionRef) {
         }
     });
 
-    ipcMain.handle('start-macos-audio', async event => {
+    ipcMain.handle('start-macos-audio', async _event => {
         if (process.platform !== 'darwin') {
             return {
                 success: false,
@@ -531,7 +524,7 @@ function setupGeminiIpcHandlers(geminiSessionRef) {
         }
     });
 
-    ipcMain.handle('stop-macos-audio', async event => {
+    ipcMain.handle('stop-macos-audio', async _event => {
         try {
             stopMacOSAudioCapture();
             return { success: true };
@@ -541,7 +534,7 @@ function setupGeminiIpcHandlers(geminiSessionRef) {
         }
     });
 
-    ipcMain.handle('close-session', async event => {
+    ipcMain.handle('close-session', async _event => {
         try {
             stopMacOSAudioCapture();
             stopHeartbeat(); // Stop heartbeat
@@ -563,7 +556,7 @@ function setupGeminiIpcHandlers(geminiSessionRef) {
         }
     });
 
-    ipcMain.handle('get-current-session', async event => {
+    ipcMain.handle('get-current-session', async _event => {
         try {
             return { success: true, data: getCurrentSessionData() };
         } catch (error) {
@@ -572,7 +565,7 @@ function setupGeminiIpcHandlers(geminiSessionRef) {
         }
     });
 
-    ipcMain.handle('start-new-session', async event => {
+    ipcMain.handle('start-new-session', async _event => {
         try {
             initializeNewSession();
             return { success: true, sessionId: currentSessionId };

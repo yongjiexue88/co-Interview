@@ -64,6 +64,13 @@ jest.mock('../src/utils/prompts', () => ({
     getSystemPrompt: jest.fn().mockReturnValue('Mock System Prompt'),
 }));
 
+jest.mock('../src/utils/api', () => ({
+    startSession: jest.fn().mockResolvedValue({ token: 'mock-gemini-token', session_id: 'mock-session-id' }),
+    sendHeartbeat: jest.fn().mockResolvedValue({ continue: true }),
+    endSession: jest.fn().mockResolvedValue({}),
+    fetchUserProfile: jest.fn().mockResolvedValue({ plan: { id: 'free' }, quota: { remaining: 1000 } }),
+}));
+
 // Mock fetch for getBackendSession
 global.fetch = jest.fn().mockResolvedValue({
     ok: true,
@@ -396,7 +403,8 @@ describe('Gemini Utils', () => {
         });
 
         it('initialize-gemini should fail if backend token fetch fails', async () => {
-            global.fetch.mockResolvedValueOnce({ ok: false });
+            const Api = require('../src/utils/api');
+            Api.startSession.mockRejectedValueOnce(new Error('Backend error'));
             const result = await handlers['initialize-gemini']({}, 'token', {}, 'interview');
             expect(result).toBe(false);
         });

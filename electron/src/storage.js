@@ -30,7 +30,21 @@ const DEFAULT_AUTH = {
 };
 
 const DEFAULT_PREFERENCES = {
-    customPrompt: '',
+    // Tailor preferences
+    outputLanguage: 'English',
+    programmingLanguage: 'Python',
+    audioLanguage: 'en',
+    userPersona: '',
+    userRole: '',
+    userExperience: '',
+    userReferral: '',
+
+    // Device Info
+    ipAddress: '',
+    deviceInfo: '',
+
+    // Core preferences
+    customPrompt: '', // Context text
     selectedProfile: 'interview',
     selectedLanguage: 'en-US',
     selectedScreenshotInterval: '5',

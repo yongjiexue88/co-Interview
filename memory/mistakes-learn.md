@@ -138,6 +138,17 @@
 
 ---
 
+### 2026-01-05 - Electron `coInterview` Undefined Race Condition
+**Problem:** Users blocked on onboarding or seeing blank views; console shows `TypeError: coInterview is not defined` or `Cannot read properties of undefined (reading '... theme/storage')`.
+**Root Cause:** Components accessed the global `coInterview` object during initialization before it was fully defined or assigned to `window` in `renderer.js`. Overwriting the automatic ID-based global `window.coInterview` with the JS object also caused timing issues.
+**Solution:** 
+- Refactored all storage access to use direct `ipcRenderer.invoke` calls, bypassing `coInterview.storage`.
+- Prefixed all global `coInterview` usages with `window.` and added optional chaining (`window.coInterview?.`).
+- Corrected configuration key mismatch (`onboarded` vs `onboardingComplete`) in onboarding completion logic.
+**Prevention:** Avoid relying on global objects for core functionality like storage in Electron renderers; use direct IPC or ensure initialization order is guaranteed. Use optional chaining for any global object access.
+
+---
+
 ## 📝 Notes
 
 - Keep entries concise but include enough detail to be useful

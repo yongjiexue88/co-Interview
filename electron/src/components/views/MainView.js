@@ -150,13 +150,18 @@ export class MainView extends LitElement {
     }
 
     async _loadApiKey() {
-        this.apiKey = await coInterview.storage.getApiKey();
+        const electron = window.require ? window.require('electron') : require('electron');
+        const ipcRenderer = electron.ipcRenderer;
+        const result = await ipcRenderer.invoke('storage:get-api-key');
+        this.apiKey = result.success ? result.data : '';
         this.requestUpdate();
     }
 
     connectedCallback() {
         super.connectedCallback();
-        window.electron?.ipcRenderer?.on('session-initializing', (event, isInitializing) => {
+        const electron = window.require ? window.require('electron') : require('electron');
+        const ipcRenderer = electron.ipcRenderer;
+        ipcRenderer.on('session-initializing', (event, isInitializing) => {
             this.isInitializing = isInitializing;
         });
 
@@ -169,7 +174,9 @@ export class MainView extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        window.electron?.ipcRenderer?.removeAllListeners('session-initializing');
+        const electron = window.require ? window.require('electron') : require('electron');
+        const ipcRenderer = electron.ipcRenderer;
+        ipcRenderer.removeAllListeners('session-initializing');
         // Remove keyboard event listener
         document.removeEventListener('keydown', this.boundKeydownHandler);
     }
@@ -186,7 +193,9 @@ export class MainView extends LitElement {
 
     async handleInput(e) {
         this.apiKey = e.target.value;
-        await coInterview.storage.setApiKey(e.target.value);
+        const electron = window.require ? window.require('electron') : require('electron');
+        const ipcRenderer = electron.ipcRenderer;
+        await ipcRenderer.invoke('storage:set-api-key', e.target.value);
         // Clear error state when user starts typing
         if (this.showApiKeyError) {
             this.showApiKeyError = false;

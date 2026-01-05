@@ -1,0 +1,36 @@
+
+> co-interview-frontend@1.0.0 test:coverage
+> vitest run --coverage
+
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90m/Users/yongjiexue/Documents/GitHub/co-Interview/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m src/pages/ElectronAuthPage.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 69[2mms[22m[39m
+ [32m✓[39m src/components/ProtectedAdminRoute.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m src/pages/AdminDashboard.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 161[2mms[22m[39m
+ [31m❯[39m src/components/Navbar.test.tsx [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 359[2mms[22m[39m
+     [32m✓[39m renders desktop links[32m 40[2mms[22m[39m
+     [32m✓[39m toggles mobile menu[32m 241[2mms[22m[39m
+     [32m✓[39m renders user avatar when logged in[32m 10[2mms[22m[39m
+     [32m✓[39m toggles user dropdown[32m 10[2mms[22m[39m
+[31m     [31m×[31m handles logout[39m[32m 36[2mms[22m[39m
+     [32m✓[39m toggles download dropdown when logged out[32m 21[2mms[22m[39m
+ [32m✓[39m src/pages/BlogPostPage.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 675[2mms[22m[39m
+ [31m❯[39m src/components/Footer.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 841[2mms[22m[39m
+[31m     [31m×[31m renders brand information[39m[32m 56[2mms[22m[39m
+[31m     [31m×[31m renders social icons[39m[33m 754[2mms[22m[39m
+     [32m✓[39m renders navigation links from siteContent[32m 23[2mms[22m[39m
+     [32m✓[39m renders affiliate link[32m 7[2mms[22m[39m
+ [32m✓[39m src/components/PreRegisterForm.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 872[2mms[22m[39m
+ [32m✓[39m src/pages/AdminLoginPage.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m src/hooks/useAuth.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/pages/HomePage.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m src/lib/analytics.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 19[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m39 passed[39m[22m[90m (42)[39m
+[2m   Start at [22m 10:28:38
+[2m   Duration [22m 3.47s[2m (transform 1.77s, setup 843ms, import 4.25s, tests 3.13s, environment 6.82s)[22m
+

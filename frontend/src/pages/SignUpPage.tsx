@@ -33,6 +33,10 @@ const SignUpPage: React.FC = () => {
         try {
             setError('');
             await signInWithPopup(auth, googleProvider);
+            // Track sign up
+            import('../lib/analytics').then(({ trackEvent }) => {
+                trackEvent('sign_up', { method: 'google' });
+            });
         } catch (error) {
             console.error('Sign up failed:', error);
             setError('Failed to sign up with Google. Please try again.');
@@ -63,6 +67,12 @@ const SignUpPage: React.FC = () => {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             await sendEmailVerification(userCredential.user);
+
+            // Track sign up
+            import('../lib/analytics').then(({ trackEvent }) => {
+                trackEvent('sign_up', { method: 'email' });
+            });
+
             setIsSuccess(true);
         } catch (error: any) {
             console.error('Sign up failed:', error);

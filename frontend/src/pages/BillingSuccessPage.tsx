@@ -38,7 +38,7 @@ const BillingSuccessPage: React.FC = () => {
                     setStatus('success');
                     clearInterval(pollInterval);
 
-                    // Force a reload of the current user's profile if possible
+                    // Force a reload of the current user's profile
                     if (user) {
                         try {
                             await user.reload();
@@ -47,6 +47,15 @@ const BillingSuccessPage: React.FC = () => {
                         }
                     }
 
+                    // Track Purchase
+                    import('../lib/analytics').then(({ trackEvent }) => {
+                        trackEvent('purchase', {
+                            transaction_id: sessionId,
+                            value: 99,
+                            currency: 'USD',
+                        });
+                    });
+
                     setTimeout(() => navigate('/dashboard'), 2000);
                 } else if (currentAttempts >= maxAttempts) {
                     clearInterval(pollInterval);
@@ -54,7 +63,6 @@ const BillingSuccessPage: React.FC = () => {
                 }
             } catch (err: any) {
                 console.error('Error checking status:', err);
-                // get the latest attempts value for the error check
                 setAttempts(prev => {
                     if (prev > 5) {
                         clearInterval(pollInterval);

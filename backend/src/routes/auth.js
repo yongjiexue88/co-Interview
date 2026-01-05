@@ -3,6 +3,8 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const { db } = require('../config/firebase');
 const { PLANS } = require('../config/stripe');
+const { migrateUserToV2 } = require('../utils/migrations');
+const admin = require('firebase-admin'); // Needed for FieldValue
 
 /**
  * POST /v1/auth/verify
@@ -17,43 +19,142 @@ router.post('/verify', authMiddleware, async (req, res, next) => {
         let userDoc = await userRef.get();
 
         if (!userDoc.exists) {
-            // Create new user with free plan
+            // Create new user (V2 Schema)
             const newUser = {
-                email,
-                createdAt: new Date(),
-                plan: 'free',
-                status: 'active',
-                quotaSecondsMonth: PLANS.free.quotaSecondsMonth,
-                quotaSecondsUsed: 0,
-                quotaResetAt: getNextMonthStart(),
-                concurrencyLimit: PLANS.free.concurrencyLimit,
-                features: PLANS.free.features,
+                profile: {
+                    email,
+                    displayName: null,
+                    photoURL: null,
+                    createdAt: new Date(),
+                    lastLoginAt: new Date(),
+                    locale: 'en',
+                },
+                preferences: {
+                    onboarding: { userPersona: null, userRole: null, userExperience: null, userReferral: null },
+                    tailor: { outputLanguage: 'English', programmingLanguage: 'Python', audioLanguage: 'en', customPrompt: null },
+                },
+                access: {
+                    planId: 'free',
+                    accessStatus: 'active',
+                    concurrencyLimit: PLANS.free.concurrencyLimit,
+                    features: listToMap(PLANS.free.features),
+                },
+                usage: {
+                    quotaSecondsMonth: PLANS.free.quotaSecondsMonth,
+                    quotaSecondsUsed: 0,
+                    quotaResetAt: getNextMonthStart(),
+                },
+                billing: { billingStatus: 'active', stripeCustomerId: null, subscriptionId: null },
+                security: { lastLoginIp: req.ip || null, lastLoginUserAgent: req.headers['user-agent'] || null },
+                devicesSummary: { deviceCount: 0, lastPlatform: null, lastSeenAt: null },
+                meta: { schemaVersion: 2, updatedAt: new Date(), sourceOfTruth: 'verify_create' },
             };
             await userRef.set(newUser);
             userDoc = await userRef.get();
         }
 
-        const userData = userDoc.data();
+        let userData = userDoc.data();
+
+        // --- LAZY MIGRATION TO V2 ---
+        if (!userData.meta || userData.meta.schemaVersion < 2) {
+            console.log(`Migrating user ${uid} to Schema V2`);
+            const v2Data = migrateUserToV2(userData);
+            await userRef.set(v2Data, { merge: true });
+            userData = v2Data;
+        }
+        // ----------------------------
 
         // Check if quota needs reset (new month)
-        if (new Date() > userData.quotaResetAt?.toDate()) {
+        if (new Date() > userData.usage.quotaResetAt.toDate()) {
             await userRef.update({
-                quotaSecondsUsed: 0,
-                quotaResetAt: getNextMonthStart(),
+                'usage.quotaSecondsUsed': 0,
+                'usage.quotaResetAt': getNextMonthStart(),
             });
-            userData.quotaSecondsUsed = 0;
+            userData.usage.quotaSecondsUsed = 0;
         }
 
-        const planConfig = PLANS[userData.plan] || PLANS.free;
+        const planConfig = PLANS[userData.access.planId] || PLANS.free;
+        const featuresList = Object.keys(userData.access.features || {}).filter(k => userData.access.features[k]);
 
+        // Return FLAT response for Client Compatibility
         res.json({
             user_id: uid,
-            email: userData.email,
-            plan: userData.plan,
-            status: userData.status,
-            quota_remaining_seconds: planConfig.quotaSecondsMonth - userData.quotaSecondsUsed,
-            features: planConfig.features,
+            email: userData.profile.email,
+            plan: userData.access.planId,
+            status: userData.access.accessStatus,
+            quota_remaining_seconds: planConfig.quotaSecondsMonth - userData.usage.quotaSecondsUsed,
+            features: featuresList,
+            userPersona: userData.preferences?.onboarding?.userPersona,
+            userRole: userData.preferences?.onboarding?.userRole,
+            userExperience: userData.preferences?.onboarding?.userExperience,
+            userReferral: userData.preferences?.onboarding?.userReferral,
+            outputLanguage: userData.preferences?.tailor?.outputLanguage,
+            programmingLanguage: userData.preferences?.tailor?.programmingLanguage,
+            audioLanguage: userData.preferences?.tailor?.audioLanguage,
+            customPrompt: userData.preferences?.tailor?.customPrompt,
         });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * PUT /v1/auth/profile
+ * Update user profile preferences
+ */
+router.put('/profile', authMiddleware, async (req, res, next) => {
+    try {
+        const { uid } = req.user;
+        const updates = {};
+
+        // Map input fields to V2 nested structure
+        const mapping = {
+            outputLanguage: 'preferences.tailor.outputLanguage',
+            programmingLanguage: 'preferences.tailor.programmingLanguage',
+            audioLanguage: 'preferences.tailor.audioLanguage',
+            customPrompt: 'preferences.tailor.customPrompt',
+            userPersona: 'preferences.onboarding.userPersona',
+            userRole: 'preferences.onboarding.userRole',
+            userExperience: 'preferences.onboarding.userExperience',
+            userReferral: 'preferences.onboarding.userReferral',
+        };
+
+        Object.keys(req.body).forEach(key => {
+            if (mapping[key] && req.body[key] !== undefined) {
+                updates[mapping[key]] = req.body[key];
+            }
+        });
+
+        // Handle Device Info
+        if (req.body.ipAddress || req.body.deviceInfo) {
+            updates['security.lastLoginIp'] = req.body.ipAddress;
+            if (req.body.deviceInfo) {
+                updates['devicesSummary.lastPlatform'] = req.body.deviceInfo;
+                updates['devicesSummary.lastSeenAt'] = new Date();
+                updates['devicesSummary.deviceCount'] = admin.firestore.FieldValue.increment(1);
+
+                // Device Subcollection
+                const deviceId = req.body.deviceInfo.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+                await db.collection('users').doc(uid).collection('devices').doc(deviceId).set(
+                    {
+                        lastPlatform: req.body.deviceInfo,
+                        lastSeenAt: new Date(),
+                        lastIp: req.body.ipAddress,
+                    },
+                    { merge: true }
+                );
+            }
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.json({ success: true, message: 'No changes provided' });
+        }
+
+        updates['meta.updatedAt'] = new Date();
+
+        await db.collection('users').doc(uid).update(updates);
+
+        res.json({ success: true, updated: updates });
     } catch (error) {
         next(error);
     }
@@ -159,17 +260,35 @@ router.get('/google/callback', async (req, res, _next) => {
         const userDoc = await userRef.get();
         if (!userDoc.exists) {
             const { PLANS } = require('../config/stripe');
+            // Create new user (V2 Schema) - matching verify logic
             const newUser = {
-                email,
-                createdAt: new Date(),
-                plan: 'free',
-                status: 'active',
-                quotaSecondsMonth: PLANS.free.quotaSecondsMonth,
-                quotaSecondsUsed: 0,
-                // Helper needed or copy logic
-                quotaResetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-                concurrencyLimit: PLANS.free.concurrencyLimit,
-                features: PLANS.free.features,
+                profile: {
+                    email,
+                    displayName: name,
+                    photoURL: picture,
+                    createdAt: new Date(),
+                    lastLoginAt: new Date(),
+                    locale: 'en',
+                },
+                preferences: {
+                    onboarding: { userPersona: null, userRole: null, userExperience: null, userReferral: null },
+                    tailor: { outputLanguage: 'English', programmingLanguage: 'Python', audioLanguage: 'en', customPrompt: null },
+                },
+                access: {
+                    planId: 'free',
+                    accessStatus: 'active',
+                    concurrencyLimit: PLANS.free.concurrencyLimit,
+                    features: listToMap(PLANS.free.features),
+                },
+                usage: {
+                    quotaSecondsMonth: PLANS.free.quotaSecondsMonth,
+                    quotaSecondsUsed: 0,
+                    quotaResetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+                },
+                billing: { billingStatus: 'active', stripeCustomerId: null, subscriptionId: null },
+                security: { lastLoginIp: req.ip || null, lastLoginUserAgent: req.headers['user-agent'] || null },
+                devicesSummary: { deviceCount: 0, lastPlatform: null, lastSeenAt: null },
+                meta: { schemaVersion: 2, updatedAt: new Date(), sourceOfTruth: 'google_callback' },
             };
             await userRef.set(newUser);
         }
@@ -351,7 +470,7 @@ router.get('/google/callback', async (req, res, _next) => {
             &bull; Whitespace Check: <span class="${debugInfo.secretHasWhitespace ? 'bad' : 'good'}">${debugInfo.secretHasWhitespace ? 'WARNING: Contains Whitespace!' : 'Pass'}</span><br/>
             &bull; Start/End: <code>${debugInfo.secretStart} ... ${debugInfo.secretEnd}</code><br/>
             <br/>
-
+            
             <strong>Auth Code:</strong><br/>
             &bull; Received Length: ${debugInfo.codeLen}<br/>
             &bull; Prefix: ${debugInfo.codePrefix}<br/>
@@ -399,3 +518,12 @@ function getNextMonthStart() {
 }
 
 module.exports = router;
+
+// Helper only needed for migrations.js usually, but good to keep if used locally
+function listToMap(list) {
+    if (!Array.isArray(list)) return list || {};
+    return list.reduce((acc, item) => {
+        acc[item] = true;
+        return acc;
+    }, {});
+}

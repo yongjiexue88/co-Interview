@@ -1,6 +1,6 @@
 {
     "name": "co-interview",
-    "productName": "co-interview",
+    "productName": "Co-Interview",
     "version": "0.5.0",
     "description": "Co-Interview - AI Interview Assistant",
     "main": "src/index.js",

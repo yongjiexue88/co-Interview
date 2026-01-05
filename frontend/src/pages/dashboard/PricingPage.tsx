@@ -43,6 +43,15 @@ const PricingPage: React.FC = () => {
     const handlePurchase = async (planId: string) => {
         try {
             setLoadingPlan(planId);
+            // Track begin checkout
+            import('../../lib/analytics').then(({ trackEvent }) => {
+                trackEvent('begin_checkout', {
+                    currency: 'USD',
+                    value: planId === 'sprint_30d' ? 25 : 99,
+                    items: [{ item_id: planId, item_name: planId }],
+                });
+            });
+
             const res = await api.post('/billing/checkout', { planId });
             if (res.data.checkout_url) {
                 window.location.href = res.data.checkout_url;

@@ -31,7 +31,7 @@ async function initAnalytics() {
             // }
             // clientId = store.get('analytics_client_id');
 
-            // Simple in-memory fallback if store not available immediately, 
+            // Simple in-memory fallback if store not available immediately,
             // but ideally should persist. For now let's generate one per session to avoid crashes if store isn't setup.
             clientId = require('crypto').randomUUID();
             console.log('[Analytics] Generated Client ID:', clientId);
@@ -65,15 +65,17 @@ async function trackEvent(eventName, eventParams = {}) {
     try {
         const body = {
             client_id: clientId || 'electron_user',
-            events: [{
-                name: eventName,
-                params: {
-                    ...eventParams,
-                    app_name: 'Co-Interview',
-                    app_version: electronApp ? electronApp.getVersion() : '1.0.0',
-                    platform: process.platform
-                }
-            }]
+            events: [
+                {
+                    name: eventName,
+                    params: {
+                        ...eventParams,
+                        app_name: 'Co-Interview',
+                        app_version: electronApp ? electronApp.getVersion() : '1.0.0',
+                        platform: process.platform,
+                    },
+                },
+            ],
         };
 
         // Note: Without an API Secret, this might be restricted.
@@ -82,7 +84,7 @@ async function trackEvent(eventName, eventParams = {}) {
         if (typeof fetch !== 'undefined') {
             await fetch(url, {
                 method: 'POST',
-                body: JSON.stringify(body)
+                body: JSON.stringify(body),
             });
         }
         console.log('[Analytics] Event tracked (MP):', eventName);

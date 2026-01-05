@@ -164,7 +164,7 @@ export class AppHeader extends LitElement {
 
     async _checkForUpdates() {
         try {
-            const currentVersion = await coInterview.getVersion();
+            const currentVersion = window.coInterview?.getVersion ? await window.coInterview.getVersion() : '1.0.0';
             const response = await fetch('https://raw.githubusercontent.com/yongjiexue88/co-Interview/refs/heads/main/electron/package.json');
             if (!response.ok) return;
 
@@ -337,7 +337,8 @@ export class AppHeader extends LitElement {
                     ${this.currentView === 'assistant'
                         ? html`
                               <button @click=${this.onHideToggleClick} class="button">
-                                  Hide&nbsp;&nbsp;<span class="key" style="pointer-events: none;">${coInterview.isMacOS ? 'Cmd' : 'Ctrl'}</span
+                                  Hide&nbsp;&nbsp;<span class="key" style="pointer-events: none;"
+                                      >${window.coInterview?.isMacOS ? 'Cmd' : 'Ctrl'}</span
                                   >&nbsp;&nbsp;<span class="key">&bsol;</span>
                               </button>
                               <button @click=${this.onCloseClick} class="icon-button window-close">

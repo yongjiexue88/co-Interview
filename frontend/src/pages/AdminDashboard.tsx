@@ -1,21 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Search, Users, LogOut, Ban, CheckCircle, Edit2, X, Save, Shield } from 'lucide-react';
+import { Search, Users, LogOut, Ban, CheckCircle, Edit2, X, Save, Shield, PlusCircle, Eye, MousePointer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../lib/firebase';
 import KPISummaryPanel, { AnalyticsEvent } from '../components/KPISummaryPanel';
-
-interface UserData {
-    id: string;
-    email: string;
-    plan: 'free' | 'pro' | 'lifetime';
-    status: 'active' | 'banned';
-    quotaSecondsMonth?: number;
-    quotaSecondsUsed?: number;
-    concurrencyLimit?: number;
-    createdAt: string;
-    source?: string;
-}
+import UserDetailsModal from '../components/UserDetailsModal';
+import { UserData } from '../types/user';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
@@ -24,10 +14,15 @@ const AdminDashboard: React.FC = () => {
     const { user } = useAuth();
     const [users, setUsers] = useState<UserData[]>([]);
     const [events, setEvents] = useState<AnalyticsEvent[]>([]);
+    const [gaData, setGaData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<UserData>>({});
+
+    // Modal State
+    const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Fetch users AND analytics from backend
     const fetchData = useCallback(async () => {
@@ -54,6 +49,13 @@ const AdminDashboard: React.FC = () => {
             } else {
                 console.error('Failed to fetch analytics');
             }
+
+            // Fetch GA Data
+            const gaRes = await fetch(`${API_URL}/admin/analytics/ga`, { headers });
+            if (gaRes.ok) {
+                const data = await gaRes.json();
+                setGaData(data);
+            }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         } finally {
@@ -75,10 +77,16 @@ const AdminDashboard: React.FC = () => {
     const handleEditClick = (user: UserData) => {
         setEditingUserId(user.id);
         setEditForm({
-            plan: user.plan,
-            status: user.status,
-            quotaSecondsMonth: user.quotaSecondsMonth,
+            // Fallback to V1 fields if V2 is missing
+            plan: user.access?.planId || user.plan,
+            status: user.access?.accessStatus || user.status,
+            quotaSecondsMonth: user.usage?.quotaSecondsMonth || user.quotaSecondsMonth,
         });
+    };
+
+    const handleViewDetails = (user: UserData) => {
+        setSelectedUser(user);
+        setIsModalOpen(true);
     };
 
     const handleCancelEdit = () => {
@@ -111,8 +119,9 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
-    const handleToggleBan = async (userId: string, currentStatus: string) => {
-        const action = currentStatus === 'banned' ? 'enable' : 'disable';
+    const handleToggleBan = async (userId: string, currentStatus?: string) => {
+        const status = currentStatus || 'active';
+        const action = status === 'banned' ? 'enable' : 'disable';
         if (!confirm(`Are you sure you want to ${action} this user?`)) return;
 
         try {
@@ -137,7 +146,33 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
-    const filteredUsers = users.filter(u => u.email.toLowerCase().includes(searchTerm.toLowerCase()));
+    const handleSeedUser = async () => {
+        if (!confirm('This will create a dummy user with full V2 schema data. Continue?')) return;
+        try {
+            const token = await user?.getIdToken();
+            const response = await fetch(`${API_URL}/admin/users/seed-v2`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({}),
+            });
+
+            if (response.ok) {
+                alert('Test user created!');
+                await fetchData();
+            } else {
+                const err = await response.json();
+                alert('Failed to seed user: ' + (err.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Seed failed:', error);
+            alert('Seed failed');
+        }
+    };
+
+    const filteredUsers = users.filter(u => u.email?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <div className="min-h-screen bg-black text-white p-4 md:p-8 pt-24">
@@ -153,6 +188,13 @@ const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-3">
                         <button
+                            onClick={handleSeedUser}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-colors border border-blue-500/30"
+                        >
+                            <PlusCircle className="w-4 h-4" />
+                            Seed Test User
+                        </button>
+                        <button
                             onClick={handleLogout}
                             className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
                         >
@@ -164,6 +206,44 @@ const AdminDashboard: React.FC = () => {
 
                 {/* Analytics Panel */}
                 <KPISummaryPanel users={users as any} events={events} />
+
+                {/* Google Analytics Traffic Card */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <Users className="w-4 h-4 text-blue-400" />
+                            Active Users (28d)
+                        </div>
+                        <div className="text-3xl font-bold text-white">{gaData?.activeUsers?.toLocaleString() || (gaData?.error ? '-' : '...')}</div>
+                        {gaData?.error && <div className="text-xs text-red-400 mt-1">Config Required</div>}
+                    </div>
+
+                    <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <Eye className="w-4 h-4 text-green-400" />
+                            Page Views (28d)
+                        </div>
+                        <div className="text-3xl font-bold text-white">
+                            {gaData?.screenPageViews?.toLocaleString() || (gaData?.error ? '-' : '...')}
+                        </div>
+                    </div>
+
+                    <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <MousePointer className="w-4 h-4 text-purple-400" />
+                            Session Count (28d)
+                        </div>
+                        <div className="text-3xl font-bold text-white">{gaData?.sessions?.toLocaleString() || (gaData?.error ? '-' : '...')}</div>
+                    </div>
+
+                    <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-yellow-400" />
+                            Event Count (28d)
+                        </div>
+                        <div className="text-3xl font-bold text-white">{gaData?.eventCount?.toLocaleString() || (gaData?.error ? '-' : '...')}</div>
+                    </div>
+                </div>
 
                 {/* Users Table */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
@@ -203,92 +283,109 @@ const AdminDashboard: React.FC = () => {
                                         </td>
                                     </tr>
                                 ) : filteredUsers.length > 0 ? (
-                                    filteredUsers.map(user => (
-                                        <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="font-medium text-white">{user.email}</div>
-                                                <div className="text-xs text-gray-500 font-mono">{user.id}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {editingUserId === user.id ? (
-                                                    <select
-                                                        value={editForm.plan}
-                                                        onChange={e => setEditForm({ ...editForm, plan: e.target.value as any })}
-                                                        className="bg-black border border-white/20 rounded px-2 py-1 text-white"
-                                                    >
-                                                        <option value="free">Free</option>
-                                                        <option value="pro">Pro</option>
-                                                        <option value="lifetime">Lifetime</option>
-                                                    </select>
-                                                ) : (
+                                    filteredUsers.map(user => {
+                                        // Resolution logic for V2/V1 fields
+                                        const plan = user.access?.planId || user.plan || 'free';
+                                        const status = user.access?.accessStatus || user.status || 'active';
+                                        const created = user.profile?.createdAt || user.createdAt;
+
+                                        return (
+                                            <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="font-medium text-white">{user.email || user.profile?.email}</div>
+                                                    <div className="text-xs text-gray-500 font-mono">{user.id}</div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {editingUserId === user.id ? (
+                                                        <select
+                                                            value={editForm.plan}
+                                                            onChange={e => setEditForm({ ...editForm, plan: e.target.value as any })}
+                                                            className="bg-black border border-white/20 rounded px-2 py-1 text-white"
+                                                        >
+                                                            <option value="free">Free</option>
+                                                            <option value="pro">Pro</option>
+                                                            <option value="lifetime">Lifetime</option>
+                                                        </select>
+                                                    ) : (
+                                                        <span
+                                                            className={`px-2 py-1 rounded text-xs font-semibold ${
+                                                                plan === 'pro' || plan === 'lifetime'
+                                                                    ? 'bg-[#FACC15]/20 text-[#FACC15]'
+                                                                    : 'bg-gray-500/20 text-gray-400'
+                                                            }`}
+                                                        >
+                                                            {plan.toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
                                                     <span
-                                                        className={`px-2 py-1 rounded text-xs font-semibold ${
-                                                            user.plan === 'pro' || user.plan === 'lifetime'
-                                                                ? 'bg-[#FACC15]/20 text-[#FACC15]'
-                                                                : 'bg-gray-500/20 text-gray-400'
+                                                        className={`px-2 py-1 rounded text-xs ${
+                                                            status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                                                         }`}
                                                     >
-                                                        {user.plan.toUpperCase()}
+                                                        {status.toUpperCase()}
                                                     </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span
-                                                    className={`px-2 py-1 rounded text-xs ${
-                                                        user.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                                                    }`}
-                                                >
-                                                    {user.status.toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-400">{new Date(user.createdAt).toLocaleDateString()}</td>
-                                            <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
-                                                {editingUserId === user.id ? (
-                                                    <>
-                                                        <button
-                                                            onClick={handleCancelEdit}
-                                                            className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
-                                                            title="Cancel"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleSaveEdit(user.id)}
-                                                            className="p-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg"
-                                                            title="Save"
-                                                        >
-                                                            <Save className="w-4 h-4" />
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleEditClick(user)}
-                                                            className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-                                                            title="Edit Details"
-                                                        >
-                                                            <Edit2 className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleToggleBan(user.id, user.status)}
-                                                            className={`p-2 rounded-lg transition-colors ${
-                                                                user.status === 'banned'
-                                                                    ? 'hover:bg-green-500/20 text-green-400'
-                                                                    : 'hover:bg-red-500/20 text-red-400 hover:text-red-500'
-                                                            }`}
-                                                            title={user.status === 'banned' ? 'Enable User' : 'Disable User'}
-                                                        >
-                                                            {user.status === 'banned' ? (
-                                                                <CheckCircle className="w-4 h-4" />
-                                                            ) : (
-                                                                <Ban className="w-4 h-4" />
-                                                            )}
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
+                                                </td>
+                                                <td className="px-6 py-4 text-gray-400">
+                                                    {created ? new Date(created).toLocaleDateString() : 'N/A'}
+                                                </td>
+                                                <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                                    {editingUserId === user.id ? (
+                                                        <>
+                                                            <button
+                                                                onClick={handleCancelEdit}
+                                                                className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+                                                                title="Cancel"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleSaveEdit(user.id)}
+                                                                className="p-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg"
+                                                                title="Save"
+                                                            >
+                                                                <Save className="w-4 h-4" />
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleViewDetails(user)}
+                                                                className="p-2 hover:bg-blue-500/20 rounded-lg text-blue-400 transition-colors"
+                                                                title="View Details"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+
+                                                            <button
+                                                                onClick={() => handleEditClick(user)}
+                                                                className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                                                                title="Edit Details"
+                                                            >
+                                                                <Edit2 className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleToggleBan(user.id, status)}
+                                                                className={`p-2 rounded-lg transition-colors ${
+                                                                    status === 'banned'
+                                                                        ? 'hover:bg-green-500/20 text-green-400'
+                                                                        : 'hover:bg-red-500/20 text-red-400 hover:text-red-500'
+                                                                }`}
+                                                                title={status === 'banned' ? 'Enable User' : 'Disable User'}
+                                                            >
+                                                                {status === 'banned' ? (
+                                                                    <CheckCircle className="w-4 h-4" />
+                                                                ) : (
+                                                                    <Ban className="w-4 h-4" />
+                                                                )}
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 ) : (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
@@ -301,6 +398,8 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <UserDetailsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} user={selectedUser} />
         </div>
     );
 };

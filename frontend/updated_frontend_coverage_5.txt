@@ -1,0 +1,88 @@
+
+> co-interview-frontend@1.0.0 test:coverage
+> vitest run --coverage
+
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90m/Users/yongjiexue/Documents/GitHub/co-Interview/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m src/pages/AdminLoginPage.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 57[2mms[22m[39m
+ [32m✓[39m src/pages/ElectronAuthPage.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 128[2mms[22m[39m
+ [32m✓[39m src/components/Footer.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 137[2mms[22m[39m
+ [32m✓[39m src/components/Navbar.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 330[2mms[22m[39m
+ [32m✓[39m src/pages/AdminDashboard.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 232[2mms[22m[39m
+ [32m✓[39m src/pages/BlogPostPage.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 773[2mms[22m[39m
+ [32m✓[39m src/components/PreRegisterForm.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 929[2mms[22m[39m
+ [32m✓[39m src/components/ProtectedAdminRoute.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m src/lib/analytics.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m src/pages/HomePage.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m src/hooks/useAuth.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 21[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m42 passed[39m[22m[90m (42)[39m
+[2m   Start at [22m 10:29:20
+[2m   Duration [22m 3.85s[2m (transform 1.80s, setup 722ms, import 4.38s, tests 2.70s, environment 7.49s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   41.38 |    35.03 |   29.75 |   42.31 |                   
+ src               |     100 |      100 |     100 |     100 |                   
+  App.tsx          |     100 |      100 |     100 |     100 |                   
+  constants.ts     |     100 |      100 |     100 |     100 |                   
+ src/components    |   51.61 |    48.88 |   32.32 |    55.6 |                   
+  ...ationPage.tsx |    8.33 |        0 |       0 |    8.33 | 9-25              
+  Article.tsx      |   44.44 |        0 |       0 |   44.44 | 5,11,15,19-325    
+  Banner.tsx       |      50 |      100 |       0 |      50 | 4                 
+  ...ardLayout.tsx |    5.26 |        0 |       0 |     5.4 | 18-88             
+  Diagrams.tsx     |      50 |      100 |       0 |      50 | 4,20,51,97,121    
+  Footer.tsx       |   63.63 |       50 |   55.55 |   77.77 | 11,69             
+  ...maryPanel.tsx |      88 |       80 |   85.71 |   95.45 | 9                 
+  Navbar.tsx       |   45.71 |    62.96 |   21.95 |   52.63 | ...85-203,233-314 
+  ...ailLayout.tsx |      50 |        0 |       0 |      50 | 17                
+  ...isterForm.tsx |   93.02 |    84.21 |     100 |   97.56 | 80                
+  ...dminRoute.tsx |   81.81 |      100 |   33.33 |      90 | 28                
+  SEO.tsx          |   33.33 |        0 |       0 |   33.33 | 14-40             
+  ...ailsModal.tsx |      25 |    33.33 |   33.33 |   22.22 | 17-29             
+ ...omponents/blog |   63.51 |    41.66 |      50 |   61.97 |                   
+  BlogHero.tsx     |      50 |      100 |       0 |      50 | 4                 
+  BlogList.tsx     |      30 |        0 |       0 |      30 | 12-98,110,140     
+  ...idebarCTA.tsx |   42.85 |        0 |      50 |   42.85 | 5-8               
+  ...fContents.tsx |   68.96 |    66.66 |      75 |   66.66 | 35-42,50,61       
+  ...ogressBar.tsx |   76.92 |       25 |     100 |      76 | 31-40             
+ src/content       |   21.31 |        0 |       0 |    22.8 |                   
+  blogLoader.ts    |   11.11 |        0 |       0 |      12 | ...64-145,149-150 
+  pricing.ts       |     100 |      100 |     100 |     100 |                   
+  siteContent.ts   |     100 |      100 |     100 |     100 |                   
+ src/hooks         |   91.66 |       75 |     100 |   91.66 |                   
+  useAuth.tsx      |   91.66 |       75 |     100 |   91.66 | 17                
+ src/lib           |   63.15 |       50 |   66.66 |   63.15 |                   
+  analytics.ts     |   83.33 |       50 |     100 |   83.33 | 29-32             
+  api.ts           |   28.57 |       50 |       0 |   28.57 | 12-17             
+ src/pages         |   34.73 |    38.57 |      25 |   35.34 |                   
+  ...Dashboard.tsx |    55.1 |    57.31 |   31.57 |   55.78 | ...71,261,302-402 
+  ...LoginPage.tsx |   71.42 |       50 |     100 |   71.42 | 14,22-23,28       
+  ...ccessPage.tsx |    2.04 |        0 |       0 |    2.12 | 8-111             
+  BlogPage.tsx     |    3.03 |        0 |       0 |    3.33 | 12-85             
+  BlogPostPage.tsx |   73.07 |    73.33 |     100 |   73.07 | 23-25,33-37,63    
+  ...nAuthPage.tsx |   86.84 |       75 |      60 |   89.18 | 37,44,55,147      
+  ...swordPage.tsx |    3.44 |        0 |       0 |    3.44 | 8-127             
+  HomePage.tsx     |     100 |      100 |     100 |     100 |                   
+  PoliciesPage.tsx |      50 |      100 |       0 |      50 | 9                 
+  SignUpPage.tsx   |    1.61 |        0 |       0 |    1.61 | 9-199             
+  ...rkingPage.tsx |      25 |      100 |       0 |      25 | 11-15             
+ ...ages/dashboard |    9.57 |        0 |       0 |    9.89 |                   
+  ...gelogPage.tsx |      40 |        0 |       0 |      40 | 57-83             
+  ...dHomePage.tsx |    6.06 |        0 |       0 |    6.45 | 21-210            
+  ...sionsPage.tsx |      50 |      100 |       0 |      50 | 26-57             
+  PricingPage.tsx  |    5.55 |        0 |       0 |    5.71 | 17-144            
+  ProfilePage.tsx  |    6.25 |        0 |       0 |    6.25 | 11-51             
+ ...pages/policies |      50 |      100 |       0 |      50 |                   
+  PrivacyPage.tsx  |      50 |      100 |       0 |      50 | 5                 
+  RefundPage.tsx   |      50 |      100 |       0 |      50 | 5                 
+  TermsPage.tsx    |      50 |      100 |       0 |      50 | 5                 
+ src/utils         |     100 |      100 |     100 |     100 |                   
+  ...aGenerator.ts |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------

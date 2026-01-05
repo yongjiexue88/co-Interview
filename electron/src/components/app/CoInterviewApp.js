@@ -157,7 +157,16 @@ export class CoInterviewApp extends LitElement {
 
     async _loadFromStorage() {
         try {
-            const [config, prefs] = await Promise.all([coInterview.storage.getConfig(), coInterview.storage.getPreferences()]);
+            const electron = window.require ? window.require('electron') : require('electron');
+            const ipcRenderer = electron.ipcRenderer;
+
+            const [configResult, prefsResult] = await Promise.all([
+                ipcRenderer.invoke('storage:get-config'),
+                ipcRenderer.invoke('storage:get-preferences'),
+            ]);
+
+            const config = configResult.success ? configResult.data : {};
+            const prefs = prefsResult.success ? prefsResult.data : {};
 
             // Check onboarding status
             this.currentView = config?.onboardingComplete ? 'main' : 'onboarding';
@@ -177,10 +186,12 @@ export class CoInterviewApp extends LitElement {
             this.requestUpdate();
 
             // Track app launch
-            trackEvent('app_launched', {
-                initial_view: this.currentView,
-                layout_mode: this.layoutMode,
-            });
+            if (typeof trackEvent === 'function') {
+                trackEvent('app_launched', {
+                    initial_view: this.currentView,
+                    layout_mode: this.layoutMode,
+                });
+            }
         } catch (error) {
             console.error('Error loading from storage:', error);
             this._storageLoaded = true;
@@ -323,7 +334,9 @@ export class CoInterviewApp extends LitElement {
         if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history') {
             this.currentView = 'main';
         } else if (this.currentView === 'assistant') {
-            coInterview.stopCapture();
+            if (window.coInterview?.stopCapture) {
+                window.coInterview.stopCapture();
+            }
 
             // Close the session
             if (window.require) {
@@ -352,7 +365,11 @@ export class CoInterviewApp extends LitElement {
     // Main view event handlers
     async handleStart() {
         // check if api key is empty do nothing
-        const apiKey = await coInterview.storage.getApiKey();
+        const electron = window.require ? window.require('electron') : require('electron');
+        const ipcRenderer = electron.ipcRenderer;
+        const result = await ipcRenderer.invoke('storage:get-api-key');
+        const apiKey = result.success ? result.data : '';
+
         if (!apiKey || apiKey === '') {
             // Trigger the red blink animation on the API key input
             const mainView = this.shadowRoot.querySelector('main-view');
@@ -362,13 +379,27 @@ export class CoInterviewApp extends LitElement {
             return;
         }
 
-        await coInterview.initializeGemini(this.selectedProfile, this.selectedLanguage);
+        if (window.coInterview?.initializeGemini) {
+            await window.coInterview.initializeGemini(this.selectedProfile, this.selectedLanguage);
+        }
+
         // Pass the screenshot interval as string (including 'manual' option)
-        coInterview.startCapture(this.selectedScreenshotInterval, this.selectedImageQuality);
+        if (window.coInterview?.startCapture) {
+            window.coInterview.startCapture(this.selectedScreenshotInterval, this.selectedImageQuality);
+        }
+
         this.responses = [];
         this.currentResponseIndex = -1;
         this.startTime = Date.now();
         this.currentView = 'assistant';
+
+        // Analytics: Track session start
+        if (typeof trackEvent === 'function') {
+            trackEvent('session_start', {
+                profile: this.selectedProfile,
+                language: this.selectedLanguage,
+            });
+        }
     }
 
     async handleAPIKeyHelp() {
@@ -381,22 +412,26 @@ export class CoInterviewApp extends LitElement {
     // Customize view event handlers
     async handleProfileChange(profile) {
         this.selectedProfile = profile;
-        await coInterview.storage.updatePreference('selectedProfile', profile);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'selectedProfile', profile);
     }
 
     async handleLanguageChange(language) {
         this.selectedLanguage = language;
-        await coInterview.storage.updatePreference('selectedLanguage', language);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'selectedLanguage', language);
     }
 
     async handleScreenshotIntervalChange(interval) {
         this.selectedScreenshotInterval = interval;
-        await coInterview.storage.updatePreference('selectedScreenshotInterval', interval);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'selectedScreenshotInterval', interval);
     }
 
     async handleImageQualityChange(quality) {
         this.selectedImageQuality = quality;
-        await coInterview.storage.updatePreference('selectedImageQuality', quality);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'selectedImageQuality', quality);
     }
 
     handleBackClick() {
@@ -422,6 +457,13 @@ export class CoInterviewApp extends LitElement {
         } else {
             this.setStatus('Message sent...');
             this._awaitingNewResponse = true;
+
+            // Analytics: Track message sent
+            if (typeof trackEvent === 'function') {
+                trackEvent('message_sent', {
+                    component: 'AssistantView',
+                });
+            }
         }
     }
 
@@ -566,7 +608,8 @@ export class CoInterviewApp extends LitElement {
 
     async handleLayoutModeChange(layoutMode) {
         this.layoutMode = layoutMode;
-        await coInterview.storage.updateConfig('layout', layoutMode);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-config', 'layout', layoutMode);
         this.updateLayoutMode();
 
         // Notify main process about layout change for window resizing

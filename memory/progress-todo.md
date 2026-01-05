@@ -13,6 +13,13 @@
 - Updated `PUT /profile` to map flat inputs to nested V2 fields
 - Verified backward compatibility with Electron app
 
+### Fix Onboarding & Storage Stability (2026-01-05)
+- Fixed onboarding blockage by correcting configuration key mismatch (`onboarded` -> `onboardingComplete`)
+- Systematically refactored all storage access across the Electron app to use direct `ipcRenderer.invoke`
+- Replaced unreliable `window.coInterview.storage` calls in `OnboardingView`, `MainView`, `HistoryView`, `HelpView`, `CustomizeView`, and `CoInterviewApp`
+- Resolved "coInterview is not defined" crashes by using direct IPC communication and `window.` prefixing with optional chaining
+- Recovered blank views (Customize, Help, History) by fixing global dependency crashes in `AppHeader.js` and `CustomizeView.js`
+
 ### Rebranding (2025-12-25)
 - Replaced all "Interview Coder" references with "Co-Interview"
 - Updated page titles, component headings, and content

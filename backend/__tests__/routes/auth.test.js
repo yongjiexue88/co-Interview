@@ -62,9 +62,14 @@ describe('Auth Routes', () => {
                 quotaSecondsUsed: 100,
                 quotaResetAt: { toDate: () => new Date(Date.now() + 1000000) }
             };
+            const mockSet = jest.fn().mockResolvedValue(true); // Needed for migration
+            const mockUpdate = jest.fn().mockResolvedValue(true);
+
             db.collection.mockReturnValue({
                 doc: jest.fn().mockReturnValue({
-                    get: jest.fn().mockResolvedValue({ exists: true, data: () => mockUser })
+                    get: jest.fn().mockResolvedValue({ exists: true, data: () => mockUser }),
+                    set: mockSet,
+                    update: mockUpdate
                 })
             });
 
@@ -75,15 +80,18 @@ describe('Auth Routes', () => {
             expect(res.statusCode).toEqual(200);
             expect(res.body.email).toBe('test@example.com');
             expect(res.body.quota_remaining_seconds).toBe(3500);
+            // Should trigger migration
+            expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
+                meta: expect.objectContaining({ schemaVersion: 2 })
+            }), { merge: true });
         });
 
         it('should create user if document does not exist', async () => {
             const mockUser = {
-                email: 'test@example.com',
-                plan: 'free',
-                status: 'active',
-                quotaSecondsUsed: 0,
-                quotaResetAt: { toDate: () => new Date(Date.now() + 1000000) }
+                profile: { email: 'test@example.com', /* ... */ },
+                access: { planId: 'free', accessStatus: 'active' },
+                usage: { quotaSecondsUsed: 0, quotaResetAt: { toDate: () => new Date(Date.now() + 1000000) } },
+                meta: { schemaVersion: 2 }
             };
             const mockSet = jest.fn().mockResolvedValue(true);
             const mockDoc = {
@@ -99,22 +107,32 @@ describe('Auth Routes', () => {
                 .set('Authorization', 'Bearer valid_token');
 
             expect(res.statusCode).toEqual(200);
-            expect(mockSet).toHaveBeenCalled();
+            // First call to set matches V2 structure creation
+            expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
+                meta: expect.objectContaining({ schemaVersion: 2 })
+            }));
         });
 
         it('should reset quota if month changed', async () => {
+            // Setup V2 user to avoid migration noise in this test
             const mockUser = {
-                email: 'test@example.com',
-                plan: 'free',
-                status: 'active',
-                quotaSecondsUsed: 1000,
-                quotaResetAt: { toDate: () => new Date(Date.now() - 1000000) } // Past
+                profile: { email: 'test@example.com' },
+                access: { planId: 'free', accessStatus: 'active' },
+                usage: {
+                    quotaSecondsUsed: 1000,
+                    quotaResetAt: { toDate: () => new Date(Date.now() - 1000000) },
+                    quotaSecondsMonth: 3600
+                },
+                meta: { schemaVersion: 2 }
             };
             const mockUpdate = jest.fn().mockResolvedValue(true);
+            const mockSet = jest.fn().mockResolvedValue(true);
+
             db.collection.mockReturnValue({
                 doc: jest.fn().mockReturnValue({
                     get: jest.fn().mockResolvedValue({ exists: true, data: () => mockUser }),
-                    update: mockUpdate
+                    update: mockUpdate,
+                    set: mockSet
                 })
             });
 
@@ -123,7 +141,10 @@ describe('Auth Routes', () => {
                 .set('Authorization', 'Bearer valid_token');
 
             expect(res.statusCode).toEqual(200);
-            expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ quotaSecondsUsed: 0 }));
+            // V2 uses nested path for update
+            expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                'usage.quotaSecondsUsed': 0
+            }));
             expect(res.body.quota_remaining_seconds).toBe(3600);
         });
     });
@@ -204,6 +225,48 @@ describe('Auth Routes', () => {
 
         it('should return 401 if unauthorized', async () => {
             const res = await request(app).post('/api/v1/auth/exchange');
+            expect(res.statusCode).toEqual(401);
+        });
+    });
+
+    describe('PUT /api/v1/auth/profile', () => {
+        it('should update allowed profile fields', async () => {
+            const updates = {
+                outputLanguage: 'Spanish',
+                customPrompt: 'New Prompt',
+                forbiddenField: 'Hack'
+            };
+            const mockUpdate = jest.fn().mockResolvedValue(true);
+            db.collection.mockReturnValue({
+                doc: jest.fn().mockReturnValue({
+                    update: mockUpdate
+                })
+            });
+
+            const res = await request(app)
+                .put('/api/v1/auth/profile')
+                .set('Authorization', 'Bearer valid_token')
+                .send(updates);
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.success).toBe(true);
+            // expect(res.body.updated).toBeDefined();
+
+            // Validate call with mapped keys
+            expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                'preferences.tailor.outputLanguage': 'Spanish',
+                'preferences.tailor.customPrompt': 'New Prompt',
+                'meta.updatedAt': expect.any(Date)
+            }));
+
+            // forbiddenField should be ignored
+            expect(mockUpdate).not.toHaveBeenCalledWith(
+                expect.objectContaining({ forbiddenField: 'Hack' })
+            );
+        });
+
+        it('should return error if unauthorized', async () => {
+            const res = await request(app).put('/api/v1/auth/profile');
             expect(res.statusCode).toEqual(401);
         });
     });

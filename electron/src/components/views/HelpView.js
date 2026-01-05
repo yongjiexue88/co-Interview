@@ -224,8 +224,11 @@ export class HelpView extends LitElement {
 
     async _loadKeybinds() {
         try {
-            const keybinds = await coInterview.storage.getKeybinds();
-            if (keybinds) {
+            const electron = window.require ? window.require('electron') : require('electron');
+            const ipcRenderer = electron.ipcRenderer;
+            const result = await ipcRenderer.invoke('storage:get-keybinds');
+            if (result.success && result.data) {
+                const keybinds = result.data;
                 this.keybinds = { ...this.getDefaultKeybinds(), ...keybinds };
                 this.requestUpdate();
             }
@@ -241,7 +244,7 @@ export class HelpView extends LitElement {
     }
 
     getDefaultKeybinds() {
-        const isMac = coInterview.isMacOS || navigator.platform.includes('Mac');
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
         return {
             moveUp: isMac ? 'Alt+Up' : 'Ctrl+Up',
             moveDown: isMac ? 'Alt+Down' : 'Ctrl+Down',

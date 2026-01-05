@@ -197,4 +197,120 @@ router.get('/analytics', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/v1/admin/users/seed-v2
+ * Create a dummy user with full V2 Schema data for testing
+ */
+router.post('/users/seed-v2', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const testEmail = email || `test_v2_${Date.now()}@example.com`;
+        const testUid = `test_v2_${Date.now()}`;
+
+        // 1. Create in Auth (if not exists)
+        try {
+            await adminAuth.createUser({
+                uid: testUid,
+                email: testEmail,
+                displayName: 'Test User V2',
+                emailVerified: true,
+            });
+        } catch (e) {
+            console.log('User might already exist in Auth, proceeding to overwrite Firestore...');
+        }
+
+        // 2. Create V2 Data in Firestore
+        const v2Data = {
+            profile: {
+                email: testEmail,
+                displayName: 'Test User V2',
+                photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+                createdAt: new Date(),
+                lastLoginAt: new Date(),
+                locale: 'en-US',
+                timezone: 'America/Los_Angeles',
+            },
+            preferences: {
+                onboarding: {
+                    userPersona: 'Senior Developer',
+                    userRole: 'Interviewer',
+                    userExperience: '5+ Years',
+                    userReferral: 'LinkedIn',
+                },
+                tailor: {
+                    outputLanguage: 'Spanish',
+                    programmingLanguage: 'Rust',
+                    audioLanguage: 'es-MX',
+                    customPrompt: 'Be very critical and succinct.',
+                },
+            },
+            access: {
+                planId: 'pro',
+                accessStatus: 'active',
+                concurrencyLimit: 5,
+                features: {
+                    basic_interview_help: true,
+                    advanced_metrics: true,
+                    unlimited_history: true,
+                },
+            },
+            usage: {
+                quotaSecondsMonth: 36000,
+                quotaSecondsUsed: 1250,
+                quotaResetAt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1), // Next month
+            },
+            billing: {
+                stripeCustomerId: 'cus_test_123',
+                subscriptionId: 'sub_test_456',
+                billingStatus: 'active',
+            },
+            security: {
+                lastLoginIp: '192.168.1.100',
+                lastLoginUserAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36...',
+            },
+            devicesSummary: {
+                deviceCount: 2,
+                lastPlatform: 'macOS 14.5',
+                lastSeenAt: new Date(),
+            },
+            meta: {
+                schemaVersion: 2,
+                updatedAt: new Date(),
+                sourceOfTruth: 'admin_seed',
+            },
+        };
+
+        const userRef = db.collection('users').doc(testUid);
+        await userRef.set(v2Data);
+
+        // Add dummy devices
+        await userRef
+            .collection('devices')
+            .doc('device_1')
+            .set({
+                platform: 'macOS 14.5',
+                appVersion: '1.0.0',
+                firstSeenAt: new Date(Date.now() - 86400000 * 10),
+                lastSeenAt: new Date(),
+                lastIp: '192.168.1.100',
+            });
+
+        await userRef
+            .collection('devices')
+            .doc('device_2')
+            .set({
+                platform: 'Windows 11',
+                appVersion: '1.0.0',
+                firstSeenAt: new Date(Date.now() - 86400000 * 5),
+                lastSeenAt: new Date(Date.now() - 86400000 * 2),
+                lastIp: '10.0.0.50',
+            });
+
+        res.json({ success: true, message: 'Seeded V2 user', uid: testUid, email: testEmail });
+    } catch (error) {
+        console.error('Seed V2 error:', error);
+        res.status(500).json({ error: 'Failed to seed user' });
+    }
+});
+
 module.exports = router;

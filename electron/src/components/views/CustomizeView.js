@@ -601,7 +601,7 @@ export class CustomizeView extends LitElement {
     }
 
     getThemes() {
-        return coInterview.theme.getAll();
+        return window.coInterview?.theme?.getAll() || [];
     }
 
     setActiveSection(section) {
@@ -748,7 +748,16 @@ export class CustomizeView extends LitElement {
 
     async _loadFromStorage() {
         try {
-            const [prefs, keybinds] = await Promise.all([coInterview.storage.getPreferences(), coInterview.storage.getKeybinds()]);
+            const electron = window.require ? window.require('electron') : require('electron');
+            const ipcRenderer = electron.ipcRenderer;
+
+            const [prefsResult, keybindsResult] = await Promise.all([
+                ipcRenderer.invoke('storage:get-preferences'),
+                ipcRenderer.invoke('storage:get-keybinds'),
+            ]);
+
+            const prefs = prefsResult.success ? prefsResult.data : {};
+            const keybinds = keybindsResult.success ? keybindsResult.data : null;
 
             this.googleSearchEnabled = prefs.googleSearchEnabled ?? true;
             this.backgroundTransparency = prefs.backgroundTransparency ?? 0.8;
@@ -878,24 +887,30 @@ export class CustomizeView extends LitElement {
 
     async handleCustomPromptInput(e) {
         this.customPrompt = e.target.value;
-        await coInterview.storage.updatePreference('customPrompt', e.target.value);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'customPrompt', e.target.value);
     }
 
     async handleAudioModeSelect(e) {
         this.audioMode = e.target.value;
-        await coInterview.storage.updatePreference('audioMode', e.target.value);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'audioMode', e.target.value);
         this.requestUpdate();
     }
 
     async handleThemeChange(e) {
         this.theme = e.target.value;
-        await coInterview.theme.save(this.theme);
-        this.updateBackgroundAppearance();
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'theme', this.theme);
+
+        if (window.coInterview?.theme?.apply) {
+            window.coInterview.theme.apply(this.theme, this.backgroundTransparency);
+        }
         this.requestUpdate();
     }
 
     getDefaultKeybinds() {
-        const isMac = coInterview.isMacOS || navigator.platform.includes('Mac');
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
         return {
             moveUp: isMac ? 'Alt+Up' : 'Ctrl+Up',
             moveDown: isMac ? 'Alt+Down' : 'Ctrl+Down',
@@ -912,12 +927,10 @@ export class CustomizeView extends LitElement {
     }
 
     async saveKeybinds() {
-        await coInterview.storage.setKeybinds(this.keybinds);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:set-keybinds', this.keybinds);
         // Send to main process to update global shortcuts
-        if (window.require) {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.send('update-keybinds', this.keybinds);
-        }
+        electron.ipcRenderer.send('update-keybinds', this.keybinds);
     }
 
     handleKeybindChange(action, value) {
@@ -928,12 +941,10 @@ export class CustomizeView extends LitElement {
 
     async resetKeybinds() {
         this.keybinds = this.getDefaultKeybinds();
-        await coInterview.storage.setKeybinds(null);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:set-keybinds', null);
         this.requestUpdate();
-        if (window.require) {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.send('update-keybinds', this.keybinds);
-        }
+        electron.ipcRenderer.send('update-keybinds', this.keybinds);
     }
 
     getKeybindActions() {
@@ -1073,16 +1084,14 @@ export class CustomizeView extends LitElement {
 
     async handleGoogleSearchChange(e) {
         this.googleSearchEnabled = e.target.checked;
-        await coInterview.storage.updatePreference('googleSearchEnabled', this.googleSearchEnabled);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'googleSearchEnabled', this.googleSearchEnabled);
 
         // Notify main process if available
-        if (window.require) {
-            try {
-                const { ipcRenderer } = window.require('electron');
-                await ipcRenderer.invoke('update-google-search-setting', this.googleSearchEnabled);
-            } catch (error) {
-                console.error('Failed to notify main process:', error);
-            }
+        try {
+            await electron.ipcRenderer.invoke('update-google-search-setting', this.googleSearchEnabled);
+        } catch (error) {
+            console.error('Failed to notify main process:', error);
         }
 
         this.requestUpdate();
@@ -1097,7 +1106,8 @@ export class CustomizeView extends LitElement {
         this.requestUpdate();
 
         try {
-            await coInterview.storage.clearAll();
+            const electron = window.require ? window.require('electron') : require('electron');
+            await electron.ipcRenderer.invoke('storage:clear-all');
 
             this.clearStatusMessage = 'Successfully cleared all local data';
             this.clearStatusType = 'success';
@@ -1108,10 +1118,7 @@ export class CustomizeView extends LitElement {
                 this.clearStatusMessage = 'Closing application...';
                 this.requestUpdate();
                 setTimeout(async () => {
-                    if (window.require) {
-                        const { ipcRenderer } = window.require('electron');
-                        await ipcRenderer.invoke('quit-application');
-                    }
+                    await electron.ipcRenderer.invoke('quit-application');
                 }, 1000);
             }, 2000);
         } catch (error) {
@@ -1126,15 +1133,19 @@ export class CustomizeView extends LitElement {
 
     async handleBackgroundTransparencyChange(e) {
         this.backgroundTransparency = parseFloat(e.target.value);
-        await coInterview.storage.updatePreference('backgroundTransparency', this.backgroundTransparency);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'backgroundTransparency', this.backgroundTransparency);
         this.updateBackgroundAppearance();
         this.requestUpdate();
     }
 
     updateBackgroundAppearance() {
+        if (!window.coInterview?.theme) return;
         // Use theme's background color
-        const colors = coInterview.theme.get(this.theme);
-        coInterview.theme.applyBackgrounds(colors.background, this.backgroundTransparency);
+        const colors = window.coInterview.theme.get(this.theme);
+        if (colors) {
+            window.coInterview.theme.applyBackgrounds(colors.background, this.backgroundTransparency);
+        }
     }
 
     // Keep old function name for backwards compatibility
@@ -1144,7 +1155,8 @@ export class CustomizeView extends LitElement {
 
     async handleFontSizeChange(e) {
         this.fontSize = parseInt(e.target.value, 10);
-        await coInterview.storage.updatePreference('fontSize', this.fontSize);
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-preference', 'fontSize', this.fontSize);
         this.updateFontSize();
         this.requestUpdate();
     }

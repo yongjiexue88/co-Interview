@@ -5,8 +5,42 @@ if (require('electron-squirrel-startup')) {
 const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const { createWindow, updateGlobalShortcuts } = require('./utils/window');
 const { setupGeminiIpcHandlers, stopMacOSAudioCapture, sendToRenderer } = require('./utils/gemini');
+const Api = require('./utils/api');
 
 const storage = require('./storage');
+
+async function syncProfile(updates) {
+    try {
+        // Check if user is logged in before syncing
+        const authData = storage.getAuthData();
+        if (!authData || !authData.isLoggedIn) return;
+
+        const { getIdToken } = require('./utils/firebase');
+        const token = await getIdToken();
+
+        if (!token) {
+            console.warn('syncProfile: No ID token available');
+            return;
+        }
+
+        const API_URL = app.isPackaged ? 'https://co-interview.com/api/v1' : 'http://localhost:8080/api/v1';
+
+        const response = await fetch(`${API_URL}/auth/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(updates),
+        });
+
+        if (!response.ok) {
+            console.error('syncProfile failed:', response.status, await response.text());
+        }
+    } catch (error) {
+        console.error('Failed to sync profile:', error);
+    }
+}
 
 const geminiSessionRef = { current: null };
 let mainWindow = null;
@@ -64,7 +98,6 @@ async function refreshAuthToken() {
             console.log('Token refresh successful');
 
             // Update storage with new tokens
-            // Note: securetoken API returns 'refresh_token' to be used for next request
             const updatedAuth = {
                 ...authData,
                 idToken: data.id_token,
@@ -72,13 +105,24 @@ async function refreshAuthToken() {
             };
             storage.setAuthData(updatedAuth);
             console.log('Auth data updated with fresh token');
+
+            // Fetch fresh entitlements
+            try {
+                const profile = await Api.fetchUserProfile();
+                const currentAuth = storage.getAuthData();
+                storage.setAuthData({
+                    ...currentAuth,
+                    plan: profile.plan.id,
+                    status: profile.plan.status,
+                    features: profile.plan.features,
+                    quotaRemainingSeconds: profile.quota.remaining,
+                });
+                console.log('Entitlements updated on startup:', profile.plan.id);
+            } catch (profileErr) {
+                console.error('Failed to fetch entitlements on startup:', profileErr.message);
+            }
         } else {
             console.error('Token refresh failed:', data.error);
-            // If refresh fails (e.g. token revoked), we might want to logout
-            // but let's be conservative and just log it for now.
-            // if (data.error && (data.error.message === 'TOKEN_EXPIRED' || data.error.message === 'INVALID_REFRESH_TOKEN')) {
-            //    storage.clearAuthData();
-            // }
         }
     } catch (error) {
         console.error('Error refreshing token:', error);
@@ -202,50 +246,61 @@ async function handleAuthCallback(url) {
                     const idToken = await user.getIdToken();
                     console.log('Got ID token:', idToken ? 'yes' : 'no');
 
-                    // Verify with backend if needed (optional since we just got it from there)
-                    let entitlements = null;
-                    if (idToken) {
-                        try {
-                            const apiUrl = app.isPackaged
-                                ? 'https://co-interview.com/api/v1/auth/verify'
-                                : 'http://localhost:8080/api/v1/auth/verify';
-
-                            console.log('Verifying with backend:', apiUrl);
-                            const response = await fetch(apiUrl, {
-                                method: 'POST',
-                                headers: {
-                                    Authorization: `Bearer ${idToken}`,
-                                    'Content-Type': 'application/json',
-                                },
-                            });
-
-                            if (response.ok) {
-                                entitlements = await response.json();
-                                console.log('Backend verification successful:', entitlements);
-                            } else {
-                                console.warn('Backend verification failed:', response.status);
-                            }
-                        } catch (error) {
-                            console.warn('Backend verification warning:', error.message);
-                        }
-                    }
-
-                    // Store auth data
-                    const authData = {
+                    // Store initial auth data (updated with full profile via Api below)
+                    let authData = {
                         userId: user.uid,
                         userEmail: user.email,
                         displayName: user.displayName || displayName,
                         photoURL: user.photoURL || photoURL,
                         idToken: idToken,
                         isLoggedIn: true,
-                        plan: entitlements?.plan || 'free',
-                        status: entitlements?.status || 'active',
-                        quotaRemainingSeconds: entitlements?.quota_remaining_seconds || null,
-                        features: entitlements?.features || [],
                         refreshToken: user.refreshToken,
+                        // Defaults until fetched
+                        plan: 'free',
+                        status: 'active',
+                        quotaRemainingSeconds: null,
+                        features: [],
                     };
-                    console.log('Storing auth data:', { ...authData, idToken: '***', refreshToken: '***' });
                     storage.setAuthData(authData);
+
+                    // Fetch authoritative profile & entitlements
+                    try {
+                        console.log('Fetching full user profile...');
+                        const profile = await Api.fetchUserProfile();
+                        authData = {
+                            ...authData,
+                            plan: profile.plan.id,
+                            status: profile.plan.status,
+                            features: profile.plan.features,
+                            quotaRemainingSeconds: profile.quota.remaining,
+                        };
+                        storage.setAuthData(authData);
+                        console.log('User profile synced successfully');
+
+                        // Sync preferences from cloud
+                        const cloudPrefs = {};
+                        const prefFields = [
+                            'outputLanguage',
+                            'programmingLanguage',
+                            'audioLanguage',
+                            'userPersona',
+                            'userRole',
+                            'userExperience',
+                            'userReferral',
+                            'customPrompt',
+                        ];
+                        prefFields.forEach(field => {
+                            if (profile[field]) cloudPrefs[field] = profile[field];
+                        });
+
+                        if (Object.keys(cloudPrefs).length > 0) {
+                            storage.setPreferences(cloudPrefs);
+                            console.log('Synced preferences from cloud:', Object.keys(cloudPrefs));
+                        }
+                    } catch (profileErr) {
+                        console.error('Failed to fetch user profile on login:', profileErr.message);
+                        // Continue with basic auth data - don't block login
+                    }
 
                     // Notify renderer
                     console.log('Sending auth-complete to renderer: success=true');
@@ -256,7 +311,7 @@ async function handleAuthCallback(url) {
                             userId: user.uid,
                             email: user.email,
                             displayName: user.displayName,
-                            plan: entitlements?.plan || 'free',
+                            plan: authData.plan,
                         });
                         console.log('auth-complete sent successfully');
                     } else {
@@ -399,6 +454,8 @@ function setupStorageIpcHandlers() {
     ipcMain.handle('storage:set-preferences', async (event, preferences) => {
         try {
             storage.setPreferences(preferences);
+            // Sync to cloud
+            syncProfile(preferences).catch(err => console.error('Background sync failed:', err));
             return { success: true };
         } catch (error) {
             console.error('Error setting preferences:', error);
@@ -409,6 +466,8 @@ function setupStorageIpcHandlers() {
     ipcMain.handle('storage:update-preference', async (event, key, value) => {
         try {
             storage.updatePreference(key, value);
+            // Sync to cloud (only valid profile fields will be updated by backend)
+            syncProfile({ [key]: value }).catch(err => console.error('Background sync failed:', err));
             return { success: true };
         } catch (error) {
             console.error('Error updating preference:', error);
@@ -512,13 +571,65 @@ function setupGeneralIpcHandlers() {
         return app.getVersion();
     });
 
-    ipcMain.handle('quit-application', async event => {
+    ipcMain.handle('quit-application', async _event => {
         try {
             stopMacOSAudioCapture();
             app.quit();
             return { success: true };
         } catch (error) {
             console.error('Error quitting application:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Logging utility for renderer
+    ipcMain.handle('log-info', async (event, data) => {
+        console.log(data);
+        return { success: true };
+    });
+
+    ipcMain.handle('get-system-info', async () => {
+        try {
+            const os = require('os');
+            const interfaces = os.networkInterfaces();
+            let ipAddress = 'Unknown';
+
+            // Find first non-internal IPv4 address
+            for (const name of Object.keys(interfaces)) {
+                for (const iface of interfaces[name]) {
+                    if (iface.family === 'IPv4' && !iface.internal) {
+                        ipAddress = iface.address;
+                        break;
+                    }
+                }
+                if (ipAddress !== 'Unknown') break;
+            }
+
+            let osName = process.platform;
+            if (process.platform === 'darwin') {
+                osName = `macOS ${os.release()}`;
+            } else if (process.platform === 'win32') {
+                osName = `Windows ${os.release()}`; // Mapping to Win 11/10 requires more logic but release is good start
+                // Simple mapping based on release version
+                const release = os.release();
+                if (release.startsWith('10.0')) {
+                    const build = parseInt(release.split('.')[2]);
+                    if (build >= 22000) osName = 'Windows 11';
+                    else osName = 'Windows 10';
+                }
+            } else if (process.platform === 'linux') {
+                osName = `Linux ${os.release()}`;
+            }
+
+            return {
+                success: true,
+                data: {
+                    ipAddress,
+                    deviceInfo: osName,
+                },
+            };
+        } catch (error) {
+            console.error('Error getting system info:', error);
             return { success: false, error: error.message };
         }
     });

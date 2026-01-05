@@ -378,8 +378,11 @@ export class HistoryView extends LitElement {
     }
 
     async loadLimits() {
-        if (window.coInterview?.storage?.getTodayLimits) {
-            const limits = await window.coInterview.storage.getTodayLimits();
+        const electron = window.require ? window.require('electron') : require('electron');
+        const ipcRenderer = electron.ipcRenderer;
+        const result = await ipcRenderer.invoke('storage:get-today-limits');
+        if (result.success) {
+            const limits = result.data;
             this.flashCount = limits.flash?.count || 0;
         }
     }
@@ -387,7 +390,10 @@ export class HistoryView extends LitElement {
     async loadSessions() {
         try {
             this.loading = true;
-            this.sessions = await coInterview.storage.getAllSessions();
+            const electron = window.require ? window.require('electron') : require('electron');
+            const ipcRenderer = electron.ipcRenderer;
+            const result = await ipcRenderer.invoke('storage:get-all-sessions');
+            this.sessions = result.success ? result.data : [];
         } catch (error) {
             console.error('Error loading conversation sessions:', error);
             this.sessions = [];
@@ -399,9 +405,11 @@ export class HistoryView extends LitElement {
 
     async loadSelectedSession(sessionId) {
         try {
-            const session = await coInterview.storage.getSession(sessionId);
-            if (session) {
-                this.selectedSession = session;
+            const electron = window.require ? window.require('electron') : require('electron');
+            const ipcRenderer = electron.ipcRenderer;
+            const result = await ipcRenderer.invoke('storage:get-session', sessionId);
+            if (result.success && result.data) {
+                this.selectedSession = result.data;
                 this.requestUpdate();
             }
         } catch (error) {

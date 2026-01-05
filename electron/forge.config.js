@@ -6,6 +6,9 @@ module.exports = {
         asar: true,
         extraResource: ['./src/assets/SystemAudioDump'],
         name: 'Co-Interview',
+        executableName: 'Co-Interview',
+        appBundleId: 'com.co-interview.app',
+        appCategoryType: 'public.app-category.productivity',
         icon: 'src/assets/logo',
         // Ad-hoc signing (free, no Apple Developer account required)
         // This allows the app to run on Apple Silicon Macs
