@@ -130,6 +130,20 @@
 
 ## 🔴 Testing
 
+### 2026-01-05 - Jest Mock Hoisting & `ReferenceError`
+**Problem:** `session.test.js` failed with `ReferenceError: Cannot access 'mockDb' before initialization`
+**Root Cause:** `jest.mock` calls are hoisted by Jest, but variables referenced in mock factories must be defined before use (or mocked differently).
+**Solution:** restructuring mock definitions to use literal mock factories or ensuring variables are available. Also, `admin.firestore` needed to be mocked as both a function and an object with properties (like `FieldValue`).
+**Prevention:** Use `jest.doMock` if order matters, or define mock objects inside the factory function instead of referencing outside variables.
+
+### 2026-01-05 - Vitest `--watchAll` Flag Error
+**Problem:** Frontend tests failed when run with `--watchAll=false`
+**Root Cause:** `--watchAll` is a Jest-specific flag. Vitest uses different flags or no flags for single runs.
+**Solution:** Ran tests with simple `npm run test` or `vitest run` for non-watch mode.
+**Prevention:** Check the test runner (Vitest vs Jest) before applying CLI flags.
+
+---
+
 ### 2026-01-05 - Electron Test Failure due to State Persistence
 **Problem:** `analytics.test.js` failed when run as part of a suite but passed individually.
 **Root Cause:** Singleton utility held state (`analyticsEnabled`) between tests. Also Node environment lacked `fetch`.

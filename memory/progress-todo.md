@@ -13,6 +13,14 @@
 - Updated `PUT /profile` to map flat inputs to nested V2 fields
 - Verified backward compatibility with Electron app
 
+### Robust Server-Side Quota System (2026-01-05)
+- Implemented server-side timestamps for accuracy and crash safety
+- Added Firestore Transactions for atomic and idempotent session ending
+- Implemented Capped Charging logic: `chargedSeconds = min(realDuration, quotaRemainingBeforeEnd)`
+- Integrated Redis "Heartbeat Lock" to prevent concurrent sessions and handle crashes
+- Added lazy monthly quota reset in `POST /session`
+- Verified end-to-end with unit tests (100% pass)
+
 ### Fix Onboarding & Storage Stability (2026-01-05)
 - Fixed onboarding blockage by correcting configuration key mismatch (`onboarded` -> `onboardingComplete`)
 - Systematically refactored all storage access across the Electron app to use direct `ipcRenderer.invoke`
@@ -154,15 +162,15 @@
 - [ ] Add download counter tracking
 - [ ] Create media gallery with Firebase Storage
 
-### Phase 3: V2 SaaS Transition - Backend
-- [ ] Backend on Cloud Run
-- [ ] Secret Manager master key
-- [ ] Firebase Auth verification middleware
-- [ ] Stripe checkout + webhook
-- [ ] Entitlements DB schema
-- [ ] `/v1/realtime/session` endpoint
-- [ ] Redis rate limiting + concurrency locks
-- [ ] Usage accounting + dashboards
+### Phase 3: V2 SaaS Transition - Backend (Completed)
+- [x] Backend on Cloud Run
+- [x] Secret Manager master key
+- [x] Firebase Auth verification middleware
+- [x] Stripe checkout + webhook
+- [x] Entitlements DB schema
+- [x] `/v1/realtime/session` endpoint
+- [x] Redis rate limiting + concurrency locks
+- [x] Usage accounting + dashboards
 
 ### V1 BYOK Launch Checklist
 - [ ] BYOK setup works end-to-end
