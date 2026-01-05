@@ -102,6 +102,16 @@
 **Solution:** Removed files via `git rm -r --cached` and updated `.gitignore`
 **Prevention:** Verify `.gitignore` includes build/test artifacts before first commit
 
+## 🟡 Tool Usage
+
+### 2026-01-05 - `replace_file_content` Context Mismatch
+**Problem:** `replace_file_content` failed repeatedly when editing `auth.js` due to 'The content of the file does not match the target content' error.
+**Root Cause:** The file was large and complex; relying on exact string matching for large blocks is fragile if whitespace or surrounding code varies slightly.
+**Solution:** Used `overwrite=true` (via `write_to_file` or essentially overwriting the whole file) to force the correct content.
+**Prevention:** For major refactors of large files, consider overwriting the file if localized edits are flaky, or ensure `TargetContent` includes sufficient unique context without being excessive.
+
+---
+
 ## 📝 Notes
 
 - Keep entries concise but include enough detail to be useful
