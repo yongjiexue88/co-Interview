@@ -27,6 +27,7 @@
 - Replaced unreliable `window.coInterview.storage` calls in `OnboardingView`, `MainView`, `HistoryView`, `HelpView`, `CustomizeView`, and `CoInterviewApp`
 - Resolved "coInterview is not defined" crashes by using direct IPC communication and `window.` prefixing with optional chaining
 - Recovered blank views (Customize, Help, History) by fixing global dependency crashes in `AppHeader.js` and `CustomizeView.js`
+- **Fixed Renderer Script Failure:** Implemented robust view/layout retrieval in `window.js` and exposed methods on `CoInterviewApp` class to handle race conditions during transition.
 
 ### Rebranding (2025-12-25)
 - Replaced all "Interview Coder" references with "Co-Interview"

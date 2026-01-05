@@ -8,7 +8,7 @@ import '../views/AssistantView.js';
 import '../views/OnboardingView.js';
 
 // Import analytics for tracking
-let trackEvent = () => {};
+let trackEvent = () => { };
 if (typeof window !== 'undefined' && window.require) {
     try {
         const { fileURLToPath } = window.require('url');
@@ -155,6 +155,14 @@ export class CoInterviewApp extends LitElement {
         this._loadFromStorage();
     }
 
+    getCurrentView() {
+        return this.currentView;
+    }
+
+    getLayoutMode() {
+        return this.layoutMode;
+    }
+
     async _loadFromStorage() {
         try {
             const electron = window.require ? window.require('electron') : require('electron');
@@ -169,7 +177,9 @@ export class CoInterviewApp extends LitElement {
             const prefs = prefsResult.success ? prefsResult.data : {};
 
             // Check onboarding status
-            this.currentView = config?.onboardingComplete ? 'main' : 'onboarding';
+            // this.currentView = config?.onboardingComplete ? 'main' : 'onboarding';
+            // TODO THIS IS FOR DEVELOPMENT DON'T CHANGE IT 
+            this.currentView = 'onboarding';
 
             // Apply background appearance (color + transparency)
             this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.8);
@@ -203,10 +213,10 @@ export class CoInterviewApp extends LitElement {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result
             ? {
-                  r: parseInt(result[1], 16),
-                  g: parseInt(result[2], 16),
-                  b: parseInt(result[3], 16),
-              }
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16),
+            }
             : { r: 30, g: 30, b: 30 };
     }
 
@@ -551,11 +561,11 @@ export class CoInterviewApp extends LitElement {
                         .shouldAnimateResponse=${this.shouldAnimateResponse}
                         @response-index-changed=${this.handleResponseIndexChanged}
                         @response-animation-complete=${() => {
-                            this.shouldAnimateResponse = false;
-                            this._currentResponseIsComplete = true;
-                            console.log('[response-animation-complete] Marked current response as complete');
-                            this.requestUpdate();
-                        }}
+                        this.shouldAnimateResponse = false;
+                        this._currentResponseIsComplete = true;
+                        console.log('[response-animation-complete] Marked current response as complete');
+                        this.requestUpdate();
+                    }}
                     ></assistant-view>
                 `;
 

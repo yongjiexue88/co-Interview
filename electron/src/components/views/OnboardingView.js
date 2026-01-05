@@ -1,7 +1,7 @@
 import { html, css, LitElement } from '../../assets/lit-core-2.7.4.min.js';
 
 // Import analytics for tracking
-let trackEvent = () => {};
+let trackEvent = () => { };
 if (typeof window !== 'undefined' && window.require) {
     try {
         const { fileURLToPath } = window.require('url');
@@ -720,8 +720,8 @@ export class OnboardingView extends LitElement {
         super();
         this.currentSlide = 0;
         this.contextText = '';
-        this.onComplete = () => {};
-        this.onClose = () => {};
+        this.onComplete = () => { };
+        this.onClose = () => { };
         // Auth state
         this.authEmail = '';
         this.authPassword = '';
@@ -1007,56 +1007,46 @@ export class OnboardingView extends LitElement {
         const electron = window.require ? window.require('electron') : require('electron');
         const ipcRenderer = electron.ipcRenderer;
 
-        // Helper function for preference updates (direct IPC, no dependency on window.coInterview)
-        const updatePreference = async (key, value) => {
-            return ipcRenderer.invoke('storage:update-preference', key, value);
-        };
+        // Helper function for config updates
         const updateConfig = async (key, value) => {
             return ipcRenderer.invoke('storage:update-config', key, value);
         };
 
-        // Save tailor preferences
-        if (this.outputLanguage) {
-            await updatePreference('outputLanguage', this.outputLanguage);
-        }
-        if (this.programmingLanguage) {
-            await updatePreference('programmingLanguage', this.programmingLanguage);
-        }
-        if (this.audioLanguage) {
-            await updatePreference('audioLanguage', this.audioLanguage);
-        }
+        // Batch all preferences into a single object
+        const preferences = {};
 
-        if (this.contextText.trim()) {
+        // Tailor preferences
+        if (this.outputLanguage) preferences.outputLanguage = this.outputLanguage;
+        if (this.programmingLanguage) preferences.programmingLanguage = this.programmingLanguage;
+        if (this.audioLanguage) preferences.audioLanguage = this.audioLanguage;
+
+        // Custom Context
+        if (this.contextText && this.contextText.trim()) {
             // Guard: Truncate to 10k chars and basic sanitization
             let safeContext = this.contextText.trim();
             if (safeContext.length > 10000) {
                 safeContext = safeContext.substring(0, 10000);
             }
-            // Remove potential script tags for basic safety (though Lit handles display safety)
+            // Remove potential script tags for basic safety
             safeContext = safeContext.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gm, '');
 
-            await updatePreference('customPrompt', safeContext);
+            preferences.customPrompt = safeContext;
+
             trackEvent('onboarding_context_added', {
                 context_length: safeContext.length,
             });
         }
 
+        // Persona & Role
         if (this.userPersona) {
-            await updatePreference('userPersona', this.userPersona);
+            preferences.userPersona = this.userPersona;
             trackEvent('onboarding_persona_selected', {
                 persona: this.userPersona,
             });
         }
-
-        if (this.userRole) {
-            await updatePreference('userRole', this.userRole);
-        }
-        if (this.userExperience) {
-            await updatePreference('userExperience', this.userExperience);
-        }
-        if (this.userReferral) {
-            await updatePreference('userReferral', this.userReferral);
-        }
+        if (this.userRole) preferences.userRole = this.userRole;
+        if (this.userExperience) preferences.userExperience = this.userExperience;
+        if (this.userReferral) preferences.userReferral = this.userReferral;
 
         // Collect device info
         let ipAddress = 'Unknown';
@@ -1068,15 +1058,21 @@ export class OnboardingView extends LitElement {
                 ipAddress = systemInfo.data.ipAddress;
                 deviceInfo = systemInfo.data.deviceInfo;
 
-                await updatePreference('ipAddress', ipAddress);
-                await updatePreference('deviceInfo', deviceInfo);
+                preferences.ipAddress = ipAddress;
+                preferences.deviceInfo = deviceInfo;
             }
         } catch (err) {
             console.error('Failed to get system info:', err);
         }
 
+        // 1. Save all preferences in ONE atomic batch (triggers single syncProfile call)
+        try {
+            await ipcRenderer.invoke('storage:set-preferences', preferences);
+        } catch (err) {
+            console.error('Failed to save preferences:', err);
+        }
+
         // Log gathered data to terminal for debugging/verification
-        // This replicates the format requested by the user
         ipcRenderer.invoke(
             'log-info',
             `
@@ -1094,7 +1090,8 @@ Onboarding preferences collected: {
 }
 `
         );
-        // The trackEvent for onboarding_details should still happen if any of these are set
+
+        // Track detailed events
         if (this.userRole || this.userExperience || this.userReferral) {
             trackEvent('onboarding_details', {
                 role: this.userRole,
@@ -1103,6 +1100,7 @@ Onboarding preferences collected: {
             });
         }
 
+        // 2. Mark onboarding as complete (Config update)
         await updateConfig('onboardingComplete', true);
 
         // Track completion
@@ -1347,7 +1345,7 @@ Onboarding preferences collected: {
                     ${slide.title ? html`<div class="slide-title">${slide.title}</div>` : ''}
                     ${slide.content ? html`<div class="slide-content">${slide.content}</div>` : ''}
                     ${slide.showSuggestions
-                        ? html`
+                ? html`
                               <div class="tailor-form">
                                   <div class="form-group">
                                       <label class="form-label">Output language</label>
@@ -1418,9 +1416,9 @@ Onboarding preferences collected: {
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                     ${slide.showTextarea
-                        ? html`
+                ? html`
                               <textarea
                                   class="context-textarea"
                                   placeholder="Paste your resume, job description, or any relevant context here..."
@@ -1428,9 +1426,9 @@ Onboarding preferences collected: {
                                   @input=${this.handleContextInput}
                               ></textarea>
                           `
-                        : ''}
+                : ''}
                     ${slide.showFeatures
-                        ? html`
+                ? html`
                               <div class="feature-list">
                                   <div class="feature-item">
                                       <span class="feature-icon">-</span>
@@ -1446,9 +1444,9 @@ Onboarding preferences collected: {
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                     ${slide.showAuth
-                        ? html`
+                ? html`
                               <div class="auth-container">
                                   <!-- Logo -->
                                   <div class="auth-logo">
@@ -1515,26 +1513,26 @@ Onboarding preferences collected: {
                                       <a
                                           href="#"
                                           @click=${e => {
-                                              e.preventDefault();
-                                              this.openExternal('https://co-interview.com/policies/terms');
-                                          }}
+                        e.preventDefault();
+                        this.openExternal('https://co-interview.com/policies/terms');
+                    }}
                                           >Terms of Service</a
                                       >
                                       and
                                       <a
                                           href="#"
                                           @click=${e => {
-                                              e.preventDefault();
-                                              this.openExternal('https://co-interview.com/policies/privacy');
-                                          }}
+                        e.preventDefault();
+                        this.openExternal('https://co-interview.com/policies/privacy');
+                    }}
                                           >Privacy Policy</a
                                       >
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                     ${slide.showPersona
-                        ? html`
+                ? html`
                               <div class="persona-grid">
                                   <div
                                       class="persona-card persona-card-0 ${this.userPersona === 'Job Seeker' ? 'active' : ''}"
@@ -1566,30 +1564,30 @@ Onboarding preferences collected: {
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                     ${slide.showTellMore
-                        ? html`
+                ? html`
                               <div class="tell-more-container">
                                   <!-- ROLES SECTION -->
                                   <div class="pd-section ${this.userRole ? 'dimmed' : 'active'}">
                                       <div class="pd-label">What role are you interviewing for?</div>
                                       <div class="pills-grid">
                                           ${[
-                                              'Software Engineer',
-                                              'Product Manager',
-                                              'Data Scientist',
-                                              'Data Analyst',
-                                              'Product Designer',
-                                              'UX Designer',
-                                              'Business Analyst',
-                                              'Consultant',
-                                              'Finance / Investment Banking',
-                                              'Marketing Manager',
-                                              'Sales / Account Executive',
-                                              'Engineering Manager',
-                                              'Other',
-                                          ].map(
-                                              role => html`
+                        'Software Engineer',
+                        'Product Manager',
+                        'Data Scientist',
+                        'Data Analyst',
+                        'Product Designer',
+                        'UX Designer',
+                        'Business Analyst',
+                        'Consultant',
+                        'Finance / Investment Banking',
+                        'Marketing Manager',
+                        'Sales / Account Executive',
+                        'Engineering Manager',
+                        'Other',
+                    ].map(
+                        role => html`
                                                   <div
                                                       class="pill ${this.userRole === role ? 'selected' : ''}"
                                                       @click=${() => this.handleRoleSelect(role)}
@@ -1597,7 +1595,7 @@ Onboarding preferences collected: {
                                                       ${role}
                                                   </div>
                                               `
-                                          )}
+                    )}
                                       </div>
                                   </div>
 
@@ -1606,7 +1604,7 @@ Onboarding preferences collected: {
                                       <div class="pd-label">How many years of experience do you have?</div>
                                       <div class="pills-flex">
                                           ${['0-1 years', '1-3 years', '3-5 years', '5-8 years', '8-12 years', '12+ years', 'Other'].map(
-                                              exp => html`
+                        exp => html`
                                                   <div
                                                       class="pill ${this.userExperience === exp ? 'selected' : ''}"
                                                       @click=${() => this.handleExperienceSelect(exp)}
@@ -1614,7 +1612,7 @@ Onboarding preferences collected: {
                                                       ${exp}
                                                   </div>
                                               `
-                                          )}
+                    )}
                                       </div>
                                   </div>
 
@@ -1623,7 +1621,7 @@ Onboarding preferences collected: {
                                       <div class="pd-label">Where did you hear from us?</div>
                                       <div class="pills-flex">
                                           ${this.referralOptions.map(
-                                              ref => html`
+                        ref => html`
                                                   <div
                                                       class="pill ${this.userReferral === ref ? 'selected' : ''}"
                                                       @click=${() => this.handleReferralSelect(ref)}
@@ -1631,12 +1629,12 @@ Onboarding preferences collected: {
                                                       ${ref}
                                                   </div>
                                               `
-                                          )}
+                    )}
                                       </div>
                                   </div>
                               </div>
                           `
-                        : ''}
+                : ''}
                 </div>
 
                 <div class="navigation">
@@ -1648,25 +1646,25 @@ Onboarding preferences collected: {
 
                     <div class="progress-dots">
                         ${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(
-                            index => html`
+                    index => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
-                                        if (index !== this.currentSlide && index !== 0) {
-                                            this.startColorTransition(index);
-                                        }
-                                    }}
+                            if (index !== this.currentSlide && index !== 0) {
+                                this.startColorTransition(index);
+                            }
+                        }}
                                 ></div>
                             `
-                        )}
+                )}
                     </div>
 
                     <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
                         ${this.currentSlide === 8
-                            ? 'Get Started'
-                            : this.currentSlide === 0
-                              ? 'Skip'
-                              : html`
+                ? 'Get Started'
+                : this.currentSlide === 0
+                    ? 'Skip'
+                    : html`
                                     <svg
                                         width="16px"
                                         height="16px"

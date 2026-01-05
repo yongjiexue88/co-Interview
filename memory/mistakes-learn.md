@@ -159,7 +159,8 @@
 - Refactored all storage access to use direct `ipcRenderer.invoke` calls, bypassing `coInterview.storage`.
 - Prefixed all global `coInterview` usages with `window.` and added optional chaining (`window.coInterview?.`).
 - Corrected configuration key mismatch (`onboarded` vs `onboardingComplete`) in onboarding completion logic.
-**Prevention:** Avoid relying on global objects for core functionality like storage in Electron renderers; use direct IPC or ensure initialization order is guaranteed. Use optional chaining for any global object access.
+- **Improved robustness:** Added `getCurrentView()` and `getLayoutMode()` directly to `CoInterviewApp` class and updated `window.js` to use a resilient script that checks both the app element and the global object.
+**Prevention:** Avoid relying on global objects for core functionality like storage in Electron renderers; use direct IPC or ensure initialization order is guaranteed. Use optional chaining and robust retrieval scripts/methods on elements.
 
 ---
 

@@ -125,25 +125,27 @@ router.put('/profile', authMiddleware, async (req, res, next) => {
             }
         });
 
-        // Handle Device Info
-        if (req.body.ipAddress || req.body.deviceInfo) {
+        // Handle Security & Device Info
+        if (req.body.ipAddress) {
             updates['security.lastLoginIp'] = req.body.ipAddress;
-            if (req.body.deviceInfo) {
-                updates['devicesSummary.lastPlatform'] = req.body.deviceInfo;
-                updates['devicesSummary.lastSeenAt'] = new Date();
-                updates['devicesSummary.deviceCount'] = admin.firestore.FieldValue.increment(1);
+        }
 
-                // Device Subcollection
-                const deviceId = req.body.deviceInfo.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
-                await db.collection('users').doc(uid).collection('devices').doc(deviceId).set(
-                    {
-                        lastPlatform: req.body.deviceInfo,
-                        lastSeenAt: new Date(),
-                        lastIp: req.body.ipAddress,
-                    },
-                    { merge: true }
-                );
+        if (req.body.deviceInfo) {
+            updates['devicesSummary.lastPlatform'] = req.body.deviceInfo;
+            updates['devicesSummary.lastSeenAt'] = new Date();
+            updates['devicesSummary.deviceCount'] = admin.firestore.FieldValue.increment(1);
+
+            // Device Subcollection
+            const deviceId = req.body.deviceInfo.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+            const deviceUpdate = {
+                lastPlatform: req.body.deviceInfo,
+                lastSeenAt: new Date(),
+            };
+            if (req.body.ipAddress) {
+                deviceUpdate.lastIp = req.body.ipAddress;
             }
+
+            await db.collection('users').doc(uid).collection('devices').doc(deviceId).set(deviceUpdate, { merge: true });
         }
 
         if (Object.keys(updates).length === 0) {

@@ -4,7 +4,7 @@ const { getAuthData } = require('../storage');
 // Backend URL Configuration
 // In production, this should be set via environment variable or build config
 const BACKEND_URL = process.env.BACKEND_URL || 'https://api.co-interview.com';
-const DEV_BACKEND_URL = 'http://localhost:3000'; // Or 8080 depending on backend port
+const DEV_BACKEND_URL = 'http://localhost:8080'; // Or 8080 depending on backend port
 
 // Helper to get active backend URL
 function getBaseUrl() {

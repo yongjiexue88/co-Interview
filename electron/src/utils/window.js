@@ -429,11 +429,34 @@ function setupWindowIpcHandlers(mainWindow, sendToRenderer, geminiSessionRef) {
                 return { success: false, error: 'Window has been destroyed' };
             }
 
-            // Get current view and layout mode from renderer
+            // Get current view and layout mode from renderer robustly
             let viewName, layoutMode;
             try {
-                viewName = await event.sender.executeJavaScript('coInterview.getCurrentView()');
-                layoutMode = await event.sender.executeJavaScript('coInterview.getLayoutMode()');
+                const script = `
+                    (function() {
+                        const app = document.querySelector('co-interview-app');
+                        const coInt = window.coInterview;
+                        
+                        let v = 'main';
+                        if (app && app.currentView) {
+                            v = app.currentView;
+                        } else if (coInt && typeof coInt.getCurrentView === 'function') {
+                            v = coInt.getCurrentView();
+                        }
+                        
+                        let l = 'normal';
+                        if (app && app.layoutMode) {
+                            l = app.layoutMode;
+                        } else if (coInt && typeof coInt.getLayoutMode === 'function') {
+                            l = coInt.getLayoutMode();
+                        }
+                        
+                        return { view: v, layout: l };
+                    })()
+                `;
+                const result = await event.sender.executeJavaScript(script);
+                viewName = result.view;
+                layoutMode = result.layout;
             } catch (error) {
                 console.warn('Failed to get view/layout from renderer, using defaults:', error);
                 viewName = 'main';
