@@ -106,6 +106,10 @@
 - Enforced `outputLanguage` to ensure AI respects language preference
 - Verified with unit tests in `electron/__tests__/prompts.test.js`
 - Fixed regression in `backend/__tests__/routes/admin.test.js` (missing mock)
+- Fixed GA4 Permission Denied error in backend and deployment
+- Added `GOOGLE_ANALYTICS_PROPERTY_ID` to Cloud Run deployment workflow
+- Fixed state persistence and missing `fetch` in Electron `analytics.js` tests
+- Verified all quality gates (Frontend: 35 pass, Backend: 60 pass, Electron: 111 pass)
 
 ---
 

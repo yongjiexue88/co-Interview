@@ -2,6 +2,7 @@ const {
     initAnalytics,
     trackEvent,
     trackPageView,
+    __resetForTesting
 } = require('../src/utils/analytics');
 
 const { isSupported, getAnalytics, logEvent } = require('firebase/analytics');
@@ -16,9 +17,15 @@ jest.mock('../src/utils/firebase', () => ({
     app: {},
 }));
 
+// Mock global fetch if not present
+if (typeof global.fetch === 'undefined') {
+    global.fetch = jest.fn(() => Promise.resolve({ ok: true }));
+}
+
 describe('Analytics Utils', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        __resetForTesting();
     });
 
     it('should initialize analytics if supported', async () => {

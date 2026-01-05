@@ -118,6 +118,26 @@
 
 ---
 
+## 🔴 Google Analytics 4
+
+### 2026-01-05 - GA4 `PERMISSION_DENIED` Error
+**Problem:** Backend failed to fetch GA4 data with `PERMISSION_DENIED` error
+**Root Cause:** The service account email added to GA4 was different from the one actually in `service-account.json`. Also, the Property ID was missing from Cloud Run env vars.
+**Solution:** Checked `service-account.json` for the actual `client_email`, added that exact account to GA4, and updated `deploy-backend.yml`.
+**Prevention:** Always verify the actual identity in the credential file being used, not just the project-level defaults.
+
+---
+
+## 🔴 Testing
+
+### 2026-01-05 - Electron Test Failure due to State Persistence
+**Problem:** `analytics.test.js` failed when run as part of a suite but passed individually.
+**Root Cause:** Singleton utility held state (`analyticsEnabled`) between tests. Also Node environment lacked `fetch`.
+**Solution:** Added `__resetForTesting` hook to `analytics.js` and mocked `global.fetch` in tests.
+**Prevention:** Singleton utilities should expose reset hooks for testing; web APIs should be mocked in Node test environments.
+
+---
+
 ## 📝 Notes
 
 - Keep entries concise but include enough detail to be useful
