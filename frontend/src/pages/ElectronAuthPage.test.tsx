@@ -1,91 +1,123 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ElectronAuthPage from './ElectronAuthPage';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
+import { signInWithPopup } from 'firebase/auth';
 
-// Mock window.electronAPI
-const mockSend = vi.fn();
-const mockReceive = vi.fn();
-
-Object.defineProperty(window, 'electronAPI', {
-    value: {
-        send: mockSend,
-        receive: mockReceive,
-    },
-    writable: true,
-});
+// Mock Firebase
+vi.mock('firebase/auth', () => ({
+    getAuth: vi.fn(),
+    signInWithPopup: vi.fn(),
+    GoogleAuthProvider: vi.fn().mockImplementation(() => ({})),
+}));
 
 vi.mock('../lib/firebase', () => ({
     auth: {},
     googleProvider: {},
 }));
 
-vi.mock('firebase/auth', () => ({
-    signInWithPopup: vi.fn().mockResolvedValue({
-        user: {
-            uid: '123',
-            email: 'test@example.com',
-            displayName: 'Test User',
-            getIdToken: vi.fn().mockResolvedValue('mock-token'),
-        },
-    }),
-    createUserWithEmailAndPassword: vi.fn(),
-}));
-
 describe('ElectronAuthPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // Mock window.location.href
+        delete (window as any).location;
+        window.location = { href: '' } as any;
     });
 
-    it('renders loading state initially', async () => {
+    it('automatically triggers Google sign-in on mount', async () => {
+        const mockUser = {
+            uid: 'test-uid',
+            email: 'test@example.com',
+            displayName: 'Test User',
+            photoURL: 'https://example.com/photo.jpg',
+            getIdToken: vi.fn().mockResolvedValue('test-token'),
+        };
+        (signInWithPopup as any).mockResolvedValue({ user: mockUser });
+
         render(
-            <MemoryRouter initialEntries={['/electron-auth?token=test_token&uid=123']}>
-                <Routes>
-                    <Route path="/electron-auth" element={<ElectronAuthPage />} />
-                </Routes>
+            <MemoryRouter>
+                <ElectronAuthPage />
             </MemoryRouter>
         );
 
-        // Expect to see the loading text
-        expect(screen.getByText(/Authenticating for desktop app/i)).toBeInTheDocument();
+        expect(screen.getByText(/Signing you in/i)).toBeInTheDocument();
+        expect(signInWithPopup).toHaveBeenCalled();
 
-        // Wait for success state
         await waitFor(() => {
             expect(screen.getByText(/Success!/i)).toBeInTheDocument();
-            expect(screen.getByText(/Returning to Co-Interview app/i)).toBeInTheDocument();
         });
+
+        // Check if window.location.href was updated (after 500ms)
+        await waitFor(
+            () => {
+                expect(window.location.href).toContain('co-interview://auth-callback');
+                expect(window.location.href).toContain('token=test-token');
+                expect(window.location.href).toContain('uid=test-uid');
+            },
+            { timeout: 2000 }
+        );
     });
-    it('handles auth error (popup closed)', async () => {
-        const { signInWithPopup } = await import('firebase/auth');
-        vi.mocked(signInWithPopup).mockRejectedValueOnce({ code: 'auth/popup-closed-by-user' });
+
+    it('handles auth errors', async () => {
+        (signInWithPopup as any).mockRejectedValue({
+            code: 'auth/popup-closed-by-user',
+            message: 'Popup closed',
+        });
 
         render(
-            <MemoryRouter initialEntries={['/electron-auth']}>
-                <Routes>
-                    <Route path="/electron-auth" element={<ElectronAuthPage />} />
-                </Routes>
+            <MemoryRouter>
+                <ElectronAuthPage />
             </MemoryRouter>
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Sign-in was cancelled. Click below to try again.')).toBeInTheDocument();
+            expect(screen.getByText(/Sign-in was cancelled/i)).toBeInTheDocument();
+        });
+
+        // Test "Try Again"
+        const retryButton = screen.getByText(/Try Again with Google/i);
+        (signInWithPopup as any).mockResolvedValue({
+            user: {
+                uid: 'retry-uid',
+                getIdToken: vi.fn().mockResolvedValue('retry-token'),
+            },
+        });
+
+        fireEvent.click(retryButton);
+
+        await waitFor(() => {
+            expect(screen.getByText(/Success!/i)).toBeInTheDocument();
         });
     });
 
-    it('handles generic auth error', async () => {
-        const { signInWithPopup } = await import('firebase/auth');
-        vi.mocked(signInWithPopup).mockRejectedValueOnce(new Error('Network Error'));
+    it('handles cancelled return to app', async () => {
+        render(
+            <MemoryRouter>
+                <ElectronAuthPage />
+            </MemoryRouter>
+        );
+
+        const cancelButton = screen.getByText(/Cancel and return to app/i);
+        fireEvent.click(cancelButton);
+
+        await waitFor(() => {
+            expect(window.location.href).toContain('cancel=true');
+        });
+    });
+
+    it('handles popup blocked error', async () => {
+        (signInWithPopup as any).mockRejectedValue({
+            code: 'auth/popup-blocked',
+        });
 
         render(
-            <MemoryRouter initialEntries={['/electron-auth']}>
-                <Routes>
-                    <Route path="/electron-auth" element={<ElectronAuthPage />} />
-                </Routes>
+            <MemoryRouter>
+                <ElectronAuthPage />
             </MemoryRouter>
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Network Error')).toBeInTheDocument();
+            expect(screen.getByText(/Popup was blocked/i)).toBeInTheDocument();
         });
     });
 });

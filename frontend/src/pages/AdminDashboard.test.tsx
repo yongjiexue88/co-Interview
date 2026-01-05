@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AdminDashboard from './AdminDashboard';
 import { MemoryRouter } from 'react-router-dom';
@@ -78,24 +78,111 @@ describe('AdminDashboard', () => {
 
         expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/admin/users'), expect.any(Object));
     });
-    it('calls seed endpoint when Seed Test User is clicked and confirmed', async () => {
+    it('handles user editing', async () => {
+        const mockUsers = [{ id: '1', email: 'user1@test.com', plan: 'free', status: 'active', createdAt: new Date().toISOString() }];
         (global.fetch as any).mockImplementation((url: string) => {
-            if (url.includes('/admin/users/seed-v2')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: async () => ({ success: true }),
-                });
+            if (url.includes('/admin/users')) {
+                return Promise.resolve({ ok: true, json: async () => ({ users: mockUsers }) });
             }
-            if (url.includes('/admin/users') || url.includes('/admin/analytics')) {
-                return Promise.resolve({ ok: true, json: async () => ({ users: [], events: [] }) });
+            if (url.includes('/admin/analytics')) {
+                return Promise.resolve({ ok: true, json: async () => ({ events: [] }) });
             }
-            return Promise.reject(new Error('Unknown URL'));
+            return Promise.resolve({ ok: true, json: async () => ({}) });
         });
 
-        // Mock window.confirm
-        const confirmSpy = vi.spyOn(window, 'confirm');
-        confirmSpy.mockImplementation(() => true);
-        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(screen.getByText('user1@test.com')).toBeInTheDocument());
+
+        const editButton = screen.getByTitle('Edit Details');
+        fireEvent.click(editButton);
+
+        const select = screen.getByRole('combobox');
+        fireEvent.change(select, { target: { value: 'pro' } });
+
+        (global.fetch as any).mockImplementationOnce(() => Promise.resolve({ ok: true }));
+
+        const saveButton = screen.getByTitle('Save');
+        fireEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/admin/users/1'), expect.objectContaining({ method: 'PATCH' }));
+        });
+    });
+
+    it('handles user toggle ban', async () => {
+        const mockUsers = [{ id: '1', email: 'user1@test.com', plan: 'free', status: 'active', createdAt: new Date().toISOString() }];
+        (global.fetch as any).mockImplementation((url: string) => {
+            if (url.includes('/admin/users')) {
+                return Promise.resolve({ ok: true, json: async () => ({ users: mockUsers }) });
+            }
+            if (url.includes('/admin/analytics')) {
+                return Promise.resolve({ ok: true, json: async () => ({ events: [] }) });
+            }
+            return Promise.resolve({ ok: true, json: async () => ({}) });
+        });
+
+        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(screen.getByText('user1@test.com')).toBeInTheDocument());
+
+        const banButton = screen.getByTitle('Disable User');
+        fireEvent.click(banButton);
+
+        expect(confirmSpy).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/admin/users/1/disable'), expect.objectContaining({ method: 'POST' }));
+        });
+    });
+
+    it('opens user details modal', async () => {
+        const mockUsers = [{ id: '1', email: 'user1@test.com', plan: 'free', status: 'active', createdAt: new Date().toISOString() }];
+        (global.fetch as any).mockImplementation((url: string) => {
+            if (url.includes('/admin/users')) {
+                return Promise.resolve({ ok: true, json: async () => ({ users: mockUsers }) });
+            }
+            if (url.includes('/admin/analytics')) {
+                return Promise.resolve({ ok: true, json: async () => ({ events: [] }) });
+            }
+            return Promise.resolve({ ok: true, json: async () => ({}) });
+        });
+
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(screen.getByText('user1@test.com')).toBeInTheDocument());
+
+        const viewButton = screen.getByTitle('View Details');
+        fireEvent.click(viewButton);
+
+        await waitFor(() => {
+            expect(screen.getByText(/Profile & Onboarding/i)).toBeInTheDocument();
+        });
+    });
+
+    it('renders analytics cards', async () => {
+        (global.fetch as any).mockImplementation((url: string) => {
+            if (url.includes('/ga')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({ activeUsers: 150, sessions: 200, screenPageViews: 500, eventCount: 1000 }),
+                });
+            }
+            return Promise.resolve({ ok: true, json: async () => ({ users: [], events: [] }) });
+        });
 
         render(
             <MemoryRouter>
@@ -104,20 +191,9 @@ describe('AdminDashboard', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Seed Test User')).toBeInTheDocument();
-        });
-
-        const seedButton = screen.getByText('Seed Test User');
-        seedButton.click();
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                expect.stringContaining('/admin/users/seed-v2'),
-                expect.objectContaining({
-                    method: 'POST',
-                })
-            );
-            expect(alertSpy).toHaveBeenCalledWith('Test user created!');
+            expect(screen.getByText('150')).toBeInTheDocument();
+            expect(screen.getByText('200')).toBeInTheDocument();
+            expect(screen.getByText('500')).toBeInTheDocument();
         });
     });
 });

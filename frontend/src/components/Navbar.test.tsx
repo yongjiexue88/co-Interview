@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Navbar from './Navbar';
 import { MemoryRouter } from 'react-router-dom';
@@ -108,7 +108,9 @@ describe('Navbar', () => {
         const logoutButton = screen.getByText('Log out');
         fireEvent.click(logoutButton);
 
-        expect(signOut).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(signOut).toHaveBeenCalled();
+        });
     });
 
     it('toggles download dropdown when logged out', () => {

@@ -75,6 +75,7 @@ const SignInPage: React.FC = () => {
             }
 
             // Web Context: Use Popup
+            setIsSubmitting(true);
             const result = await signInWithPopup(auth, googleProvider);
             await handleElectronRedirect(result.user);
         } catch (error: any) {
