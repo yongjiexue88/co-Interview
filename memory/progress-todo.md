@@ -6,6 +6,13 @@
 
 ## ✅ Completed Work
 
+### Enhanced User Schema V2 (2026-01-05)
+- Implemented Schema V2 with nested structure (profile, preferences, access, billing)
+- Added device tracking (devicesSummary, subcollection)
+- Implemented lazy migration in `POST /verify`
+- Updated `PUT /profile` to map flat inputs to nested V2 fields
+- Verified backward compatibility with Electron app
+
 ### Rebranding (2025-12-25)
 - Replaced all "Interview Coder" references with "Co-Interview"
 - Updated page titles, component headings, and content
@@ -99,11 +106,11 @@
 ## 🚧 Remaining TODO Items
 
 ### Electron Onboarding UI
-- [ ] Create `electron/src/assets/onboarding/signin.svg` - Lock or key icon for slide
-- [ ] Update `OnboardingView.js` — Add Slide 0 with sign-in UI
-- [ ] Shift existing slides to indices 1-5, update progress dots
-- [ ] Add sign-in handlers (handleGoogleSignIn, handleEmailSignIn, handleSkip)
-- [ ] Listen for auth callback via IPC
+- [x] Create `electron/src/assets/onboarding/signin.svg` - Lock or key icon for slide
+- [x] Update `OnboardingView.js` — Add Slide 0 with sign-in UI
+- [x] Shift existing slides to indices 1-5, update progress dots
+- [x] Add sign-in handlers (handleGoogleSignIn, handleEmailSignIn, handleSkip)
+- [x] Listen for auth callback via IPC
 
 ### Testing & Polish
 - [ ] Test Google OAuth flow end-to-end
