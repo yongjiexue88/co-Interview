@@ -289,7 +289,7 @@ export class AppHeader extends LitElement {
                               ${this.isClickThrough ? html`<span class="click-through-indicator">click-through</span>` : ''}
                           `
                         : ''}
-                    ${this.currentView === 'main'
+                    ${this.currentView === 'assistant'
                         ? html`
                               ${this.updateAvailable
                                   ? html`

@@ -8,7 +8,7 @@ import '../views/AssistantView.js';
 import '../views/OnboardingView.js';
 
 // Import analytics for tracking
-let trackEvent = () => { };
+let trackEvent = () => {};
 if (typeof window !== 'undefined' && window.require) {
     try {
         const { fileURLToPath } = window.require('url');
@@ -177,9 +177,10 @@ export class CoInterviewApp extends LitElement {
             const prefs = prefsResult.success ? prefsResult.data : {};
 
             // Check onboarding status
-            // this.currentView = config?.onboardingComplete ? 'main' : 'onboarding';
-            // TODO THIS IS FOR DEVELOPMENT DON'T CHANGE IT 
-            this.currentView = 'onboarding';
+            // In development mode, always show onboarding for testing
+            // In production, skip onboarding if already completed
+            const isDev = ipcRenderer.sendSync('is-dev');
+            this.currentView = isDev || !config?.onboardingComplete ? 'onboarding' : 'assistant';
 
             // Apply background appearance (color + transparency)
             this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.8);
@@ -213,10 +214,10 @@ export class CoInterviewApp extends LitElement {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result
             ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16),
-            }
+                  r: parseInt(result[1], 16),
+                  g: parseInt(result[2], 16),
+                  b: parseInt(result[3], 16),
+              }
             : { r: 30, g: 30, b: 30 };
     }
 
@@ -342,7 +343,8 @@ export class CoInterviewApp extends LitElement {
 
     async handleClose() {
         if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history') {
-            this.currentView = 'main';
+            // Return to assistant (listening) view - main/API key page is removed
+            this.currentView = 'assistant';
         } else if (this.currentView === 'assistant') {
             if (window.coInterview?.stopCapture) {
                 window.coInterview.stopCapture();
@@ -354,8 +356,8 @@ export class CoInterviewApp extends LitElement {
                 await ipcRenderer.invoke('close-session');
             }
             this.sessionActive = false;
-            this.currentView = 'main';
-            console.log('Session closed');
+            // Stay on assistant view but in "ready" state - don't go to removed main page
+            console.log('Session closed - ready for new session');
         } else {
             // Quit the entire application
             if (window.require) {
@@ -374,21 +376,8 @@ export class CoInterviewApp extends LitElement {
 
     // Main view event handlers
     async handleStart() {
-        // check if api key is empty do nothing
-        const electron = window.require ? window.require('electron') : require('electron');
-        const ipcRenderer = electron.ipcRenderer;
-        const result = await ipcRenderer.invoke('storage:get-api-key');
-        const apiKey = result.success ? result.data : '';
-
-        if (!apiKey || apiKey === '') {
-            // Trigger the red blink animation on the API key input
-            const mainView = this.shadowRoot.querySelector('main-view');
-            if (mainView && mainView.triggerApiKeyError) {
-                mainView.triggerApiKeyError();
-            }
-            return;
-        }
-
+        // With managed quota system, backend handles ephemeral tokens
+        // No need to check for local API key anymore
         if (window.coInterview?.initializeGemini) {
             await window.coInterview.initializeGemini(this.selectedProfile, this.selectedLanguage);
         }
@@ -445,7 +434,8 @@ export class CoInterviewApp extends LitElement {
     }
 
     handleBackClick() {
-        this.currentView = 'main';
+        // Navigate to assistant view - main/API key page is removed
+        this.currentView = 'assistant';
         this.requestUpdate();
     }
 
@@ -484,8 +474,37 @@ export class CoInterviewApp extends LitElement {
     }
 
     // Onboarding event handlers
-    handleOnboardingComplete() {
-        this.currentView = 'main';
+    async handleOnboardingComplete() {
+        // With managed quota system, go directly to assistant (listening) view
+        // Backend handles ephemeral tokens - no need for API key entry
+        this.responses = [];
+        this.currentResponseIndex = -1;
+        this.startTime = Date.now();
+
+        // Save onboarding complete status
+        const electron = window.require ? window.require('electron') : require('electron');
+        await electron.ipcRenderer.invoke('storage:update-config', 'onboardingComplete', true);
+
+        // Initialize session
+        if (window.coInterview?.initializeGemini) {
+            await window.coInterview.initializeGemini(this.selectedProfile, this.selectedLanguage);
+        }
+
+        // Start capture
+        if (window.coInterview?.startCapture) {
+            window.coInterview.startCapture(this.selectedScreenshotInterval, this.selectedImageQuality);
+        }
+
+        // Analytics
+        if (typeof trackEvent === 'function') {
+            trackEvent('session_start', {
+                profile: this.selectedProfile,
+                language: this.selectedLanguage,
+                from: 'onboarding',
+            });
+        }
+
+        this.currentView = 'assistant';
     }
 
     updated(changedProperties) {
@@ -561,11 +580,11 @@ export class CoInterviewApp extends LitElement {
                         .shouldAnimateResponse=${this.shouldAnimateResponse}
                         @response-index-changed=${this.handleResponseIndexChanged}
                         @response-animation-complete=${() => {
-                        this.shouldAnimateResponse = false;
-                        this._currentResponseIsComplete = true;
-                        console.log('[response-animation-complete] Marked current response as complete');
-                        this.requestUpdate();
-                    }}
+                            this.shouldAnimateResponse = false;
+                            this._currentResponseIsComplete = true;
+                            console.log('[response-animation-complete] Marked current response as complete');
+                            this.requestUpdate();
+                        }}
                     ></assistant-view>
                 `;
 

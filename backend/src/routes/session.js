@@ -1,14 +1,44 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+const { GoogleGenAI } = require('@google/genai');
 const authMiddleware = require('../middleware/auth');
 const { admin, db } = require('../config/firebase');
 const { PLANS } = require('../config/stripe');
 const { rateLimiter } = require('../config/redis');
 const { PaymentRequiredError, ForbiddenError, QuotaExceededError, ConcurrencyLimitError } = require('../middleware/errorHandler');
 
+// Initialize Gemini client with master key (server-side only)
+const geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_MASTER_API_KEY });
+
+/**
+ * Mint an ephemeral token for Live API with quota-based TTL
+ * @param {string} model - The Gemini model to use
+ * @param {number} ttlSeconds - Token time-to-live in seconds
+ * @returns {Promise<{token: string, expiresAt: Date}>}
+ */
+async function mintEphemeralToken(model, ttlSeconds) {
+    const expireTime = new Date(Date.now() + ttlSeconds * 1000).toISOString();
+
+    const tokenResponse = await geminiClient.authTokens.create({
+        config: {
+            uses: 1,
+            expireTime: expireTime,
+            liveConnectConstraints: {
+                model: model,
+            },
+            httpOptions: { apiVersion: 'v1alpha' },
+        },
+    });
+
+    return {
+        token: tokenResponse.name, // The ephemeral token string
+        expiresAt: new Date(expireTime),
+    };
+}
+
 // Helper to get next month start for reset
-const getNextMonthStart = (date) => {
+const getNextMonthStart = date => {
     const d = new Date(date);
     // Set to 1st of next month, 00:00:00
     return new Date(Date.UTC(d.getFullYear(), d.getMonth() + 1, 1));
@@ -78,7 +108,7 @@ router.post('/session', authMiddleware, async (req, res, next) => {
             // Update user doc with new reset info
             await userRef.update({
                 'usage.quotaSecondsUsed': quotaSecondsUsed,
-                'usage.quotaResetAt': quotaResetAt
+                'usage.quotaResetAt': quotaResetAt,
             });
         }
 
@@ -94,9 +124,16 @@ router.post('/session', authMiddleware, async (req, res, next) => {
             throw new QuotaExceededError('Monthly quota exceeded. Please upgrade your plan or wait for quota reset.');
         }
 
-        // 6. Create Session
+        // 6. Calculate Token TTL (quota-based enforcement)
+        // TTL = min(remainingQuota, maxSessionDuration)
+        const HARD_CAP_SECONDS = 3600; // 1 hour max per session (safety)
+        const tokenTtlSeconds = Math.min(quotaRemaining, planConfig.sessionMaxDuration, HARD_CAP_SECONDS);
+
+        // 7. Mint Ephemeral Token
+        const { token: ephemeralToken, expiresAt: tokenExpiresAt } = await mintEphemeralToken(model, tokenTtlSeconds);
+
+        // 8. Create Session
         const sessionId = `sess_${uuidv4().replace(/-/g, '').substring(0, 16)}`;
-        const expiresAt = new Date(Date.now() + planConfig.sessionMaxDuration * 1000);
 
         const session = {
             userId: uid,
@@ -106,7 +143,7 @@ router.post('/session', authMiddleware, async (req, res, next) => {
             // SERVER-SIDE TRUTH: We set the start time here.
             startedAt: admin.firestore.FieldValue.serverTimestamp(),
             lastHeartbeatAt: admin.firestore.FieldValue.serverTimestamp(),
-            expiresAt,
+            tokenExpiresAt, // Track when the ephemeral token expires
             endedAt: null,
             durationSeconds: 0,
             status: 'active',
@@ -115,20 +152,20 @@ router.post('/session', authMiddleware, async (req, res, next) => {
 
         await db.collection('sessions').doc(sessionId).set(session);
 
-        // 7. Set Concurrency Lock in Redis
-        // TTL = Max Duration + buffer (e.g. 2 minutes)
-        // If client crashes, lock expires after TTL, allowing new session.
-        await rateLimiter.setLock(`active_session:${uid}`, sessionId, planConfig.sessionMaxDuration + 60);
+        // 9. Set Concurrency Lock in Redis
+        // TTL = Token TTL + buffer (e.g. 2 minutes)
+        await rateLimiter.setLock(`active_session:${uid}`, sessionId, tokenTtlSeconds + 120);
 
-        // 8. Return Credentials
+        // 10. Return Credentials (ephemeral token, NOT master key)
         res.json({
             session_id: sessionId,
             provider: 'gemini',
             model,
-            token: process.env.GEMINI_MASTER_API_KEY,
-            expires_at: Math.floor(expiresAt.getTime() / 1000),
-            max_duration_sec: planConfig.sessionMaxDuration,
+            token: ephemeralToken, // Ephemeral token, not master key!
+            expires_at: Math.floor(tokenExpiresAt.getTime() / 1000),
+            max_duration_sec: tokenTtlSeconds,
             quota_remaining_seconds: quotaRemaining,
+            ws_url: `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent`,
         });
     } catch (error) {
         next(error);
@@ -150,7 +187,7 @@ router.post('/session/:sessionId/end', authMiddleware, async (req, res, next) =>
         const userRef = db.collection('users').doc(uid);
 
         // 1. Transaction for atomic read-calc-update
-        const result = await db.runTransaction(async (t) => {
+        const result = await db.runTransaction(async t => {
             const sessionDoc = await t.get(sessionRef);
             const userDoc = await t.get(userRef);
 
@@ -169,7 +206,7 @@ router.post('/session/:sessionId/end', authMiddleware, async (req, res, next) =>
                     alreadyEnded: true,
                     durationSeconds: session.durationSeconds,
                     chargedSeconds: session.chargedSeconds || 0,
-                    quotaRemaining: 0 // rough estimate or fetch real
+                    quotaRemaining: 0, // rough estimate or fetch real
                 };
             }
 
@@ -205,17 +242,17 @@ router.post('/session/:sessionId/end', authMiddleware, async (req, res, next) =>
                 chargedSeconds: chargedSeconds,
                 status: 'ended',
                 endReason: reason,
-                counted: true
+                counted: true,
             });
 
             t.update(userRef, {
-                'usage.quotaSecondsUsed': newQuotaUsed
+                'usage.quotaSecondsUsed': newQuotaUsed,
             });
 
             return {
                 durationSeconds: realDuration,
                 chargedSeconds: chargedSeconds,
-                quotaRemaining: totalQuota - newQuotaUsed
+                quotaRemaining: totalQuota - newQuotaUsed,
             };
         });
 
@@ -228,9 +265,8 @@ router.post('/session/:sessionId/end', authMiddleware, async (req, res, next) =>
             duration_seconds: result.durationSeconds,
             charged_seconds: result.chargedSeconds,
             quota_remaining_seconds: result.quotaRemaining,
-            message: result.alreadyEnded ? 'Session already ended' : 'Session ended successfully'
+            message: result.alreadyEnded ? 'Session already ended' : 'Session ended successfully',
         });
-
     } catch (error) {
         if (error.status) {
             return res.status(error.status).json({ error: error.message });
@@ -300,7 +336,7 @@ router.post('/heartbeat', authMiddleware, async (req, res, next) => {
 
         // 4. Update lastHeartbeatAt
         await sessionRef.update({
-            lastHeartbeatAt: nowTimestamp
+            lastHeartbeatAt: nowTimestamp,
         });
 
         res.json({

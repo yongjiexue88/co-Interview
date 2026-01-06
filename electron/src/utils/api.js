@@ -137,10 +137,41 @@ async function endSession(sessionId, durationSeconds, reason = 'user_ended') {
         console.error('API Warning (endSession):', error);
     }
 }
+/**
+ * Analyze Screenshot (Backend Proxy)
+ * Sends screenshot to backend for analysis using master key.
+ */
+async function analyzeScreenshot(base64Image, prompt, model = 'gemini-2.5-flash') {
+    try {
+        const response = await fetch(`${getBaseUrl()}/api/v1/analyze/screenshot`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({
+                image: base64Image,
+                prompt: prompt,
+                model: model,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            if (response.status === 402) {
+                throw new Error('QUOTA_EXCEEDED');
+            }
+            throw new Error(errorData.error || 'Screenshot analysis failed');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Error (analyzeScreenshot):', error);
+        throw error;
+    }
+}
 
 module.exports = {
     fetchUserProfile,
     startSession,
     sendHeartbeat,
     endSession,
+    analyzeScreenshot,
 };

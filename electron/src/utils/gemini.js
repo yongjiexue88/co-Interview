@@ -3,7 +3,6 @@ const { BrowserWindow, ipcMain } = require('electron');
 const { spawn } = require('child_process');
 const { saveDebugAudio } = require('../audioUtils');
 const { getSystemPrompt } = require('./prompts');
-const { getAvailableModel, incrementLimitCount, getApiKey } = require('../storage');
 const Api = require('./api');
 
 // Conversation tracking variables
@@ -738,58 +737,42 @@ async function sendAudioToGemini(base64Data, geminiSessionRef) {
 }
 
 async function sendImageToGeminiHttp(base64Data, prompt) {
-    // Get available model based on rate limits
-    const model = getAvailableModel();
-
-    // Use managed token if available, otherwise fall back to stored API key
-    const apiKey = currentGeminiToken || getApiKey();
-    if (!apiKey) {
-        return { success: false, error: 'No API key configured' };
-    }
-
     try {
-        const ai = new GoogleGenAI({ apiKey: apiKey });
+        console.log('Sending image to backend for analysis...');
 
-        const contents = [
-            {
-                inlineData: {
-                    mimeType: 'image/jpeg',
-                    data: base64Data,
-                },
-            },
-            { text: prompt },
-        ];
+        // Send to renderer that we're starting
+        sendToRenderer('new-response', 'Analyzing image...');
 
-        console.log(`Sending image to ${model} (streaming)...`);
-        const response = await ai.models.generateContentStream({
-            model: model,
-            contents: contents,
-        });
+        // Use backend proxy (master key stays server-side)
+        const result = await Api.analyzeScreenshot(base64Data, prompt);
 
-        // Increment count after successful call
-        incrementLimitCount(model);
-
-        // Stream the response
-        let fullText = '';
-        let isFirst = true;
-        for await (const chunk of response) {
-            const chunkText = chunk.text;
-            if (chunkText) {
-                fullText += chunkText;
-                // Send to renderer - new response for first chunk, update for subsequent
-                sendToRenderer(isFirst ? 'new-response' : 'update-response', fullText);
-                isFirst = false;
-            }
+        if (!result.success) {
+            throw new Error(result.error || 'Analysis failed');
         }
 
-        console.log(`Image response completed from ${model}`);
+        const fullText = result.text;
+        const model = result.model;
+
+        // Send final result to renderer
+        sendToRenderer('update-response', fullText);
+
+        console.log(`Image response completed from ${model} (via backend proxy)`);
 
         // Save screen analysis to history
         saveScreenAnalysis(prompt, fullText, model);
 
         return { success: true, text: fullText, model: model };
     } catch (error) {
-        console.error('Error sending image to Gemini HTTP:', error);
+        console.error('Error sending image via backend:', error);
+
+        // Handle quota exceeded specially
+        if (error.message === 'QUOTA_EXCEEDED') {
+            sendToRenderer('session-error', {
+                code: 'QUOTA_EXCEEDED',
+                message: 'Monthly quota exceeded for screenshot analysis.',
+            });
+        }
+
         return { success: false, error: error.message };
     }
 }

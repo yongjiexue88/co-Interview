@@ -46,6 +46,9 @@ jobs:
             --set-env-vars "NODE_ENV=production" \
             --set-env-vars "FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }}" \
             --set-env-vars "FRONTEND_URL=https://co-interview.com" \
+            --set-env-vars "GEMINI_MASTER_API_KEY=${{ secrets.GEMINI_MASTER_API_KEY }}" \
+            --set-env-vars "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" \
+            --set-env-vars "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
             --set-env-vars "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \
             --set-env-vars "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
             --set-env-vars "GOOGLE_REDIRECT_URI=https://co-interview.com/api/v1/auth/google/callback" \

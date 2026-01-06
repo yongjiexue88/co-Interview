@@ -40,7 +40,7 @@ After running coverage, check the terminal output for coverage percentages:
 - Frontend: Look for "All files" line coverage %
 - Backend: Look for "All files" line coverage %
 - Electron: Look for "All files" line coverage %
-**If ANY project has < 80% line coverage:**
+**If ANY project has < 99% line coverage:**
 7. Invoke test-author workflow with the following context:
    - Current coverage percentages for each project
    - Top 10 uncovered files from each project's coverage report (found in `coverage/coverage-summary.json` or terminal output)
@@ -49,9 +49,9 @@ Example invocation:
 ```
 /test-author
 Coverage Report:
-- Frontend: 65% lines (target: 80%)
-- Backend: 72% lines (target: 80%)
-- Electron: 88% lines (✓ passing)
+- Frontend: 65% lines (target: 99%)
+- Backend: 72% lines (target: 99%)
+- Electron: 100% lines (✓ passing)
 Top Uncovered Files (Frontend):
 1. src/components/Hero.tsx - 45% coverage
 2. src/pages/BlogPostPage.tsx - 52% coverage

@@ -656,6 +656,11 @@ function setupGeneralIpcHandlers() {
     ipcMain.on('log-message', (event, msg) => {
         console.log(msg);
     });
+
+    // Synchronous handler for dev mode check
+    ipcMain.on('is-dev', event => {
+        event.returnValue = !app.isPackaged;
+    });
 }
 
 function setupAuthIpcHandlers() {

@@ -1,17 +1,92 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { X, Smartphone, Globe, CreditCard, User as UserIcon } from 'lucide-react';
+import { X, Smartphone, Globe, CreditCard, User as UserIcon, RotateCcw, Clock, Loader2 } from 'lucide-react';
 import { UserData } from '../types/user';
+import { useAuth } from '../hooks/useAuth';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+
+interface SessionHistoryItem {
+    id: string;
+    model: string;
+    status: string;
+    startedAt: string;
+    endedAt?: string;
+    durationSeconds: number;
+    chargedSeconds: number;
+    endReason?: string;
+}
 
 interface UserDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     user: UserData | null;
+    onRefresh?: () => void;
 }
 
-const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, user }) => {
+const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, user, onRefresh }) => {
+    const { user: authUser } = useAuth();
+    const [sessions, setSessions] = useState<SessionHistoryItem[]>([]);
+    const [sessionsLoading, setSessionsLoading] = useState(false);
+    const [resettingQuota, setResettingQuota] = useState(false);
+
+    // Fetch session history when modal opens
+    // Note: useEffect must be called before any early returns (Rules of Hooks)
+    useEffect(() => {
+        if (isOpen && user) {
+            fetchSessionHistory();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, user?.id]);
+
+    // Early return AFTER all hooks have been called
     if (!user) return null;
+
+    const fetchSessionHistory = async () => {
+        if (!user) return;
+        setSessionsLoading(true);
+        try {
+            const token = await authUser?.getIdToken();
+            const res = await fetch(`${API_URL}/admin/users/${user.id}/sessions?limit=10`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setSessions(data.sessions);
+            }
+        } catch (error) {
+            console.error('Failed to fetch session history:', error);
+        } finally {
+            setSessionsLoading(false);
+        }
+    };
+
+    const handleResetQuota = async () => {
+        if (!confirm("Reset this user's quota usage to 0? This cannot be undone.")) return;
+        setResettingQuota(true);
+        try {
+            const token = await authUser?.getIdToken();
+            const res = await fetch(`${API_URL}/admin/users/${user.id}/reset-quota`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (res.ok) {
+                alert('Quota reset successfully!');
+                onRefresh?.();
+            } else {
+                alert('Failed to reset quota');
+            }
+        } catch (error) {
+            console.error('Reset quota error:', error);
+            alert('Failed to reset quota');
+        } finally {
+            setResettingQuota(false);
+        }
+    };
 
     // Helper to format date
     const formatDate = (dateStr?: string) => {
@@ -21,6 +96,14 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, us
         } catch {
             return dateStr;
         }
+    };
+
+    // Helper to format duration
+    const formatDuration = (seconds: number) => {
+        if (seconds < 60) return `${seconds}s`;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}m ${secs}s`;
     };
 
     // Helper to safely get nested value or fallback
@@ -189,6 +272,18 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, us
                                                         }}
                                                     />
                                                 </div>
+                                                <button
+                                                    onClick={handleResetQuota}
+                                                    disabled={resettingQuota}
+                                                    className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-colors border border-red-500/20 disabled:opacity-50"
+                                                >
+                                                    {resettingQuota ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                    ) : (
+                                                        <RotateCcw className="w-3 h-3" />
+                                                    )}
+                                                    Reset Quota to 0
+                                                </button>
                                             </div>
                                         </section>
 
@@ -219,6 +314,44 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, us
                                                     </span>
                                                 </div>
                                             </div>
+                                        </section>
+
+                                        {/* Session History */}
+                                        <section className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                            <h4 className="flex items-center gap-2 text-orange-400 font-semibold mb-3">
+                                                <Clock className="w-4 h-4" /> Session History
+                                            </h4>
+                                            {sessionsLoading ? (
+                                                <div className="flex items-center justify-center py-4 text-gray-500">
+                                                    <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading...
+                                                </div>
+                                            ) : sessions.length === 0 ? (
+                                                <div className="text-gray-500 text-sm text-center py-4">No sessions found</div>
+                                            ) : (
+                                                <div className="space-y-2 max-h-48 overflow-y-auto">
+                                                    {sessions.map(session => (
+                                                        <div
+                                                            key={session.id}
+                                                            className="flex items-center justify-between bg-black/30 rounded-lg px-3 py-2 text-xs"
+                                                        >
+                                                            <div>
+                                                                <div className="text-gray-400">{formatDate(session.startedAt)}</div>
+                                                                <div className="text-[10px] text-gray-600 font-mono">
+                                                                    {session.id.substring(0, 16)}...
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-white">{formatDuration(session.durationSeconds)}</div>
+                                                                <div
+                                                                    className={`text-[10px] ${session.status === 'active' ? 'text-green-400' : 'text-gray-500'}`}
+                                                                >
+                                                                    {session.status === 'active' ? '● Active' : session.endReason || 'Ended'}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </section>
 
                                         {/* Raw Data Toggle (Optional) */}

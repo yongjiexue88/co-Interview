@@ -3,6 +3,8 @@ const router = express.Router();
 const { auth: adminAuth, db } = require('../config/firebase');
 const authMiddleware = require('../middleware/auth');
 const adminMiddleware = require('../middleware/admin');
+const { rateLimiter } = require('../config/redis');
+const { PLANS } = require('../config/stripe');
 
 // Protect all admin routes
 router.use(authMiddleware);
@@ -215,7 +217,7 @@ router.post('/users/seed-v2', async (req, res) => {
                 displayName: 'Test User V2',
                 emailVerified: true,
             });
-        } catch (e) {
+        } catch (_e) {
             console.log('User might already exist in Auth, proceeding to overwrite Firestore...');
         }
 
@@ -310,6 +312,216 @@ router.post('/users/seed-v2', async (req, res) => {
     } catch (error) {
         console.error('Seed V2 error:', error);
         res.status(500).json({ error: 'Failed to seed user' });
+    }
+});
+
+// ============================================
+// SESSION & QUOTA MANAGEMENT ENDPOINTS
+// ============================================
+
+/**
+ * GET /api/v1/admin/sessions/active
+ * List all currently active sessions across all users
+ */
+router.get('/sessions/active', async (req, res) => {
+    try {
+        const snapshot = await db.collection('sessions').where('status', '==', 'active').orderBy('startedAt', 'desc').limit(100).get();
+
+        const sessions = [];
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            // Get user email for display
+            let userEmail = 'Unknown';
+            try {
+                const userDoc = await db.collection('users').doc(data.userId).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    userEmail = userData.profile?.email || userData.email || 'Unknown';
+                }
+            } catch (_e) {
+                console.warn('Could not fetch user for session:', doc.id);
+            }
+
+            sessions.push({
+                id: doc.id,
+                userId: data.userId,
+                userEmail,
+                model: data.model,
+                startedAt: data.startedAt?.toDate?.()?.toISOString() || data.startedAt,
+                tokenExpiresAt: data.tokenExpiresAt?.toDate?.()?.toISOString() || data.tokenExpiresAt,
+                lastHeartbeatAt: data.lastHeartbeatAt?.toDate?.()?.toISOString() || data.lastHeartbeatAt,
+                planIdAtStart: data.planIdAtStart,
+            });
+        }
+
+        res.json({ sessions, count: sessions.length });
+    } catch (error) {
+        console.error('List active sessions error:', error);
+        res.status(500).json({ error: 'Failed to list active sessions' });
+    }
+});
+
+/**
+ * POST /api/v1/admin/sessions/:sessionId/terminate
+ * Force-end an active session (admin override)
+ */
+router.post('/sessions/:sessionId/terminate', async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const { reason = 'admin_terminated' } = req.body;
+
+        const sessionRef = db.collection('sessions').doc(sessionId);
+        const sessionDoc = await sessionRef.get();
+
+        if (!sessionDoc.exists) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+
+        const session = sessionDoc.data();
+        if (session.status === 'ended') {
+            return res.status(400).json({ error: 'Session already ended' });
+        }
+
+        // Calculate duration
+        const now = new Date();
+        const startedAt = session.startedAt?.toDate?.() || new Date();
+        const durationSeconds = Math.floor((now - startedAt) / 1000);
+
+        // Update session to ended
+        await sessionRef.update({
+            endedAt: now,
+            durationSeconds,
+            status: 'ended',
+            endReason: reason,
+            terminatedBy: req.user.uid,
+        });
+
+        // Release Redis lock for the user
+        await rateLimiter.deleteLock(`active_session:${session.userId}`);
+
+        console.log(`[Admin Action] Session ${sessionId} terminated by ${req.user.email}`);
+        res.json({
+            success: true,
+            message: 'Session terminated',
+            durationSeconds,
+        });
+    } catch (error) {
+        console.error('Terminate session error:', error);
+        res.status(500).json({ error: 'Failed to terminate session' });
+    }
+});
+
+/**
+ * POST /api/v1/admin/users/:id/reset-quota
+ * Reset a user's quota usage to 0
+ */
+router.post('/users/:id/reset-quota', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const userRef = db.collection('users').doc(id);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Reset quota while keeping the reset date unchanged
+        await userRef.update({
+            'usage.quotaSecondsUsed': 0,
+        });
+
+        console.log(`[Admin Action] User ${id} quota reset by ${req.user.email}`);
+        res.json({
+            success: true,
+            message: 'User quota reset to 0',
+        });
+    } catch (error) {
+        console.error('Reset quota error:', error);
+        res.status(500).json({ error: 'Failed to reset quota' });
+    }
+});
+
+/**
+ * GET /api/v1/admin/users/:id/sessions
+ * Get session history for a specific user (last 10)
+ */
+router.get('/users/:id/sessions', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { limit = 10 } = req.query;
+
+        const snapshot = await db.collection('sessions').where('userId', '==', id).orderBy('startedAt', 'desc').limit(parseInt(limit)).get();
+
+        const sessions = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            sessions.push({
+                id: doc.id,
+                model: data.model,
+                status: data.status,
+                startedAt: data.startedAt?.toDate?.()?.toISOString() || data.startedAt,
+                endedAt: data.endedAt?.toDate?.()?.toISOString() || data.endedAt,
+                durationSeconds: data.durationSeconds || 0,
+                chargedSeconds: data.chargedSeconds || 0,
+                endReason: data.endReason,
+                planIdAtStart: data.planIdAtStart,
+            });
+        });
+
+        res.json({ sessions, count: sessions.length });
+    } catch (error) {
+        console.error('Get user sessions error:', error);
+        res.status(500).json({ error: 'Failed to get user sessions' });
+    }
+});
+
+/**
+ * GET /api/v1/admin/system/health
+ * Get system health info: API key status, aggregate stats
+ */
+router.get('/system/health', async (req, res) => {
+    try {
+        // 1. Check if Gemini API key is configured
+        const geminiKeyConfigured = !!process.env.GEMINI_MASTER_API_KEY;
+
+        // 2. Count active sessions
+        const activeSessionsSnapshot = await db.collection('sessions').where('status', '==', 'active').get();
+        const activeSessionsCount = activeSessionsSnapshot.size;
+
+        // 3. Get aggregate quota usage this month (sample first 100 users)
+        const usersSnapshot = await db.collection('users').limit(100).get();
+        let totalQuotaUsed = 0;
+        let userCount = 0;
+        usersSnapshot.forEach(doc => {
+            const data = doc.data();
+            const used = data.usage?.quotaSecondsUsed || data.quotaSecondsUsed || 0;
+            totalQuotaUsed += used;
+            userCount++;
+        });
+
+        // 4. Get plan configuration summary
+        const plansSummary = Object.entries(PLANS).map(([id, config]) => ({
+            id,
+            name: config.name,
+            quotaSecondsMonth: config.quotaSecondsMonth,
+            sessionMaxDuration: config.sessionMaxDuration,
+        }));
+
+        res.json({
+            geminiKeyConfigured,
+            activeSessionsCount,
+            aggregateStats: {
+                totalQuotaUsedSeconds: totalQuotaUsed,
+                totalQuotaUsedMinutes: Math.round(totalQuotaUsed / 60),
+                sampleUserCount: userCount,
+            },
+            plans: plansSummary,
+            timestamp: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error('System health error:', error);
+        res.status(500).json({ error: 'Failed to get system health' });
     }
 });
 

@@ -1,6 +1,24 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Search, Users, LogOut, Ban, CheckCircle, Edit2, X, Save, Shield, PlusCircle, Eye, MousePointer } from 'lucide-react';
+import {
+    Search,
+    Users,
+    LogOut,
+    Ban,
+    CheckCircle,
+    Edit2,
+    X,
+    Save,
+    Shield,
+    PlusCircle,
+    Eye,
+    MousePointer,
+    Activity,
+    Zap,
+    Clock,
+    XCircle,
+    Loader2,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../lib/firebase';
 import KPISummaryPanel, { AnalyticsEvent } from '../components/KPISummaryPanel';
@@ -8,6 +26,29 @@ import UserDetailsModal from '../components/UserDetailsModal';
 import { UserData } from '../types/user';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+
+interface SystemHealth {
+    geminiKeyConfigured: boolean;
+    activeSessionsCount: number;
+    aggregateStats: {
+        totalQuotaUsedSeconds: number;
+        totalQuotaUsedMinutes: number;
+        sampleUserCount: number;
+    };
+    plans: Array<{ id: string; name: string; quotaSecondsMonth: number; sessionMaxDuration: number }>;
+    timestamp: string;
+}
+
+interface ActiveSession {
+    id: string;
+    userId: string;
+    userEmail: string;
+    model: string;
+    startedAt: string;
+    tokenExpiresAt: string;
+    lastHeartbeatAt: string;
+    planIdAtStart: string;
+}
 
 const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
@@ -24,6 +65,11 @@ const AdminDashboard: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // System Health & Active Sessions
+    const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+    const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
+    const [terminatingSession, setTerminatingSession] = useState<string | null>(null);
+
     // Fetch users AND analytics from backend
     const fetchData = useCallback(async () => {
         try {
@@ -31,9 +77,11 @@ const AdminDashboard: React.FC = () => {
             const token = await user?.getIdToken();
             const headers = { Authorization: `Bearer ${token}` };
 
-            const [usersRes, analyticsRes] = await Promise.all([
+            const [usersRes, analyticsRes, healthRes, sessionsRes] = await Promise.all([
                 fetch(`${API_URL}/admin/users?limit=100`, { headers }),
                 fetch(`${API_URL}/admin/analytics?limit=1000`, { headers }),
+                fetch(`${API_URL}/admin/system/health`, { headers }),
+                fetch(`${API_URL}/admin/sessions/active`, { headers }),
             ]);
 
             if (usersRes.ok) {
@@ -48,6 +96,16 @@ const AdminDashboard: React.FC = () => {
                 setEvents(data.events);
             } else {
                 console.error('Failed to fetch analytics');
+            }
+
+            if (healthRes.ok) {
+                const data = await healthRes.json();
+                setSystemHealth(data);
+            }
+
+            if (sessionsRes.ok) {
+                const data = await sessionsRes.json();
+                setActiveSessions(data.sessions);
             }
 
             // Fetch GA Data
@@ -172,6 +230,33 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
+    const handleTerminateSession = async (sessionId: string) => {
+        if (!confirm('Force-terminate this session? The user will be disconnected.')) return;
+        setTerminatingSession(sessionId);
+        try {
+            const token = await user?.getIdToken();
+            const response = await fetch(`${API_URL}/admin/sessions/${sessionId}/terminate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ reason: 'admin_terminated' }),
+            });
+
+            if (response.ok) {
+                await fetchData();
+            } else {
+                alert('Failed to terminate session');
+            }
+        } catch (error) {
+            console.error('Terminate failed:', error);
+            alert('Terminate failed');
+        } finally {
+            setTerminatingSession(null);
+        }
+    };
+
     const filteredUsers = users.filter(u => u.email?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
@@ -244,6 +329,98 @@ const AdminDashboard: React.FC = () => {
                         <div className="text-3xl font-bold text-white">{gaData?.eventCount?.toLocaleString() || (gaData?.error ? '-' : '...')}</div>
                     </div>
                 </div>
+
+                {/* System Health & API Status */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-yellow-400" />
+                            Gemini API Key
+                        </div>
+                        <div className={`text-2xl font-bold ${systemHealth?.geminiKeyConfigured ? 'text-green-400' : 'text-red-400'}`}>
+                            {systemHealth?.geminiKeyConfigured ? '✓ Configured' : '✗ Missing'}
+                        </div>
+                    </div>
+
+                    <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <Activity className="w-4 h-4 text-green-400" />
+                            Active Sessions
+                        </div>
+                        <div className="text-2xl font-bold text-white">{activeSessions.length}</div>
+                    </div>
+
+                    <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-purple-400" />
+                            Platform Quota Used
+                        </div>
+                        <div className="text-2xl font-bold text-white">
+                            {systemHealth?.aggregateStats?.totalQuotaUsedMinutes?.toLocaleString() || 0} mins
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">Sample: {systemHealth?.aggregateStats?.sampleUserCount || 0} users</div>
+                    </div>
+                </div>
+
+                {/* Active Sessions Table */}
+                {activeSessions.length > 0 && (
+                    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
+                        <div className="p-4 border-b border-white/10">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-green-400" />
+                                Live Sessions ({activeSessions.length})
+                            </h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-black/50 text-gray-400 font-medium">
+                                    <tr>
+                                        <th className="px-4 py-3">User</th>
+                                        <th className="px-4 py-3">Started</th>
+                                        <th className="px-4 py-3">Expires</th>
+                                        <th className="px-4 py-3">Plan</th>
+                                        <th className="px-4 py-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {activeSessions.map(session => (
+                                        <tr key={session.id} className="hover:bg-white/5 transition-colors">
+                                            <td className="px-4 py-3">
+                                                <div className="text-white text-xs">{session.userEmail}</div>
+                                                <div className="text-[10px] text-gray-600 font-mono">{session.id.substring(0, 16)}...</div>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-400 text-xs">{new Date(session.startedAt).toLocaleTimeString()}</td>
+                                            <td className="px-4 py-3 text-xs">
+                                                <span className={new Date(session.tokenExpiresAt) < new Date() ? 'text-red-400' : 'text-green-400'}>
+                                                    {new Date(session.tokenExpiresAt).toLocaleTimeString()}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className="px-2 py-0.5 rounded text-[10px] bg-white/10 text-gray-300">
+                                                    {session.planIdAtStart}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <button
+                                                    onClick={() => handleTerminateSession(session.id)}
+                                                    disabled={terminatingSession === session.id}
+                                                    className="px-2 py-1 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded transition-colors border border-red-500/20 disabled:opacity-50"
+                                                >
+                                                    {terminatingSession === session.id ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin inline" />
+                                                    ) : (
+                                                        <XCircle className="w-3 h-3 inline mr-1" />
+                                                    )}
+                                                    Terminate
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {/* Users Table */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
@@ -399,7 +576,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            <UserDetailsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} user={selectedUser} />
+            <UserDetailsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} user={selectedUser} onRefresh={fetchData} />
         </div>
     );
 };

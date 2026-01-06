@@ -69,6 +69,7 @@ jest.mock('../src/utils/api', () => ({
     sendHeartbeat: jest.fn().mockResolvedValue({ continue: true }),
     endSession: jest.fn().mockResolvedValue({}),
     fetchUserProfile: jest.fn().mockResolvedValue({ plan: { id: 'free' }, quota: { remaining: 1000 } }),
+    analyzeScreenshot: jest.fn().mockResolvedValue({ success: true, text: 'Test response', model: 'gemini-2.5-flash' }),
 }));
 
 // Mock fetch for getBackendSession
@@ -291,7 +292,7 @@ describe('Gemini Utils', () => {
             setupGeminiIpcHandlers(geminiSessionRef);
         });
 
-        it('send-image-content should use HTTP API and stream response', async () => {
+        it('send-image-content should use backend proxy for analysis', async () => {
             const mockImageData = 'B'.repeat(2000); // 2000 chars of base64 data
             const mockPrompt = 'What is this?';
 
@@ -302,7 +303,9 @@ describe('Gemini Utils', () => {
 
             const { BrowserWindow } = require('electron');
             const win = BrowserWindow.getAllWindows()[0];
-            expect(win.webContents.send).toHaveBeenCalledWith('new-response', 'Test response');
+            // New flow: sends 'Analyzing image...' first, then updates with result
+            expect(win.webContents.send).toHaveBeenCalledWith('new-response', 'Analyzing image...');
+            expect(win.webContents.send).toHaveBeenCalledWith('update-response', 'Test response');
         });
 
         it('send-image-content should fail on invalid data', async () => {
