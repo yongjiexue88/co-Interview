@@ -127,6 +127,15 @@
 - Fixed state persistence and missing `fetch` in Electron `analytics.js` tests
 - Verified all quality gates (Frontend: 35 pass, Backend: 60 pass, Electron: 111 pass)
 
+### Managed Quota System with Ephemeral Tokens (2026-01-05)
+- **Backend:** Implemented ephemeral token minting via `@google/genai authTokens.create()`
+- **Security:** Master API key never leaves backend; Electron receives short-lived tokens
+- **Quota Enforcement:** Token TTL = `min(quotaRemaining, maxSessionDuration, 3600)`
+- **Screenshot Proxy:** Created `/v1/analyze/screenshot` endpoint for backend-proxied image analysis
+- **GitHub Actions:** Updated `deploy-backend.yml` with `GEMINI_MASTER_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+- **Electron:** Updated `gemini.js` to use backend proxy for screenshots
+- **Tests:** All tests passing (Backend: 55/55, Electron: 121/121)
+
 ---
 
 ## 🚧 Remaining TODO Items
@@ -184,6 +193,12 @@
 ### V2 SaaS Mode Checklist
 - [ ] GeminiSaaSClient
 - [ ] "Hosted / BYOK" toggle
+
+### GitHub Secrets Setup (Required for Production Deployment)
+- [ ] Add `GEMINI_MASTER_API_KEY` to GitHub repo secrets
+- [ ] Add `STRIPE_SECRET_KEY` to GitHub repo secrets  
+- [ ] Add `STRIPE_WEBHOOK_SECRET` to GitHub repo secrets
+- [ ] Verify secrets in Cloud Run deployment logs
 
 ### V2 Deployment Checklist
 - [ ] Create Cloud Run service
