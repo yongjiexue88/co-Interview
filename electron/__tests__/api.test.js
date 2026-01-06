@@ -92,6 +92,25 @@ describe('api.js', () => {
 
             await expect(startSession()).rejects.toThrow('CONCURRENCY_LIMIT');
         });
+        it('handles forbidden (403)', async () => {
+            fetch.mockResolvedValue({
+                ok: false,
+                status: 403,
+                json: async () => ({ error: 'Access denied' }),
+            });
+
+            await expect(startSession()).rejects.toThrow('FORBIDDEN');
+        });
+
+        it('throws generic error', async () => {
+            fetch.mockResolvedValue({
+                ok: false,
+                status: 500,
+                json: async () => ({ message: 'Server exploded' }),
+            });
+
+            await expect(startSession()).rejects.toThrow('Server exploded');
+        });
     });
 
     describe('sendHeartbeat', () => {
@@ -148,6 +167,63 @@ describe('api.js', () => {
                     body: expect.stringContaining('"duration_seconds":300'),
                 })
             );
+        });
+        it('handles error gracefully', async () => {
+            fetch.mockRejectedValue(new Error('Failed to end'));
+            // Should not throw
+            await endSession('123', 300);
+            // Verify console.error was called? (If we mocked console)
+        });
+    });
+
+    describe('analyzeScreenshot', () => {
+        const mockImage = 'base64data';
+        const mockPrompt = 'What is this?';
+
+        it('analyzes screenshot successfully', async () => {
+            const mockResponse = { result: 'A cat' };
+            fetch.mockResolvedValue({
+                ok: true,
+                json: async () => mockResponse,
+            });
+
+            const result = await require('../src/utils/api').analyzeScreenshot(mockImage, mockPrompt);
+            expect(result).toEqual(mockResponse);
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('/api/v1/analyze/screenshot'),
+                expect.objectContaining({
+                    method: 'POST',
+                    body: expect.stringContaining('"image":"base64data"'),
+                })
+            );
+        });
+
+        it('handles quota exceeded (402)', async () => {
+            fetch.mockResolvedValue({
+                ok: false,
+                status: 402,
+                json: async () => ({ error: 'Quota exceeded' }),
+            });
+
+            await expect(require('../src/utils/api').analyzeScreenshot(mockImage, mockPrompt))
+                .rejects.toThrow('QUOTA_EXCEEDED');
+        });
+
+        it('handles generic error', async () => {
+            fetch.mockResolvedValue({
+                ok: false,
+                status: 500,
+                json: async () => ({ error: 'Analysis failed' }),
+            });
+
+            await expect(require('../src/utils/api').analyzeScreenshot(mockImage, mockPrompt))
+                .rejects.toThrow('Analysis failed');
+        });
+
+        it('handles fetch failure', async () => {
+            fetch.mockRejectedValue(new Error('Network error'));
+            await expect(require('../src/utils/api').analyzeScreenshot(mockImage, mockPrompt))
+                .rejects.toThrow('Network error');
         });
     });
 });

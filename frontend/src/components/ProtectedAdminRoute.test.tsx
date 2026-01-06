@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ProtectedAdminRoute from './ProtectedAdminRoute';
 import { describe, it, expect, vi } from 'vitest';
@@ -62,6 +62,35 @@ describe('ProtectedAdminRoute', () => {
 
         expect(screen.getByText(/Access Denied/i)).toBeInTheDocument();
         expect(screen.getByText(/random@example.com/)).toBeInTheDocument();
+    });
+
+    it('calls signOut when Sign Out button is clicked', async () => {
+        vi.mocked(UseAuth.useAuth).mockReturnValue({
+            user: { email: 'random@example.com' } as any,
+            loading: false,
+            isAdmin: false,
+        });
+
+        // Mock the dynamic import resolution if needed, but top-level mock usually works.
+        // We'll see if fireEvent triggers it.
+        const { auth } = await import('../lib/firebase');
+
+        render(
+            <MemoryRouter>
+                <ProtectedAdminRoute />
+            </MemoryRouter>
+        );
+
+        const signOutBtn = screen.getByRole('button', { name: /Sign Out/i });
+        fireEvent.click(signOutBtn);
+
+        // Wait for the promise chain
+        await screen.findByText(/Access Denied/i); // just to wait a tick
+        // actually we verify the call
+        // Since it's async inside click handler, we might need a small wait
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(auth.signOut).toHaveBeenCalled();
     });
 
     it('renders Outlet (dashboard) if authorized', () => {

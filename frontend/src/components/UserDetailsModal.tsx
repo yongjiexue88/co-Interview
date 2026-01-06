@@ -53,7 +53,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, us
             });
             if (res.ok) {
                 const data = await res.json();
-                setSessions(data.sessions);
+                setSessions(data.sessions || []);
             }
         } catch (error) {
             console.error('Failed to fetch session history:', error);
@@ -92,7 +92,10 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, us
     const formatDate = (dateStr?: string) => {
         if (!dateStr) return 'N/A';
         try {
-            return new Date(dateStr).toLocaleString();
+            const d = new Date(dateStr);
+            // Check if date is valid
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleString();
         } catch {
             return dateStr;
         }
@@ -157,6 +160,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, us
                                     </Dialog.Title>
                                     <button
                                         onClick={onClose}
+                                        aria-label="Close modal"
                                         className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
                                     >
                                         <X className="w-5 h-5" />

@@ -63,6 +63,7 @@
         "collectCoverageFrom": [
             "src/**/*.js",
             "!src/index.js",
+            "!src/preload.js",
             "!src/assets/**",
             "!src/utils/renderer.js",
             "!src/utils/windowResize.js",

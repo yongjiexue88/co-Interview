@@ -1,6 +1,9 @@
 const { GoogleGenAI, Modality } = require('@google/genai');
 const { BrowserWindow, ipcMain } = require('electron');
-const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const processManager = require('./processManager');
+const EventEmitter = require('events');
 const { saveDebugAudio } = require('../audioUtils');
 const { getSystemPrompt } = require('./prompts');
 const Api = require('./api');
@@ -20,7 +23,7 @@ function formatSpeakerResults(results) {
     for (const result of results) {
         if (result.transcript && result.speakerId) {
             const speakerLabel = result.speakerId === 1 ? 'Interviewer' : 'Candidate';
-            text += `[${speakerLabel}]: ${result.transcript}\n`;
+            text += `[${speakerLabel}]: ${result.transcript} \n`;
         }
     }
     return text;
@@ -53,9 +56,9 @@ function buildContextMessage() {
 
     if (validTurns.length === 0) return null;
 
-    const contextLines = validTurns.map(turn => `[Interviewer]: ${turn.transcription.trim()}\n[Your answer]: ${turn.ai_response.trim()}`);
+    const contextLines = validTurns.map(turn => `[Interviewer]: ${turn.transcription.trim()} \n[Your answer]: ${turn.ai_response.trim()} `);
 
-    return `Session reconnected. Here's the conversation so far:\n\n${contextLines.join('\n\n')}\n\nContinue from here.`;
+    return `Session reconnected.Here's the conversation so far:\n\n${contextLines.join('\n\n')}\n\nContinue from here.`;
 }
 
 // Conversation management functions
@@ -590,7 +593,7 @@ function killExistingSystemAudioDump() {
         console.log('Checking for existing SystemAudioDump processes...');
 
         // Kill any existing SystemAudioDump processes
-        const killProc = spawn('pkill', ['-f', 'SystemAudioDump'], {
+        const killProc = processManager.spawn('pkill', ['-f', 'SystemAudioDump'], {
             stdio: 'ignore',
         });
 
@@ -627,23 +630,19 @@ async function startMacOSAudioCapture(geminiSessionRef) {
     const { app } = require('electron');
     const path = require('path');
 
-    let systemAudioPath;
+    let systemAudioDumpPath;
     if (app.isPackaged) {
-        systemAudioPath = path.join(process.resourcesPath, 'SystemAudioDump');
+        systemAudioDumpPath = path.join(process.resourcesPath, 'SystemAudioDump');
     } else {
-        systemAudioPath = path.join(__dirname, '../assets', 'SystemAudioDump');
+        systemAudioDumpPath = path.join(__dirname, '../assets', 'SystemAudioDump');
     }
 
-    console.log('SystemAudioDump path:', systemAudioPath);
+    console.log(`SystemAudioDump path: ${systemAudioDumpPath}`);
 
-    const spawnOptions = {
+    // Start the process using ProcessManager
+    systemAudioProc = processManager.spawn(systemAudioDumpPath, [], {
         stdio: ['ignore', 'pipe', 'pipe'],
-        env: {
-            ...process.env,
-        },
-    };
-
-    systemAudioProc = spawn(systemAudioPath, [], spawnOptions);
+    });
 
     if (!systemAudioProc.pid) {
         console.error('Failed to start SystemAudioDump');
@@ -661,6 +660,7 @@ async function startMacOSAudioCapture(geminiSessionRef) {
     let audioBuffer = Buffer.alloc(0);
 
     systemAudioProc.stdout.on('data', data => {
+        console.log('DEBUG: Received data chunk size:', data.length);
         audioBuffer = Buffer.concat([audioBuffer, data]);
 
         while (audioBuffer.length >= CHUNK_SIZE) {
@@ -669,6 +669,7 @@ async function startMacOSAudioCapture(geminiSessionRef) {
 
             const monoChunk = CHANNELS === 2 ? convertStereoToMono(chunk) : chunk;
             const base64Data = monoChunk.toString('base64');
+            console.log('DEBUG: Calling sendAudioToGemini');
             sendAudioToGemini(base64Data, geminiSessionRef);
 
             if (process.env.DEBUG_AUDIO) {
@@ -721,6 +722,12 @@ function stopMacOSAudioCapture() {
 }
 
 async function sendAudioToGemini(base64Data, geminiSessionRef) {
+    if (geminiSessionRef && geminiSessionRef.current) {
+        console.log('DEBUG: Session Keys:', Object.keys(geminiSessionRef.current));
+        if (geminiSessionRef.current.sendRealtimeInput) {
+            console.log('DEBUG: Mock ID:', geminiSessionRef.current.sendRealtimeInput.id);
+        }
+    }
     if (!geminiSessionRef.current) return;
 
     try {

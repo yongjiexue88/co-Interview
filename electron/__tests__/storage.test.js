@@ -62,6 +62,32 @@ describe('Storage', () => {
             expect(fs.rmSync).toHaveBeenCalled();
         });
 
+        it('should reinitialize if config version is mismatched', () => {
+            fs.existsSync.mockReturnValue(true);
+            fs.readFileSync.mockReturnValue(JSON.stringify({ configVersion: 999 })); // Wrong version
+            storage.initializeStorage();
+            expect(fs.rmSync).toHaveBeenCalled();
+        });
+
+        it('should reinitialize if config file is absent', () => {
+            fs.existsSync.mockImplementation((p) => {
+                return false; // config.json missing
+            });
+            storage.initializeStorage();
+            // It should call resetConfigDir, which calls rmSync if dir exists (it doesn't in this Mock?)
+            // Wait, logic: if !exists(configPath) -> needsReset=true
+            // resetConfigDir -> exists(configDir) ? rm : null; mkdir...
+            // Test verifies initializeStorage flow
+            expect(fs.mkdirSync).toHaveBeenCalled();
+        });
+
+        it('should reinitialize on invalid JSON', () => {
+            fs.existsSync.mockReturnValue(true);
+            fs.readFileSync.mockImplementation(() => { throw new Error('Invalid JSON'); });
+            storage.initializeStorage();
+            expect(fs.rmSync).toHaveBeenCalled();
+        });
+
         it('should initialize history dir if it does not exist', () => {
             fs.existsSync.mockImplementation((p) => {
                 if (p.includes('config.json')) return true;
@@ -111,6 +137,23 @@ describe('Storage', () => {
             }));
             const model = storage.getAvailableModel();
             expect(model).toBe('gemini-2.5-flash-lite');
+        });
+
+        it('should increment flash-lite count', () => {
+            fs.existsSync.mockReturnValue(true);
+            const today = new Date().toISOString().split('T')[0];
+            fs.readFileSync.mockReturnValue(JSON.stringify({
+                data: [{ date: today, flash: { count: 20 }, flashLite: { count: 0 } }]
+            }));
+            const entry = storage.incrementLimitCount('gemini-2.5-flash-lite');
+            expect(entry.flashLite.count).toBe(1);
+        });
+
+        it('should create defaults if today limits missing (getAvailableModel)', () => {
+            fs.existsSync.mockReturnValue(true);
+            fs.readFileSync.mockReturnValue(JSON.stringify({ data: [] })); // No data
+            const model = storage.getAvailableModel();
+            expect(model).toBe('gemini-2.5-flash');
         });
     });
 
@@ -216,6 +259,14 @@ describe('Storage', () => {
             expect(prefs.theme).toBe('light');
         });
 
+        it('should set multiple preferences (setPreferences)', () => {
+            const newPrefs = { theme: 'dark', fontSize: 14 };
+            storage.setPreferences(newPrefs);
+            const saved = JSON.parse(fs.writeFileSync.mock.calls[0][1]);
+            expect(saved.theme).toBe('dark');
+            expect(saved.fontSize).toBe(14);
+        });
+
         it('should manage keybinds', () => {
             const customBinds = { moveUp: 'U' };
             storage.setKeybinds(customBinds);
@@ -225,6 +276,90 @@ describe('Storage', () => {
             fs.existsSync.mockReturnValue(true);
             fs.readFileSync.mockReturnValue(JSON.stringify(customBinds));
             expect(storage.getKeybinds()).toEqual(customBinds);
+        });
+    });
+
+
+    describe('Error Handling', () => {
+        beforeEach(() => {
+            // Mock fs.writeFileSync to throw error
+            require('fs').writeFileSync.mockImplementation(() => {
+                throw new Error('Write Error');
+            });
+            // Mock fs.readFileSync to throw error for read ops if needed
+            require('fs').readFileSync.mockReturnValue(JSON.stringify({ data: [], configVersion: 1 }));
+        });
+
+        it('should handle write errors gracefully', () => {
+            // For updateConfig which returns false on error
+            expect(storage.updateConfig({ version: 2 })).toBe(false);
+
+            // setApiKey returns false on error
+            expect(storage.setApiKey('abc', 'newkey')).toBe(false);
+
+            // updatePreference returns false on error
+            expect(storage.updatePreference('theme', 'dark')).toBe(false);
+
+            // setKeybinds returns false on error
+            expect(storage.setKeybinds({ moveUp: 'Up' })).toBe(false);
+
+            // incrementLimitCount returns object even on write error (in-memory update)
+            expect(storage.incrementLimitCount('123', 'audio')).toHaveProperty('date');
+
+            // clearAuthData returns false on error
+            expect(storage.clearAuthData()).toBe(false);
+        });
+
+        it('should handle read errors in getAllSessions', () => {
+            require('fs').readdirSync.mockImplementation(() => { throw new Error('Read Error'); });
+            const sessions = storage.getAllSessions();
+            expect(sessions).toEqual([]);
+        });
+
+        it('should handle delete errors in deleteSession', () => {
+            require('fs').rmSync.mockImplementation(() => { throw new Error('Delete Error'); });
+            const result = storage.deleteSession('123');
+            expect(result).toBe(false);
+        });
+
+        it('should return flash when both quotas exhausted', () => {
+            const today = new Date().toISOString().split('T')[0];
+            fs.existsSync.mockReturnValue(true);
+            fs.readFileSync.mockReturnValue(JSON.stringify({
+                data: [{
+                    date: today,
+                    flash: { count: 25 }, // Over limit
+                    flashLite: { count: 25 } // Over limit
+                }]
+            }));
+            const model = storage.getAvailableModel();
+            expect(model).toBe('gemini-2.5-flash'); // Falls back to flash for paid API
+        });
+
+        it('should return null for nonexistent session', () => {
+            fs.existsSync.mockReturnValue(false);
+            const session = storage.getSession('nonexistent');
+            expect(session).toBeNull();
+        });
+
+        it('should handle missing history dir in getAllSessions', () => {
+            fs.existsSync.mockReturnValue(false);
+            const sessions = storage.getAllSessions();
+            expect(sessions).toEqual([]);
+        });
+
+        it('should handle null session data in getAllSessions', () => {
+            fs.existsSync.mockReturnValue(true);
+            fs.readdirSync.mockReturnValue(['test.json']);
+            fs.readFileSync.mockReturnValue('invalid json');
+            const sessions = storage.getAllSessions();
+            expect(sessions).toEqual([]);
+        });
+
+        it('should handle deleteAllSessions with missing directory', () => {
+            fs.existsSync.mockReturnValue(false);
+            const result = storage.deleteAllSessions();
+            expect(result).toBe(true);
         });
     });
 });

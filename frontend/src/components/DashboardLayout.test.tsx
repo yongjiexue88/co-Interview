@@ -22,12 +22,29 @@ vi.mock('../hooks/useAuth', () => ({
 
 // Mock useNavigate
 const mockNavigate = vi.fn();
+// We'll mock useLocation to return a mocked value we can change, OR we rely on MemoryRouter.
+// DashboardLayout uses useLocation(). existing mock forces '/dashboard'.
+// We should change the mock to let useLocation work naturally with MemoryRouter or mock it to listen to some state.
+// simplest is to remove useLocation from the mock return and let react-router-dom handle it, but we need `vi.importActual`.
+// The existing mock implementation:
+/*
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual('react-router-dom');
     return {
         ...actual,
         useNavigate: () => mockNavigate,
-        useLocation: () => ({ pathname: '/dashboard' }),
+        useLocation: () => ({ pathname: '/dashboard' }), // This forces pathname
+    };
+});
+*/
+// I will change this mock to allow variable pathnames or use actual useLocation.
+let mockPathname = '/dashboard';
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual<any>('react-router-dom');
+    return {
+        ...actual,
+        useNavigate: () => mockNavigate,
+        useLocation: () => ({ pathname: mockPathname }),
     };
 });
 
@@ -115,11 +132,49 @@ describe('DashboardLayout', () => {
             vi.advanceTimersByTime(1000);
         });
 
-        // Minutes should still be 28 since it starts at 28:00
-        // Seconds would have decreased to 59, minutes to 27
+        // 19:28:00 -> 19:27:59
+        // 28 mins -> 27 mins, 00 secs -> 59 secs.
+        // Wait, start is 19:28:00.
+        // after 1s: 19:27:59.
         expect(screen.getByText('27')).toBeInTheDocument(); // Minutes
         expect(screen.getByText('59')).toBeInTheDocument(); // Seconds
 
         vi.useRealTimers();
+    });
+
+    it('handles logout error', async () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.mocked(signOut).mockRejectedValueOnce(new Error('Logout failed'));
+
+        render(
+            <MemoryRouter>
+                <DashboardLayout />
+            </MemoryRouter>
+        );
+
+        const logoutButton = screen.getByText('Logout');
+        fireEvent.click(logoutButton);
+
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith('Logout failed:', expect.any(Error));
+        });
+        consoleSpy.mockRestore();
+    });
+
+    it('highlights active route link', () => {
+        // Change mock pathname
+        mockPathname = '/dashboard/pricing';
+
+        render(
+            <MemoryRouter>
+                <DashboardLayout />
+            </MemoryRouter>
+        );
+
+        const pricingLink = screen.getByText('Pricing').closest('a');
+        expect(pricingLink).toHaveClass('bg-white/10');
+
+        const homeLink = screen.getByText('Home').closest('a');
+        expect(homeLink).not.toHaveClass('bg-white/10');
     });
 });

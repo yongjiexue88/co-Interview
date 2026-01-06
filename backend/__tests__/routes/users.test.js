@@ -78,4 +78,9 @@ describe('GET /api/v1/users/me', () => {
 
         expect(res.statusCode).toEqual(404);
     });
+    it('should handle errors', async () => {
+        db.collection.mockImplementation(() => { throw new Error('DB Error'); });
+        const res = await request(app).get('/api/v1/users/me');
+        expect(res.statusCode).toEqual(500);
+    });
 });

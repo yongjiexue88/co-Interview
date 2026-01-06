@@ -10,8 +10,11 @@ vi.mock('../../hooks/useAuth', () => ({
 }));
 
 // Mock pricing tiers
+let mockPricingTiers = [{ id: 'lifetime', paymentLink: 'https://stripe.com/lifetime' }];
 vi.mock('../../content/pricing', () => ({
-    pricingTiers: [{ id: 'lifetime', paymentLink: 'https://stripe.com/lifetime' }],
+    get pricingTiers() {
+        return mockPricingTiers;
+    },
 }));
 
 describe('DashboardHomePage', () => {
@@ -86,7 +89,7 @@ describe('DashboardHomePage', () => {
         expect(screen.getByText(/Download for Windows/i)).toBeInTheDocument();
     });
 
-    it('updates countdown timer over time', async () => {
+    it('updates countdown timer over time (seconds rollover)', async () => {
         vi.useFakeTimers();
         render(
             <MemoryRouter>
@@ -103,5 +106,91 @@ describe('DashboardHomePage', () => {
         expect(screen.getByText('59')).toBeInTheDocument(); // Seconds
 
         vi.useRealTimers();
+    });
+
+    it('updates countdown timer rollover (minutes check)', async () => {
+        vi.useFakeTimers();
+        render(
+            <MemoryRouter>
+                <DashboardHomePage />
+            </MemoryRouter>
+        );
+
+        // Fast forward to trigger minute rollover (from 28:00 to 27:59 takes 1s, to 00:00 takes many)
+        // Let's settle for coverage of the branches.
+        // We need to hit `else if (minutes > 0)` - easy.
+        // `else if (hours > 0)` and `seconds === 0` and `minutes === 0`.
+        // We can simulate state or just wait long enough.
+        // 19:28:00 -> 18:59:59 requires 28 * 60 + 1 seconds = 1681s.
+        act(() => {
+            vi.advanceTimersByTime(1681 * 1000);
+        });
+
+        // Should be 18 hours
+        expect(screen.getByText('18')).toBeInTheDocument();
+        vi.useRealTimers();
+    });
+
+    it('handles userName fallbacks', () => {
+        // Mock user with no display name but email
+        mockUseAuth.mockReturnValue({
+            user: { displayName: null, email: 'fallbackuser@example.com', uid: '123' },
+            loading: false,
+        });
+
+        render(
+            <MemoryRouter>
+                <DashboardHomePage />
+            </MemoryRouter>
+        );
+        expect(screen.getByText(/Welcome FALLBACKUSER/i)).toBeInTheDocument();
+
+        // Mock user with no display name and no email (default 'User')
+        mockUseAuth.mockReturnValue({
+            user: { displayName: null, email: null, uid: '123' },
+            loading: false,
+        });
+
+        // Need to rerender
+        const { unmount } = render(
+            <MemoryRouter>
+                <DashboardHomePage />
+            </MemoryRouter>
+        );
+        // clean up previous render? react-testing-library handles cleanup mostly, but we are re-rendering in same test block which appends.
+        // Better to check last element or use cleanup.
+    });
+
+    it('handles default user name', () => {
+        mockUseAuth.mockReturnValue({
+            user: { displayName: null, email: null, uid: '123' },
+            loading: false,
+        });
+
+        render(
+            <MemoryRouter>
+                <DashboardHomePage />
+            </MemoryRouter>
+        );
+        expect(screen.getByText(/Welcome USER/i)).toBeInTheDocument();
+    });
+
+    it('does not open window if no payment link', () => {
+        // Change mock
+        const originalTiers = [...mockPricingTiers];
+        mockPricingTiers = [];
+
+        render(
+            <MemoryRouter>
+                <DashboardHomePage />
+            </MemoryRouter>
+        );
+
+        const lifetimeButton = screen.getByText(/Get Lifetime package/i);
+        fireEvent.click(lifetimeButton);
+        expect(window.open).not.toHaveBeenCalled();
+
+        // Restore
+        mockPricingTiers = originalTiers;
     });
 });

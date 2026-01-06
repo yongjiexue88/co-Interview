@@ -174,4 +174,82 @@ describe('SignUpPage', () => {
 
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
+    it('handles weak password error', async () => {
+        const mockUser = { email: 'test@example.com' };
+        vi.mocked(createUserWithEmailAndPassword).mockRejectedValueOnce({ code: 'auth/weak-password' });
+
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+
+        fireEvent.change(screen.getByPlaceholderText('Email address'), { target: { value: 'test@example.com' } });
+        fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'weak' } }); // Logic checks len < 6 first, so mock error must survive that check or we skip check
+        // The component checks length < 6 manually. So to test the firebase error 'auth/weak-password', we need a password >= 6 that firebase *still* rejects (unlikely in real world but possible in mock), OR we rely on the manual check test.
+        // Wait, line 59 checks length < 6. So if we type '12345', it returns early with "Password must be at least 6 characters".
+        // To hit 'auth/weak-password' catch block (line 83), we need to pass the length check, call firebase, and have firebase reject it.
+
+        fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'weakpass' } });
+        fireEvent.change(screen.getByPlaceholderText('Confirm password'), { target: { value: 'weakpass' } });
+
+        fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+
+        expect(await screen.findByText('Password is too weak. Please use a stronger password.')).toBeInTheDocument();
+    });
+
+    it('handles generic signup error', async () => {
+        vi.mocked(createUserWithEmailAndPassword).mockRejectedValueOnce({ code: 'unknown', message: 'Unknown' });
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+
+        fireEvent.change(screen.getByPlaceholderText('Email address'), { target: { value: 'test@example.com' } });
+        fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password123' } });
+        fireEvent.change(screen.getByPlaceholderText('Confirm password'), { target: { value: 'password123' } });
+
+        fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+
+        expect(await screen.findByText('Failed to create account. Please try again.')).toBeInTheDocument();
+    });
+
+    it('handles google signup failure', async () => {
+        vi.mocked(signInWithPopup).mockRejectedValueOnce(new Error('Google fail'));
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+        fireEvent.click(screen.getByText('Continue with Google'));
+
+        expect(await screen.findByText('Failed to sign up with Google. Please try again.')).toBeInTheDocument();
+        consoleSpy.mockRestore();
+    });
+
+    it('populates email from search params', () => {
+        render(
+            <MemoryRouter initialEntries={['/signup?email=prefill@test.com']}>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+        expect(screen.getByPlaceholderText('Email address')).toHaveValue('prefill@test.com');
+    });
+
+    it('redirects to dashboard when user exists and not success/submitting', () => {
+        mockUseAuth.mockReturnValue({
+            user: { email: 'already@test.com' },
+            loading: false,
+        });
+
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
 });

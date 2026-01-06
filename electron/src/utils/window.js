@@ -303,6 +303,102 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, geminiSessi
     }
 }
 
+function animateWindowResize(mainWindow, targetWidth, targetHeight, layoutMode) {
+    return new Promise(resolve => {
+        // Check if window is destroyed before starting animation
+        if (mainWindow.isDestroyed()) {
+            console.log('Cannot animate resize: window has been destroyed');
+            resolve();
+            return;
+        }
+
+        // Clear any existing animation and ensure previous promise resolves
+        if (resizeAnimation) {
+            clearInterval(resizeAnimation.id);
+            if (resizeAnimation.resolve) {
+                resizeAnimation.resolve();
+            }
+            resizeAnimation = null;
+        }
+
+        const [startWidth, startHeight] = mainWindow.getSize();
+
+        // If already at target size, no need to animate
+        if (startWidth === targetWidth && startHeight === targetHeight) {
+            console.log(`Window already at target size for ${layoutMode} mode`);
+            resolve();
+            return;
+        }
+
+        console.log(`Starting animated resize from ${startWidth}x${startHeight} to ${targetWidth}x${targetHeight}`);
+
+        windowResizing = true;
+        mainWindow.setResizable(true);
+
+        const frameRate = 60; // 60 FPS
+        const totalFrames = Math.floor(RESIZE_ANIMATION_DURATION / (1000 / frameRate));
+        let currentFrame = 0;
+
+        const widthDiff = targetWidth - startWidth;
+        const heightDiff = targetHeight - startHeight;
+
+        const intervalId = setInterval(() => {
+            currentFrame++;
+            const progress = currentFrame / totalFrames;
+
+            // Use easing function (ease-out)
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
+
+            const currentWidth = Math.round(startWidth + widthDiff * easedProgress);
+            const currentHeight = Math.round(startHeight + heightDiff * easedProgress);
+
+            if (!mainWindow || mainWindow.isDestroyed()) {
+                if (resizeAnimation) {
+                    clearInterval(resizeAnimation.id);
+                    if (resizeAnimation.resolve) resizeAnimation.resolve();
+                    resizeAnimation = null;
+                }
+                windowResizing = false;
+                resolve(); // Ensure this promise resolves too
+                return;
+            }
+            mainWindow.setSize(currentWidth, currentHeight);
+
+            // Re-center the window during animation
+            const primaryDisplay = screen.getPrimaryDisplay();
+            const { width: screenWidth } = primaryDisplay.workAreaSize;
+            const x = Math.floor((screenWidth - currentWidth) / 2);
+            const y = 0;
+            mainWindow.setPosition(x, y);
+
+            if (currentFrame >= totalFrames) {
+                if (resizeAnimation) {
+                    clearInterval(resizeAnimation.id);
+                    resizeAnimation = null;
+                }
+                windowResizing = false;
+                // Check if window is still valid before final operations
+                if (!mainWindow.isDestroyed()) {
+                    mainWindow.setResizable(false);
+
+                    // Ensure final size is exact
+                    mainWindow.setSize(targetWidth, targetHeight);
+                    const finalX = Math.floor((screenWidth - targetWidth) / 2);
+                    mainWindow.setPosition(finalX, 0);
+                }
+
+                console.log(`Animation complete: ${targetWidth}x${targetHeight}`);
+                resolve();
+            }
+        }, 1000 / frameRate);
+
+        resizeAnimation = {
+            id: intervalId,
+            resolve,
+        };
+    });
+}
+
 function setupWindowIpcHandlers(mainWindow, sendToRenderer, geminiSessionRef) {
     ipcMain.on('view-changed', (event, view) => {
         if (view !== 'assistant' && !mainWindow.isDestroyed()) {
@@ -339,89 +435,6 @@ function setupWindowIpcHandlers(mainWindow, sendToRenderer, geminiSessionRef) {
             return { success: false, error: error.message };
         }
     });
-
-    function animateWindowResize(mainWindow, targetWidth, targetHeight, layoutMode) {
-        return new Promise(resolve => {
-            // Check if window is destroyed before starting animation
-            if (mainWindow.isDestroyed()) {
-                console.log('Cannot animate resize: window has been destroyed');
-                resolve();
-                return;
-            }
-
-            // Clear any existing animation
-            if (resizeAnimation) {
-                clearInterval(resizeAnimation);
-                resizeAnimation = null;
-            }
-
-            const [startWidth, startHeight] = mainWindow.getSize();
-
-            // If already at target size, no need to animate
-            if (startWidth === targetWidth && startHeight === targetHeight) {
-                console.log(`Window already at target size for ${layoutMode} mode`);
-                resolve();
-                return;
-            }
-
-            console.log(`Starting animated resize from ${startWidth}x${startHeight} to ${targetWidth}x${targetHeight}`);
-
-            windowResizing = true;
-            mainWindow.setResizable(true);
-
-            const frameRate = 60; // 60 FPS
-            const totalFrames = Math.floor(RESIZE_ANIMATION_DURATION / (1000 / frameRate));
-            let currentFrame = 0;
-
-            const widthDiff = targetWidth - startWidth;
-            const heightDiff = targetHeight - startHeight;
-
-            resizeAnimation = setInterval(() => {
-                currentFrame++;
-                const progress = currentFrame / totalFrames;
-
-                // Use easing function (ease-out)
-                const easedProgress = 1 - Math.pow(1 - progress, 3);
-
-                const currentWidth = Math.round(startWidth + widthDiff * easedProgress);
-                const currentHeight = Math.round(startHeight + heightDiff * easedProgress);
-
-                if (!mainWindow || mainWindow.isDestroyed()) {
-                    clearInterval(resizeAnimation);
-                    resizeAnimation = null;
-                    windowResizing = false;
-                    return;
-                }
-                mainWindow.setSize(currentWidth, currentHeight);
-
-                // Re-center the window during animation
-                const primaryDisplay = screen.getPrimaryDisplay();
-                const { width: screenWidth } = primaryDisplay.workAreaSize;
-                const x = Math.floor((screenWidth - currentWidth) / 2);
-                const y = 0;
-                mainWindow.setPosition(x, y);
-
-                if (currentFrame >= totalFrames) {
-                    clearInterval(resizeAnimation);
-                    resizeAnimation = null;
-                    windowResizing = false;
-
-                    // Check if window is still valid before final operations
-                    if (!mainWindow.isDestroyed()) {
-                        mainWindow.setResizable(false);
-
-                        // Ensure final size is exact
-                        mainWindow.setSize(targetWidth, targetHeight);
-                        const finalX = Math.floor((screenWidth - targetWidth) / 2);
-                        mainWindow.setPosition(finalX, 0);
-                    }
-
-                    console.log(`Animation complete: ${targetWidth}x${targetHeight}`);
-                    resolve();
-                }
-            }, 1000 / frameRate);
-        });
-    }
 
     ipcMain.handle('update-sizes', async event => {
         try {
@@ -521,4 +534,5 @@ module.exports = {
     getDefaultKeybinds,
     updateGlobalShortcuts,
     setupWindowIpcHandlers,
+    animateWindowResize, // Export for testing
 };

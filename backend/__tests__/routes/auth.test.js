@@ -34,6 +34,14 @@ jest.mock('../../src/config/stripe', () => ({
     },
 }));
 
+jest.mock('firebase-admin', () => ({
+    firestore: {
+        FieldValue: {
+            increment: jest.fn(),
+        },
+    },
+}));
+
 // Mock middleware
 jest.mock('../../src/middleware/auth', () => (req, res, next) => {
     if (req.headers.authorization === 'Bearer valid_token') {
@@ -147,6 +155,14 @@ describe('Auth Routes', () => {
             }));
             expect(res.body.quota_remaining_seconds).toBe(3600);
         });
+
+        it('should handle errors', async () => {
+            db.collection.mockImplementation(() => { throw new Error('DB Error'); });
+            const res = await request(app)
+                .post('/api/v1/auth/verify')
+                .set('Authorization', 'Bearer valid_token');
+            expect(res.statusCode).toEqual(500);
+        });
     });
 
     describe('GET /api/v1/auth/google', () => {
@@ -208,6 +224,25 @@ describe('Auth Routes', () => {
             expect(res.statusCode).toEqual(500);
             expect(res.text).toContain('Login Failed');
         });
+
+        it('should block pre-fetch requests', async () => {
+            const res = await request(app)
+                .get('/api/v1/auth/google/callback')
+                .query({ code: 'code' })
+                .set('Purpose', 'prefetch');
+
+            expect(res.statusCode).toEqual(204);
+        });
+
+        it('should throw error if adminAuth.getUserByEmail fails with non-404', async () => {
+            mockOAuthClient.getToken.mockResolvedValue({ tokens: { id_token: 'id' } });
+            mockOAuthClient.verifyIdToken.mockResolvedValue({ getPayload: () => ({ email: 'fail@test.com' }) });
+            adminAuth.getUserByEmail.mockRejectedValue(new Error('Firebase Error'));
+
+            const res = await request(app).get('/api/v1/auth/google/callback').query({ code: 'code' });
+            expect(res.statusCode).toEqual(500);
+            expect(res.text).toContain('Firebase Error');
+        });
     });
 
     describe('POST /api/v1/auth/exchange', () => {
@@ -226,6 +261,14 @@ describe('Auth Routes', () => {
         it('should return 401 if unauthorized', async () => {
             const res = await request(app).post('/api/v1/auth/exchange');
             expect(res.statusCode).toEqual(401);
+        });
+
+        it('should handle errors', async () => {
+            adminAuth.createCustomToken.mockRejectedValue(new Error('Auth Error'));
+            const res = await request(app)
+                .post('/api/v1/auth/exchange')
+                .set('Authorization', 'Bearer valid_token');
+            expect(res.statusCode).toEqual(500);
         });
     });
 
@@ -268,6 +311,52 @@ describe('Auth Routes', () => {
         it('should return error if unauthorized', async () => {
             const res = await request(app).put('/api/v1/auth/profile');
             expect(res.statusCode).toEqual(401);
+        });
+
+        it('should update device info and ip address', async () => {
+            const updates = {
+                ipAddress: '127.0.0.1',
+                deviceInfo: 'macOS'
+            };
+            const mockUpdate = jest.fn().mockResolvedValue(true);
+            const mockSet = jest.fn().mockResolvedValue(true);
+
+            // Mock subcollection for devices
+            const mockDevicesCollection = {
+                doc: jest.fn().mockReturnValue({ set: mockSet })
+            };
+
+            db.collection.mockReturnValue({
+                doc: jest.fn().mockReturnValue({
+                    update: mockUpdate,
+                    collection: jest.fn().mockReturnValue(mockDevicesCollection)
+                })
+            });
+
+            const res = await request(app)
+                .put('/api/v1/auth/profile')
+                .set('Authorization', 'Bearer valid_token')
+                .send(updates);
+
+            expect(res.statusCode).toEqual(200);
+            expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                'security.lastLoginIp': '127.0.0.1',
+                'devicesSummary.lastPlatform': 'macOS'
+            }));
+            expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
+                lastPlatform: 'macOS',
+                lastIp: '127.0.0.1'
+            }), { merge: true });
+        });
+
+        it('should handle no changes provided', async () => {
+            const res = await request(app)
+                .put('/api/v1/auth/profile')
+                .set('Authorization', 'Bearer valid_token')
+                .send({});
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.message).toBe('No changes provided');
         });
     });
 });

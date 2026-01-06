@@ -167,6 +167,114 @@ describe('Session Routes (Server-Side Quota)', () => {
                 'usage.quotaSecondsUsed': 0
             }));
         });
+
+        it('should return 429 if rate limit exceeded', async () => {
+            rateLimiter.checkLimit.mockResolvedValue(false);
+
+            const res = await request(app).post('/api/v1/realtime/session').send({});
+
+            expect(res.statusCode).toEqual(429);
+        });
+
+        it('should return 403 if user not found', async () => {
+            rateLimiter.checkLimit.mockResolvedValue(true);
+            rateLimiter.getLock.mockResolvedValue(null);
+
+            db.collection.mockImplementation((name) => {
+                if (name === 'users') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({ exists: false })
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app).post('/api/v1/realtime/session').send({});
+
+            expect(res.statusCode).toEqual(403);
+        });
+
+        it('should return 429 if concurrency limit exceeded', async () => {
+            rateLimiter.checkLimit.mockResolvedValue(true);
+            rateLimiter.getLock.mockResolvedValue('existing-session-id'); // Has active session
+
+            db.collection.mockImplementation((name) => {
+                if (name === 'users') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({
+                                    status: 'active',
+                                    usage: { quotaSecondsUsed: 0 },
+                                    access: { planId: 'free' } // concurrencyLimit: 1
+                                })
+                            }),
+                            update: jest.fn()
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app).post('/api/v1/realtime/session').send({});
+
+            expect(res.statusCode).toEqual(429);
+        });
+
+        it('should return 402 if subscription not active', async () => {
+            rateLimiter.checkLimit.mockResolvedValue(true);
+            rateLimiter.getLock.mockResolvedValue(null);
+
+            db.collection.mockImplementation((name) => {
+                if (name === 'users') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({
+                                    status: 'past_due', // Not active
+                                    usage: { quotaSecondsUsed: 0 },
+                                    access: { planId: 'free' }
+                                })
+                            }),
+                            update: jest.fn()
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app).post('/api/v1/realtime/session').send({});
+
+            expect(res.statusCode).toEqual(402);
+        });
+
+        it('should return 429 if quota exceeded', async () => {
+            rateLimiter.checkLimit.mockResolvedValue(true);
+            rateLimiter.getLock.mockResolvedValue(null);
+
+            db.collection.mockImplementation((name) => {
+                if (name === 'users') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({
+                                    status: 'active',
+                                    usage: { quotaSecondsUsed: 3600 }, // Full quota used
+                                    access: { planId: 'free' }
+                                })
+                            }),
+                            update: jest.fn()
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app).post('/api/v1/realtime/session').send({});
+
+            expect(res.statusCode).toEqual(429);
+        });
     });
 
     describe('POST /api/v1/realtime/session/:sessionId/end (End)', () => {
@@ -265,6 +373,238 @@ describe('Session Routes (Server-Side Quota)', () => {
             const res = await request(app).post('/api/v1/realtime/session/sess_1/end').send({});
             expect(res.body.duration_seconds).toBe(50);
             expect(res.body.message).toMatch(/already ended/);
+        });
+
+        it('should return 404 if session not found', async () => {
+            db.runTransaction.mockImplementation(async (cb) => {
+                const t = {
+                    get: jest.fn().mockResolvedValueOnce({ exists: false }),
+                    update: jest.fn()
+                };
+                return await cb(t);
+            });
+
+            const res = await request(app).post('/api/v1/realtime/session/sess_1/end').send({});
+
+            expect(res.statusCode).toEqual(404);
+            expect(res.body.error).toBe('Session not found');
+        });
+
+        it('should return 403 if not authorized', async () => {
+            db.runTransaction.mockImplementation(async (cb) => {
+                const t = {
+                    get: jest.fn()
+                        .mockResolvedValueOnce({
+                            exists: true, data: () => ({ userId: 'different-user', counted: false })
+                        })
+                        .mockResolvedValueOnce({ exists: true, data: () => ({}) }),
+                    update: jest.fn()
+                };
+                return await cb(t);
+            });
+
+            const res = await request(app).post('/api/v1/realtime/session/sess_1/end').send({});
+
+            expect(res.statusCode).toEqual(403);
+            expect(res.body.error).toBe('Not authorized');
+        });
+        it('should handle errors', async () => {
+            db.runTransaction.mockImplementation(() => { throw new Error('Transaction failed'); });
+            const res = await request(app).post('/api/v1/realtime/session/sess_1/end').send({});
+            expect(res.statusCode).toEqual(500);
+        });
+    });
+
+    describe('POST /api/v1/realtime/heartbeat', () => {
+        it('should return 404 if session not found', async () => {
+            db.collection.mockImplementation((name) => {
+                if (name === 'sessions') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({ exists: false })
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app)
+                .post('/api/v1/realtime/heartbeat')
+                .send({ session_id: 'nonexistent' });
+
+            expect(res.statusCode).toEqual(404);
+            expect(res.body.error).toBe('Session not found');
+        });
+
+        it('should return 403 if not authorized', async () => {
+            db.collection.mockImplementation((name) => {
+                if (name === 'sessions') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({ userId: 'different-user', status: 'active' })
+                            })
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app)
+                .post('/api/v1/realtime/heartbeat')
+                .send({ session_id: 'sess_1' });
+
+            expect(res.statusCode).toEqual(403);
+            expect(res.body.error).toBe('Not authorized');
+        });
+
+        it('should return continue:false if session already ended', async () => {
+            db.collection.mockImplementation((name) => {
+                if (name === 'sessions') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({ userId: 'user123', status: 'ended' })
+                            })
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app)
+                .post('/api/v1/realtime/heartbeat')
+                .send({ session_id: 'sess_1' });
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.continue).toBe(false);
+            expect(res.body.reason).toBe('session_ended');
+        });
+
+        it('should return continue:true if startedAt is missing (legacy)', async () => {
+            const updateMock = jest.fn();
+            db.collection.mockImplementation((name) => {
+                if (name === 'sessions') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({ userId: 'user123', status: 'active', startedAt: null })
+                            }),
+                            update: updateMock
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app)
+                .post('/api/v1/realtime/heartbeat')
+                .send({ session_id: 'sess_1' });
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.continue).toBe(true);
+        });
+
+        it('should return 402 if quota exceeded mid-session', async () => {
+            const nowMillis = 300000;
+            const startedAtMillis = nowMillis - (3600 * 1000); // 1 hour elapsed
+
+            jest.spyOn(admin.firestore.Timestamp, 'now').mockReturnValue({ toMillis: () => nowMillis });
+
+            const updateMock = jest.fn();
+            db.collection.mockImplementation((name) => {
+                if (name === 'sessions') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({
+                                    userId: 'user123',
+                                    status: 'active',
+                                    startedAt: { toMillis: () => startedAtMillis }
+                                })
+                            }),
+                            update: updateMock
+                        })
+                    };
+                }
+                if (name === 'users') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({
+                                    access: { planId: 'free' },
+                                    usage: { quotaSecondsUsed: 3500 } // Only 100s remaining, but 3600s elapsed
+                                })
+                            })
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app)
+                .post('/api/v1/realtime/heartbeat')
+                .send({ session_id: 'sess_1' });
+
+            expect(res.statusCode).toEqual(402);
+            expect(res.body.continue).toBe(false);
+            expect(res.body.reason).toBe('quota_exceeded');
+        });
+
+        it('should extend session and return continue:true with quota', async () => {
+            const nowMillis = 300000;
+            const startedAtMillis = nowMillis - (60 * 1000); // 60s elapsed
+
+            jest.spyOn(admin.firestore.Timestamp, 'now').mockReturnValue({ toMillis: () => nowMillis });
+
+            const updateMock = jest.fn();
+            db.collection.mockImplementation((name) => {
+                if (name === 'sessions') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({
+                                    userId: 'user123',
+                                    status: 'active',
+                                    startedAt: { toMillis: () => startedAtMillis }
+                                })
+                            }),
+                            update: updateMock
+                        })
+                    };
+                }
+                if (name === 'users') {
+                    return {
+                        doc: jest.fn().mockReturnValue({
+                            get: jest.fn().mockResolvedValue({
+                                exists: true,
+                                data: () => ({
+                                    access: { planId: 'free' },
+                                    usage: { quotaSecondsUsed: 0 }
+                                })
+                            })
+                        })
+                    };
+                }
+            });
+
+            const res = await request(app)
+                .post('/api/v1/realtime/heartbeat')
+                .send({ session_id: 'sess_1' });
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.continue).toBe(true);
+            expect(res.body.quota_remaining_seconds).toBe(3600 - 60);
+            expect(rateLimiter.setLock).toHaveBeenCalled();
+            expect(updateMock).toHaveBeenCalledWith(expect.objectContaining({
+                lastHeartbeatAt: expect.anything()
+            }));
+        });
+        it('should handle errors', async () => {
+            db.collection.mockImplementation(() => { throw new Error('DB Error'); });
+            const res = await request(app).post('/api/v1/realtime/heartbeat').send({ session_id: 'sess_1' });
+            expect(res.statusCode).toEqual(500);
         });
     });
 });
