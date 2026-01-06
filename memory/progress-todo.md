@@ -127,6 +127,25 @@
 - Fixed state persistence and missing `fetch` in Electron `analytics.js` tests
 - Verified all quality gates (Frontend: 35 pass, Backend: 60 pass, Electron: 111 pass)
 
+### Admin Key Management Features (2026-01-05)
+- Added 5 new backend admin endpoints in `admin.js`:
+  - `GET /admin/sessions/active` - List all active sessions
+  - `POST /admin/sessions/:id/terminate` - Force-end a session
+  - `POST /admin/users/:id/reset-quota` - Reset user quota to 0
+  - `GET /admin/users/:id/sessions` - Get user session history
+  - `GET /admin/system/health` - API key status + aggregate stats
+- Updated `AdminDashboard.tsx` with System Health panel and Active Sessions table
+- Updated `UserDetailsModal.tsx` with Reset Quota button and Session History section
+- All backend tests pass (55/55)
+
+### Removed API Key Page from Electron (2026-01-05)
+- Removed API key entry page since backend now manages ephemeral tokens
+- Updated flow: Login → Onboarding → Assistant (listening) view directly
+- Modified `CoInterviewApp.js`: `handleOnboardingComplete()` auto-starts session
+- Removed API key validation from `handleStart()` (backend handles tokens)
+- Updated navigation (`handleClose`, `handleBackClick`) to skip removed main view
+- All Electron tests pass (100/100)
+
 ### Managed Quota System with Ephemeral Tokens (2026-01-05)
 - **Backend:** Implemented ephemeral token minting via `@google/genai authTokens.create()`
 - **Security:** Master API key never leaves backend; Electron receives short-lived tokens
