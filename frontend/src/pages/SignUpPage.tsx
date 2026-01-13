@@ -127,7 +127,7 @@ const SignUpPage: React.FC = () => {
         <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">
             {/* Logo */}
             <div className="mb-8 flex flex-col items-center">
-                <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-12 h-12 mb-4" />
+                <img src="/favicon.png" alt="Co-Interview" className="w-12 h-12 mb-4" />
                 <h1 className="text-2xl font-semibold text-white">Create your account</h1>
             </div>
 

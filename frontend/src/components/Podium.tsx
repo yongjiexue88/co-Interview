@@ -19,11 +19,7 @@ const Podium: React.FC = () => {
                     {/* 1st Place - Center (Co-Interview) */}
                     <div className="flex flex-col items-center -mb-4">
                         <div className="w-28 h-28 bg-[#FACC15]/10 border-2 border-[#FACC15] rounded-xl flex flex-col items-center justify-center mb-2 shadow-lg shadow-[#FACC15]/20">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="#FACC15" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#FACC15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 17L12 22L22 17" stroke="#FACC15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 12L12 17L22 12" stroke="#FACC15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
+                            <img src="/favicon.png" alt="Co-Interview" className="w-8 h-8 rounded-lg" />
                             <span className="text-[#FACC15] text-xs font-bold mt-1">Co-Interview</span>
                         </div>
                         <div className="w-32 h-36 bg-gradient-to-b from-[#FACC15] to-yellow-600 rounded-t-lg flex items-center justify-center shadow-xl">

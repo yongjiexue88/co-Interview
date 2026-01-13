@@ -71,9 +71,7 @@ const ElectronAuthPage: React.FC = () => {
         <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">
             {/* Logo */}
             <div className="mb-8 flex flex-col items-center">
-                <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
-                    <span className="text-3xl font-bold text-black">C</span>
-                </div>
+                <img src="/favicon.png" alt="Co-Interview" className="w-16 h-16 mb-4 rounded-xl" />
                 <h1 className="text-2xl font-semibold text-white">{isSignUp ? 'Create Account' : 'Sign in to Co-Interview'}</h1>
                 <p className="text-gray-400 mt-2 text-center">Authenticating for desktop app...</p>
             </div>

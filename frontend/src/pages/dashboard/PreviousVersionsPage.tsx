@@ -31,7 +31,7 @@ const PreviousVersionsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-xl flex items-center justify-center">
-                            <img src="https://www.interviewcoder.co/logo.svg" alt="Pro" className="w-8 h-8" />
+                            <img src="/favicon.png" alt="Pro" className="w-8 h-8" />
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
@@ -58,7 +58,7 @@ const PreviousVersionsPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-[#2a2a2a] rounded-xl flex items-center justify-center">
-                                    <img src="https://www.interviewcoder.co/logo.svg" alt="Version" className="w-8 h-8 opacity-60" />
+                                    <img src="/favicon.png" alt="Version" className="w-8 h-8 opacity-60" />
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-3">

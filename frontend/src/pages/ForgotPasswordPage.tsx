@@ -45,7 +45,7 @@ const ForgotPasswordPage: React.FC = () => {
                 <div className="w-full max-w-md text-center space-y-6">
                     {/* Yellow Logo */}
                     <div className="w-16 h-16 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-full flex items-center justify-center mx-auto">
-                        <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-10 h-10" />
+                        <img src="/favicon.png" alt="Co-Interview" className="w-10 h-10" />
                     </div>
 
                     {/* Title */}
@@ -109,7 +109,7 @@ const ForgotPasswordPage: React.FC = () => {
         <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">
             {/* Logo */}
             <div className="mb-8 flex flex-col items-center">
-                <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-12 h-12 mb-4" />
+                <img src="/favicon.png" alt="Co-Interview" className="w-12 h-12 mb-4" />
                 <h1 className="text-2xl font-semibold text-white">Reset your password</h1>
                 <p className="text-gray-400 mt-2 text-center">Enter your email and we'll send you a reset link</p>
             </div>

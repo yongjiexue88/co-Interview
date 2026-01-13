@@ -78,7 +78,7 @@ const DashboardLayout: React.FC = () => {
             <aside className="w-64 bg-[#0a0a0a] border-r border-white/10 flex flex-col">
                 {/* Logo */}
                 <div className="p-6 flex items-center gap-3">
-                    <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-8 h-8" />
+                    <img src="/favicon.png" alt="Co-Interview" className="w-8 h-8" />
                     <span className="text-lg font-bold text-white">Interview Coder</span>
                 </div>
 
@@ -105,7 +105,7 @@ const DashboardLayout: React.FC = () => {
                             Get <span className="text-[#FACC15] font-bold">10%</span> off on
                         </p>
                         <div className="flex items-center gap-2 mb-3">
-                            <img src="https://www.interviewcoder.co/logo.svg" alt="Pro" className="w-6 h-6" />
+                            <img src="/favicon.png" alt="Pro" className="w-6 h-6" />
                             <span className="text-white font-semibold text-sm">Interview Coder Pro</span>
                         </div>
                         <div className="flex justify-center gap-2 mb-3 text-white font-mono">

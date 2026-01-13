@@ -70,7 +70,7 @@ const DashboardHomePage: React.FC = () => {
                 </p>
                 <div className="bg-[#1a1a1a] border border-[#FACC15]/30 rounded-xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src="https://www.interviewcoder.co/logo.svg" alt="Pro" className="w-8 h-8" />
+                        <img src="/favicon.png" alt="Pro" className="w-8 h-8" />
                         <span className="text-white font-semibold">Co-Interview Pro</span>
                     </div>
                     <div className="flex items-center gap-6">
@@ -101,7 +101,7 @@ const DashboardHomePage: React.FC = () => {
                 {/* Mac Download */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 text-center">
                     <div className="w-16 h-16 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <img src="https://www.interviewcoder.co/logo.svg" alt="Mac" className="w-10 h-10" />
+                        <img src="/favicon.png" alt="Mac" className="w-10 h-10" />
                     </div>
                     <div className="text-xs text-gray-500 mb-1">🍎</div>
                     <h3 className="text-white font-semibold mb-1">Co-Interview Free</h3>
@@ -129,7 +129,7 @@ const DashboardHomePage: React.FC = () => {
                 {/* Windows Download */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 text-center">
                     <div className="w-16 h-16 bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <img src="https://www.interviewcoder.co/logo.svg" alt="Windows" className="w-10 h-10" />
+                        <img src="/favicon.png" alt="Windows" className="w-10 h-10" />
                     </div>
                     <div className="text-xs text-gray-500 mb-1">⊞</div>
                     <h3 className="text-white font-semibold mb-1">Co-Interview Free</h3>
@@ -231,7 +231,7 @@ const DashboardHomePage: React.FC = () => {
 
                                             {/* Platform Icons */}
                                             <div className="flex justify-center items-center gap-8 mb-8">
-                                                <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-12 h-12" />
+                                                <img src="/favicon.png" alt="Co-Interview" className="w-12 h-12" />
                                                 <span className="text-3xl">{platform.icon}</span>
                                             </div>
                                         </div>

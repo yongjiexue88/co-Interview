@@ -70,7 +70,7 @@ const Navbar: React.FC = () => {
             <div className="w-full px-6 sm:px-10 lg:px-16">
                 <div className="flex items-center justify-between h-16">
                     <Link to="/" className="flex items-center space-x-3 cursor-pointer">
-                        <img src="https://www.interviewcoder.co/logo.svg" alt="Co-Interview" className="w-10 h-10 rounded-xl" />
+                        <img src="/favicon.png" alt="Co-Interview" className="w-10 h-10 rounded-xl" />
                         <span className="text-xl font-bold tracking-tight text-white hidden md:block">Co-Interview</span>
                     </Link>
 
