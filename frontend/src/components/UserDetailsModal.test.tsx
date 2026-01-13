@@ -21,6 +21,7 @@ vi.mock('../hooks/useAuth', () => ({
 const mockUser: UserData = {
     id: 'user-123',
     email: 'test@example.com',
+    createdAt: '2024-01-01T00:00:00Z',
     profile: {
         displayName: 'Test User',
         photoURL: null,

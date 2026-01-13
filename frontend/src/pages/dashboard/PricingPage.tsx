@@ -79,9 +79,7 @@ const PricingPage: React.FC = () => {
                         <span className="text-4xl font-bold text-white">$29</span>
                         <span className="text-gray-400">/30 days</span>
                     </div>
-                    <p className="text-gray-500 text-sm mb-6">
-                        30 days of unlimited access
-                    </p>
+                    <p className="text-gray-500 text-sm mb-6">30 days of unlimited access</p>
 
                     <button
                         onClick={() => handlePurchase('pro')}

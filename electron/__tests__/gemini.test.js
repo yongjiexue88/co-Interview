@@ -161,6 +161,7 @@ describe('Gemini Utils', () => {
     describe('Gemini Session Callbacks', () => {
         let callbacks;
         let mockSession;
+        let handlers = {};
 
         beforeEach(async () => {
             const { GoogleGenAI } = require('@google/genai');
@@ -183,12 +184,12 @@ describe('Gemini Utils', () => {
             }));
 
             const { ipcMain } = require('electron');
-            let initHandler;
+            handlers = {};
             ipcMain.handle.mockImplementation((channel, handler) => {
-                if (channel === 'initialize-gemini') initHandler = handler;
+                handlers[channel] = handler;
             });
             setupGeminiIpcHandlers(geminiSessionRef);
-            await initHandler({}, 'token', {}, 'interview');
+            await handlers['initialize-gemini']({}, 'token', {}, 'interview');
         });
 
         it('onopen should update status', () => {

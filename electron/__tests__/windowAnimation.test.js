@@ -38,7 +38,7 @@ describe('animateWindowResize', () => {
         const promise = animateWindowResize(mockWindow, 900, 700, 'test');
 
         // Fast-forward time
-        jest.advanceTimersByTime(200); // Duration is 200ms
+        jest.advanceTimersByTime(600); // Duration is 500ms
 
         await promise;
 

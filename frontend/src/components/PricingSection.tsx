@@ -134,7 +134,8 @@ const PricingSection: React.FC = () => {
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#FACC15] text-black text-xs font-bold px-3 py-1 rounded-full flex items-center gap-2">
                                 <span>50% off</span>
                                 <span className="font-mono text-xs">
-                                    {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:{String(countdown.seconds).padStart(2, '0')}
+                                    {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:
+                                    {String(countdown.seconds).padStart(2, '0')}
                                 </span>
                             </div>
                             <div className="mb-6 mt-2">

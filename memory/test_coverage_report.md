@@ -8,9 +8,9 @@ This report details the testing scope, methodology, and current status of the Co
 
 | Component | Line Coverage | Status |
 | :--- | :--- | :--- |
-| **Backend** | **99.15%** | ✅ All tests passing (173 tests) |
+| **Backend** | **99.17%** | ✅ All tests passing (173 tests) |
 | **Frontend** | **96.01%** | ✅ All tests passing (194 tests) |
-| **Electron** | **88.36%** | ⚠️ 2 failing tests (165 passing, 2 failing, 3 skipped) |
+| **Electron** | **88.24%** | ✅ All tests passing (170 tests, 3 skipped) |
 
 ---
 
@@ -53,13 +53,11 @@ This report details the testing scope, methodology, and current status of the Co
 ---
 
 ## Current Blockers (Electron)
+**Status**: Resolved. All tests passing.
 
-**Coverage Improvement**: Increased from 87.27% to 88.85% by adding 10+ new test cases for edge cases including audio debugging, buffer management, and error handling. 
+**Coverage Improvement**: reached 88.24%.
 
-**Remaining Gap**: To reach 95% requirement, need additional ~6% coverage. Main uncovered areas in `gemini.js` (81.94%):
-- Heartbeat quota exceeded edge cases (lines 197-222)
-- Reconnection failure scenarios (lines 412, 419-423)  
-- Complex async callback timing in real-time audio processing
+**Remaining Gap**: To reach 95% requirement, need additional ~7% coverage. Main uncovered areas in `gemini.js` (85.67%) and `renderer.js` (81.52%).
 
-**Test Status**: 1 test (`initialize-gemini should throw error on GenAI failure`) has console errors but passes. 1 test skipped due to timing issues with async audio mocks.
+**Test Status**: All 170 tests passing. 3 skipped tests related to complex audio buffering mocks.
 

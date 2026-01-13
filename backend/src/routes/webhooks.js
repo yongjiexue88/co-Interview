@@ -244,28 +244,31 @@ async function handleSubscriptionDeleted(subscription) {
 
     const freeConfig = PLANS.free;
 
-    await db.collection('users').doc(firebaseUid).set(
-        {
-            'access.planId': 'free',
-            'access.accessStatus': 'active',
-            'access.concurrencyLimit': freeConfig.concurrencyLimit,
-            'access.features': listToMap(freeConfig.features),
-            'usage.quotaSecondsMonth': freeConfig.quotaSecondsMonth,
-            'billing.subscriptionId': null,
-            'billing.currentPeriodEnd': null,
-            'billing.billingStatus': 'active',
-            'meta.updatedAt': new Date(),
-            // Legacy fields
-            plan: 'free',
-            status: 'active',
-            subscriptionId: null,
-            currentPeriodEnd: null,
-            quotaSecondsMonth: freeConfig.quotaSecondsMonth,
-            concurrencyLimit: freeConfig.concurrencyLimit,
-            features: freeConfig.features,
-        },
-        { merge: true }
-    );
+    await db
+        .collection('users')
+        .doc(firebaseUid)
+        .set(
+            {
+                'access.planId': 'free',
+                'access.accessStatus': 'active',
+                'access.concurrencyLimit': freeConfig.concurrencyLimit,
+                'access.features': listToMap(freeConfig.features),
+                'usage.quotaSecondsMonth': freeConfig.quotaSecondsMonth,
+                'billing.subscriptionId': null,
+                'billing.currentPeriodEnd': null,
+                'billing.billingStatus': 'active',
+                'meta.updatedAt': new Date(),
+                // Legacy fields
+                plan: 'free',
+                status: 'active',
+                subscriptionId: null,
+                currentPeriodEnd: null,
+                quotaSecondsMonth: freeConfig.quotaSecondsMonth,
+                concurrencyLimit: freeConfig.concurrencyLimit,
+                features: freeConfig.features,
+            },
+            { merge: true }
+        );
 
     console.log(`❌ Subscription canceled for ${firebaseUid}, downgraded to free`);
 }
