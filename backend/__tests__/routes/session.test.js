@@ -1,3 +1,14 @@
+const { v4: uuidv4 } = require('uuid');
+
+// Mock GoogleGenAI before requiring modules
+jest.mock('@google/genai', () => ({
+    GoogleGenAI: jest.fn().mockImplementation(() => ({
+        authTokens: {
+            create: jest.fn().mockResolvedValue({ name: 'mock-token' })
+        }
+    }))
+}));
+
 const request = require('supertest');
 
 // 1. Mock Redis

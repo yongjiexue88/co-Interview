@@ -75,4 +75,5 @@ module.exports = {
     onAuthChange,
     signInWithCredential,
     signInWithCustomToken,
+    firebaseConfig,
 };
