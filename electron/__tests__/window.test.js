@@ -19,6 +19,8 @@ const mockBrowserWindow = {
         once: jest.fn(),
         send: jest.fn(),
         executeJavaScript: jest.fn(),
+        setWindowOpenHandler: jest.fn(),
+        on: jest.fn(),
     },
     getSize: jest.fn().mockReturnValue([800, 600]),
     setSize: jest.fn(),

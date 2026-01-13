@@ -77,6 +77,38 @@ function createWindow(sendToRenderer, geminiSessionRef) {
 
     mainWindow.loadFile(path.join(__dirname, '../index.html'));
 
+    // Prevent new windows from opening (e.g., OAuth callback pages)
+    // Instead, open external links in the default browser
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        const { shell } = require('electron');
+        console.log('Window open requested for URL:', url);
+
+        // Open external URLs in the default browser
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            shell.openExternal(url);
+        }
+
+        // Deny the new window from opening in Electron
+        return { action: 'deny' };
+    });
+
+    // Prevent navigation away from the app (e.g., if a link is clicked)
+    mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+        const parsedUrl = new URL(navigationUrl);
+        const appPath = path.join(__dirname, '../index.html');
+
+        // Allow navigation to our local app file
+        if (navigationUrl.startsWith('file://') && navigationUrl.includes('index.html')) {
+            return;
+        }
+
+        // Block navigation to external URLs, open in browser instead
+        console.log('Navigation blocked, opening in browser:', navigationUrl);
+        event.preventDefault();
+        const { shell } = require('electron');
+        shell.openExternal(navigationUrl);
+    });
+
     // After window is created, initialize keybinds
     mainWindow.webContents.once('dom-ready', () => {
         setTimeout(() => {

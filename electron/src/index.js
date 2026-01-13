@@ -9,6 +9,14 @@ const Api = require('./utils/api');
 
 const storage = require('./storage');
 
+// Request single instance lock EARLY - before anything else
+// This ensures protocol URLs are forwarded to the existing instance
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    console.log('Another instance is running, quitting this one');
+    app.quit();
+}
+
 async function syncProfile(updates) {
     try {
         // Check if user is logged in before syncing
@@ -55,13 +63,22 @@ app.whenReady().then(async () => {
     storage.initializeStorage();
 
     // Register custom protocol for OAuth callback
+    // First, remove any existing registration to ensure we get the latest
+    app.removeAsDefaultProtocolClient('co-interview');
+
+    let protocolRegistered = false;
     if (process.defaultApp) {
+        // Development mode - need to pass the path to the app
         if (process.argv.length >= 2) {
-            app.setAsDefaultProtocolClient('co-interview', process.execPath, [process.argv[1]]);
+            console.log('Registering protocol with:', process.execPath, process.argv[1]);
+            protocolRegistered = app.setAsDefaultProtocolClient('co-interview', process.execPath, [process.argv[1]]);
         }
     } else {
-        app.setAsDefaultProtocolClient('co-interview');
+        // Production mode
+        console.log('Registering protocol (packaged app)');
+        protocolRegistered = app.setAsDefaultProtocolClient('co-interview');
     }
+    console.log('Protocol registration result:', protocolRegistered);
 
     createMainWindow();
     setupGeminiIpcHandlers(geminiSessionRef);
@@ -71,6 +88,12 @@ app.whenReady().then(async () => {
 
     // Try to refresh token on startup
     refreshAuthToken();
+
+    // Process any pending auth URL that was received before window was ready
+    // Use a small delay to ensure the window is fully loaded
+    setTimeout(() => {
+        processPendingAuthUrl();
+    }, 500);
 });
 
 // Refresh ID token using the stored refresh token
@@ -129,29 +152,51 @@ async function refreshAuthToken() {
     }
 }
 
+// Queue for URLs received before window is ready
+let pendingAuthUrl = null;
+
 // Handle protocol URL on macOS
 app.on('open-url', (event, url) => {
     event.preventDefault();
-    handleAuthCallback(url);
+    console.log('open-url event received:', url);
+
+    // If mainWindow exists, handle immediately
+    if (mainWindow && mainWindow.webContents) {
+        handleAuthCallback(url);
+    } else {
+        // Queue it for when the window is ready
+        console.log('Window not ready, queuing auth URL');
+        pendingAuthUrl = url;
+    }
 });
 
 // Handle protocol URL on Windows/Linux (single instance)
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-    app.quit();
-} else {
-    app.on('second-instance', (event, argv) => {
-        // Windows/Linux: protocol URL is in argv
-        const url = argv.find(arg => arg.startsWith('co-interview://'));
-        if (url) {
+// NOTE: requestSingleInstanceLock is already called above, so we just add the handler
+app.on('second-instance', (event, argv) => {
+    console.log('second-instance event received:', argv);
+    // Windows/Linux: protocol URL is in argv
+    const url = argv.find(arg => arg.startsWith('co-interview://'));
+    if (url) {
+        if (mainWindow && mainWindow.webContents) {
             handleAuthCallback(url);
+        } else {
+            pendingAuthUrl = url;
         }
-        // Focus window
-        if (mainWindow) {
-            if (mainWindow.isMinimized()) mainWindow.restore();
-            mainWindow.focus();
-        }
-    });
+    }
+    // Focus window
+    if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+    }
+});
+
+// Process any pending auth URL after window is ready
+function processPendingAuthUrl() {
+    if (pendingAuthUrl && mainWindow && mainWindow.webContents) {
+        console.log('Processing pending auth URL:', pendingAuthUrl);
+        handleAuthCallback(pendingAuthUrl);
+        pendingAuthUrl = null;
+    }
 }
 
 // Open Google Sign In (Server-Side Flow)

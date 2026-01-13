@@ -20,8 +20,8 @@ export const pricingTiers: PricingTier[] = [
         features: ['3 Interview Sessions', 'Basic AI Support', 'Screen Analysis Only', 'Community Support'],
     },
     {
-        id: 'sprint_30d',
-        name: 'Interview Sprint',
+        id: 'pro',
+        name: 'Pro',
         price: 29,
         period: '30-days',
         description: '30 days of managed access',

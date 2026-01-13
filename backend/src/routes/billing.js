@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const { db } = require('../config/firebase');
-const { stripe, PRICES } = require('../config/stripe');
+const { stripe, PRICES, normalizePlanId } = require('../config/stripe');
 
 /**
  * GET /v1/billing/subscription
@@ -19,11 +19,14 @@ router.get('/subscription', authMiddleware, async (req, res, next) => {
 
         const user = userDoc.data();
 
-        // If no Stripe subscription, return free plan info
+        const planId = normalizePlanId(user.access?.planId || user.plan || 'free');
+        const status = user.access?.accessStatus || user.status || 'active';
+
+        // If no Stripe subscription, return current plan info
         if (!user.subscriptionId) {
             return res.json({
-                plan: 'free',
-                status: 'active',
+                plan: planId,
+                status,
                 current_period_start: null,
                 current_period_end: null,
                 cancel_at_period_end: false,
@@ -39,8 +42,8 @@ router.get('/subscription', authMiddleware, async (req, res, next) => {
         const paymentMethod = subscription.default_payment_method;
 
         res.json({
-            plan: user.plan,
-            status: user.status,
+            plan: planId,
+            status,
             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
             cancel_at_period_end: subscription.cancel_at_period_end,
@@ -65,8 +68,9 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
     try {
         const { uid, email } = req.user;
         const { plan, success_url, cancel_url } = req.body;
+        const normalizedPlan = normalizePlanId(plan);
 
-        if (!PRICES[plan]) {
+        if (!PRICES[normalizedPlan]) {
             return res.status(400).json({ error: 'Invalid plan' });
         }
 
@@ -88,7 +92,7 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
 
         // Create checkout session
         // Create checkout session
-        const isSubscription = false; // For now, all our plans (sprint_30d, lifetime) are one-time payments.
+        const isSubscription = false; // For now, all our plans (pro, lifetime) are one-time payments.
         // If you re-introduce subscriptions, add logic here: const isSubscription = plan === 'some_sub_plan';
 
         const session = await stripe.checkout.sessions.create({
@@ -96,7 +100,7 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
             payment_method_types: ['card'],
             line_items: [
                 {
-                    price: PRICES[plan],
+                    price: PRICES[normalizedPlan],
                     quantity: 1,
                 },
             ],
@@ -105,7 +109,7 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
             cancel_url: cancel_url || `${process.env.FRONTEND_URL}/pricing`,
             metadata: {
                 firebase_uid: uid,
-                plan,
+                plan: normalizedPlan,
             },
             client_reference_id: uid, // Helpful for reconciling if metadata is lost (rare) or using standard integrations
         });
@@ -170,9 +174,11 @@ router.get('/checkout-status', authMiddleware, async (req, res, next) => {
             const user = userDoc.data();
 
             // Should match plan from metadata
-            const plan = session.metadata?.plan;
+            const plan = normalizePlanId(session.metadata?.plan);
+            const accessStatus = user.access?.accessStatus || user.status || 'active';
+            const storedPlan = normalizePlanId(user.access?.planId || user.plan || 'free');
 
-            if (user.plan === plan && user.status === 'active') {
+            if (storedPlan === plan && accessStatus === 'active') {
                 // Simple verification
                 return res.json({ status: 'complete', plan, entitlement: user });
             }

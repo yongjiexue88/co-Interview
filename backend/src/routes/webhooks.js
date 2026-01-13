@@ -1,7 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebase');
-const { stripe, PLANS } = require('../config/stripe');
+const { stripe, PLANS, normalizePlanId, getPlanConfig } = require('../config/stripe');
+
+function listToMap(list) {
+    if (!Array.isArray(list)) return list || {};
+    return list.reduce((acc, item) => {
+        acc[item] = true;
+        return acc;
+    }, {});
+}
 
 /**
  * POST /webhooks/stripe
@@ -83,6 +91,9 @@ async function handleCheckoutComplete(session) {
         return;
     }
 
+    const normalizedPlan = normalizePlanId(plan);
+    const planConfig = getPlanConfig(normalizedPlan);
+
     let subscriptionId = null;
     let currentPeriodEnd = null;
 
@@ -97,10 +108,10 @@ async function handleCheckoutComplete(session) {
             currentPeriodEnd = new Date(subscription.current_period_end * 1000);
         }
     } else if (session.mode === 'payment') {
-        // One-time payment (Sprint or Lifetime)
-        if (plan === 'lifetime') {
+        // One-time payment (Pro or Lifetime)
+        if (normalizedPlan === 'lifetime') {
             currentPeriodEnd = null; // null means forever
-        } else if (plan === 'sprint_30d') {
+        } else if (normalizedPlan === 'pro') {
             // Extension logic: max(now, current.accessEndAt) + 30 days
             const userRef = db.collection('users').doc(firebase_uid);
             const userDoc = await userRef.get();
@@ -109,12 +120,14 @@ async function handleCheckoutComplete(session) {
             const now = Date.now();
             let currentEnd = 0;
 
-            // Check if user already has active sprint access
-            if (userData.plan === 'sprint_30d' && userData.status === 'active' && userData.currentPeriodEnd) {
+            // Check if user already has active pro access
+            const existingPlanId = normalizePlanId(userData.access?.planId || userData.plan);
+            const existingStatus = userData.access?.accessStatus || userData.status;
+            const existingPeriodEnd = userData.billing?.currentPeriodEnd || userData.currentPeriodEnd;
+
+            if (existingPlanId === 'pro' && existingStatus === 'active' && existingPeriodEnd) {
                 // Firestore timestamp to millis
-                const exEnd = userData.currentPeriodEnd.toDate
-                    ? userData.currentPeriodEnd.toDate().getTime()
-                    : new Date(userData.currentPeriodEnd).getTime();
+                const exEnd = existingPeriodEnd.toDate ? existingPeriodEnd.toDate().getTime() : new Date(existingPeriodEnd).getTime();
                 currentEnd = exEnd;
             }
 
@@ -125,14 +138,22 @@ async function handleCheckoutComplete(session) {
         }
     }
 
-    const planConfig = PLANS[plan] || PLANS.free;
-
     await db
         .collection('users')
         .doc(firebase_uid)
         .set(
             {
-                plan,
+                'access.planId': normalizedPlan,
+                'access.accessStatus': 'active',
+                'access.concurrencyLimit': planConfig.concurrencyLimit,
+                'access.features': listToMap(planConfig.features),
+                'usage.quotaSecondsMonth': planConfig.quotaSecondsMonth,
+                'billing.subscriptionId': subscriptionId,
+                'billing.currentPeriodEnd': currentPeriodEnd,
+                'billing.billingStatus': 'active',
+                'meta.updatedAt': new Date(),
+                // Legacy fields for backward compatibility
+                plan: normalizedPlan,
                 status: 'active',
                 subscriptionId, // null for one-time
                 currentPeriodEnd,
@@ -141,7 +162,7 @@ async function handleCheckoutComplete(session) {
                 features: planConfig.features,
                 // Optional: track purchases
                 lastPurchase: {
-                    planId: plan,
+                    planId: normalizedPlan,
                     amount: session.amount_total,
                     currency: session.currency,
                     checkoutSessionId: session.id,
@@ -151,7 +172,7 @@ async function handleCheckoutComplete(session) {
             { merge: true }
         );
 
-    console.log(`✅ User ${firebase_uid} upgraded to ${plan}`);
+    console.log(`✅ User ${firebase_uid} upgraded to ${normalizedPlan}`);
 }
 
 /**
@@ -169,10 +190,11 @@ async function handleSubscriptionUpdated(subscription) {
     // Determine plan from price
     let plan = 'free';
     const priceId = subscription.items.data[0]?.price.id;
-    if (priceId === process.env.STRIPE_PRICE_SPRINT_30D) plan = 'sprint_30d';
+    if (priceId === process.env.STRIPE_PRICE_SPRINT_30D) plan = 'pro';
     if (priceId === process.env.STRIPE_PRICE_LIFETIME) plan = 'lifetime';
 
-    const planConfig = PLANS[plan];
+    const normalizedPlan = normalizePlanId(plan);
+    const planConfig = getPlanConfig(normalizedPlan);
 
     // Map Stripe status to our status
     let status = 'active';
@@ -180,14 +202,27 @@ async function handleSubscriptionUpdated(subscription) {
     if (subscription.status === 'canceled') status = 'canceled';
     if (subscription.status === 'trialing') status = 'trialing';
 
+    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+
     await db
         .collection('users')
         .doc(firebaseUid)
         .set(
             {
-                plan,
+                'access.planId': normalizedPlan,
+                'access.accessStatus': status,
+                'access.concurrencyLimit': planConfig.concurrencyLimit,
+                'access.features': listToMap(planConfig.features),
+                'usage.quotaSecondsMonth': planConfig.quotaSecondsMonth,
+                'billing.subscriptionId': subscription.id,
+                'billing.currentPeriodEnd': currentPeriodEnd,
+                'billing.billingStatus': status,
+                'meta.updatedAt': new Date(),
+                // Legacy fields
+                plan: normalizedPlan,
                 status,
-                currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                subscriptionId: subscription.id,
+                currentPeriodEnd,
                 quotaSecondsMonth: planConfig.quotaSecondsMonth,
                 concurrencyLimit: planConfig.concurrencyLimit,
                 features: planConfig.features,
@@ -195,7 +230,7 @@ async function handleSubscriptionUpdated(subscription) {
             { merge: true }
         );
 
-    console.log(`📝 Subscription updated for ${firebaseUid}: ${plan} (${status})`);
+    console.log(`📝 Subscription updated for ${firebaseUid}: ${normalizedPlan} (${status})`);
 }
 
 /**
@@ -211,9 +246,20 @@ async function handleSubscriptionDeleted(subscription) {
 
     await db.collection('users').doc(firebaseUid).set(
         {
+            'access.planId': 'free',
+            'access.accessStatus': 'active',
+            'access.concurrencyLimit': freeConfig.concurrencyLimit,
+            'access.features': listToMap(freeConfig.features),
+            'usage.quotaSecondsMonth': freeConfig.quotaSecondsMonth,
+            'billing.subscriptionId': null,
+            'billing.currentPeriodEnd': null,
+            'billing.billingStatus': 'active',
+            'meta.updatedAt': new Date(),
+            // Legacy fields
             plan: 'free',
             status: 'active',
             subscriptionId: null,
+            currentPeriodEnd: null,
             quotaSecondsMonth: freeConfig.quotaSecondsMonth,
             concurrencyLimit: freeConfig.concurrencyLimit,
             features: freeConfig.features,
@@ -235,6 +281,10 @@ async function handlePaymentFailed(invoice) {
 
     await db.collection('users').doc(firebaseUid).set(
         {
+            'access.accessStatus': 'past_due',
+            'billing.billingStatus': 'past_due',
+            'meta.updatedAt': new Date(),
+            // Legacy field
             status: 'past_due',
         },
         { merge: true }

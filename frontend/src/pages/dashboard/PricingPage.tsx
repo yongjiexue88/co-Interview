@@ -47,12 +47,12 @@ const PricingPage: React.FC = () => {
             import('../../lib/analytics').then(({ trackEvent }) => {
                 trackEvent('begin_checkout', {
                     currency: 'USD',
-                    value: planId === 'sprint_30d' ? 25 : 99,
+                    value: planId === 'pro' ? 29 : 99,
                     items: [{ item_id: planId, item_name: planId }],
                 });
             });
 
-            const res = await api.post('/billing/checkout', { planId });
+            const res = await api.post('/billing/checkout', { plan: planId });
             if (res.data.checkout_url) {
                 window.location.href = res.data.checkout_url;
             }
@@ -74,21 +74,21 @@ const PricingPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto">
                 {/* Monthly Pro */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-8">
-                    <h2 className="text-xl font-semibold text-white mb-6">Monthly Pro</h2>
+                    <h2 className="text-xl font-semibold text-white mb-6">Pro</h2>
                     <div className="mb-2">
-                        <span className="text-4xl font-bold text-white">$299</span>
-                        <span className="text-gray-400">/month</span>
+                        <span className="text-4xl font-bold text-white">$29</span>
+                        <span className="text-gray-400">/30 days</span>
                     </div>
                     <p className="text-gray-500 text-sm mb-6">
-                        Original price: <span className="line-through">$499</span>
+                        30 days of unlimited access
                     </p>
 
                     <button
-                        onClick={() => handlePurchase('sprint_30d')}
+                        onClick={() => handlePurchase('pro')}
                         disabled={!!loadingPlan}
                         className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-3 px-4 rounded-lg hover:brightness-110 transition-all mb-4 disabled:opacity-50"
                     >
-                        {loadingPlan === 'sprint_30d' ? 'Processing...' : 'Subscribe'}
+                        {loadingPlan === 'pro' ? 'Processing...' : 'Subscribe'}
                     </button>
 
                     <div className="flex items-center gap-2 text-gray-400 text-sm mb-6">
@@ -117,13 +117,13 @@ const PricingPage: React.FC = () => {
                         </span>
                     </div>
 
-                    <h2 className="text-xl font-semibold text-[#FACC15] mt-4 mb-6">Lifetime Pro</h2>
+                    <h2 className="text-xl font-semibold text-[#FACC15] mt-4 mb-6">Lifetime</h2>
                     <div className="mb-2">
-                        <span className="text-4xl font-bold text-white">$799</span>
+                        <span className="text-4xl font-bold text-white">$99</span>
                         <span className="text-gray-400 ml-2">One-time payment</span>
                     </div>
                     <p className="text-gray-500 text-sm mb-6">
-                        Original price: <span className="line-through">$1598</span>
+                        Original price: <span className="line-through">$198</span>
                     </p>
 
                     <button

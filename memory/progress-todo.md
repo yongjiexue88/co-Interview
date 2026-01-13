@@ -155,6 +155,14 @@
 - **Electron:** Updated `gemini.js` to use backend proxy for screenshots
 - **Tests:** All tests passing (Backend: 55/55, Electron: 121/121)
 
+### Electron Google Login Fix (2026-01-13)
+- Fixed "Extra Window" issue during Google OAuth callback in development mode
+- **Root Cause:** macOS `co-interview://` protocol was registered to system Electron binary instead of app instance
+- **Fix:** Added startup logic to remove old protocol registration and re-register explicitly with current app path
+- **Enhancement:** Implemented `pendingAuthUrl` queue to handle callbacks received before main window is ready
+- **Enhancement:** Added `setWindowOpenHandler` to prevent any future popups
+- Verified end-to-end: Login flow completes in existing window, no extra window spawns
+
 ---
 
 ## 🚧 Remaining TODO Items

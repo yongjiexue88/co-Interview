@@ -16,13 +16,15 @@ jest.mock('../../src/config/stripe', () => ({
         billingPortal: { sessions: { create: jest.fn() } }
     },
     PRICES: {
-        'sprint_30d': 'price_sprint',
-        'lifetime': 'price_lifetime',
+        pro: 'price_pro',
+        sprint_30d: 'price_pro',
+        lifetime: 'price_lifetime',
     },
     PLANS: {
         free: { quotaSecondsMonth: 3600 },
         pro: { quotaSecondsMonth: 36000 }
-    }
+    },
+    normalizePlanId: planId => (planId === 'sprint_30d' ? 'pro' : planId || 'free'),
 }));
 
 const { stripe } = require('../../src/config/stripe');
@@ -130,7 +132,7 @@ describe('Billing Routes', () => {
             mockUserGet.mockResolvedValue({ exists: true, data: () => ({ stripeCustomerId: 'cus_123' }) });
             stripe.checkout.sessions.create.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
 
-            const res = await request(app).post('/api/v1/billing/checkout').set('Authorization', 'Bearer valid_token').send({ plan: 'sprint_30d' });
+            const res = await request(app).post('/api/v1/billing/checkout').set('Authorization', 'Bearer valid_token').send({ plan: 'pro' });
             expect(res.statusCode).toEqual(200);
             expect(res.body.checkout_url).toBe('https://checkout.stripe.com/test');
         });
@@ -145,7 +147,7 @@ describe('Billing Routes', () => {
             stripe.customers.create.mockResolvedValue({ id: 'new_cus' });
             stripe.checkout.sessions.create.mockResolvedValue({ url: 'url' });
 
-            const res = await request(app).post('/api/v1/billing/checkout').set('Authorization', 'Bearer valid_token').send({ plan: 'sprint_30d' });
+            const res = await request(app).post('/api/v1/billing/checkout').set('Authorization', 'Bearer valid_token').send({ plan: 'pro' });
 
             expect(res.statusCode).toEqual(200);
             expect(stripe.customers.create).toHaveBeenCalled();
@@ -165,7 +167,7 @@ describe('Billing Routes', () => {
 
         it('should handle errors', async () => {
             mockUserGet.mockRejectedValue(new Error('DB Error'));
-            const res = await request(app).post('/api/v1/billing/checkout').set('Authorization', 'Bearer valid_token').send({ plan: 'sprint_30d' });
+            const res = await request(app).post('/api/v1/billing/checkout').set('Authorization', 'Bearer valid_token').send({ plan: 'pro' });
             expect(res.statusCode).toEqual(500);
         });
     });
@@ -174,10 +176,10 @@ describe('Billing Routes', () => {
         it('should return complete if paid and user updated', async () => {
             stripe.checkout.sessions.retrieve.mockResolvedValue({
                 payment_status: 'paid',
-                metadata: { plan: 'sprint_30d' },
+                metadata: { plan: 'pro' },
                 client_reference_id: 'user123'
             });
-            mockUserGet.mockResolvedValue({ exists: true, data: () => ({ plan: 'sprint_30d', status: 'active' }) });
+            mockUserGet.mockResolvedValue({ exists: true, data: () => ({ plan: 'pro', status: 'active' }) });
 
             const res = await request(app).get('/api/v1/billing/checkout-status?session_id=cs_1').set('Authorization', 'Bearer valid_token');
             expect(res.statusCode).toEqual(200);
@@ -200,7 +202,7 @@ describe('Billing Routes', () => {
         it('should return processing if paid but not active', async () => {
             stripe.checkout.sessions.retrieve.mockResolvedValue({
                 payment_status: 'paid',
-                metadata: { plan: 'sprint_30d', firebase_uid: 'user123' }
+                metadata: { plan: 'pro', firebase_uid: 'user123' }
             });
             mockUserGet.mockResolvedValue({ exists: true, data: () => ({ plan: 'free' }) });
 

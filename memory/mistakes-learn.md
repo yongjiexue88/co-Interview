@@ -162,6 +162,15 @@
 - **Improved robustness:** Added `getCurrentView()` and `getLayoutMode()` directly to `CoInterviewApp` class and updated `window.js` to use a resilient script that checks both the app element and the global object.
 **Prevention:** Avoid relying on global objects for core functionality like storage in Electron renderers; use direct IPC or ensure initialization order is guaranteed. Use optional chaining and robust retrieval scripts/methods on elements.
 
+### 2026-01-13 - Electron Protocol Handler Opening New Window (Dev Mode)
+**Problem:** OAuth callback `co-interview://...` opened a new Electron default window instead of the running app instance.
+**Root Cause:** macOS Launch Services registered the protocol to the global Electron binary (`/opt/homebrew/bin/electron`) instead of the development app instance. This happens easily when running `electron-forge start`.
+**Solution:** 
+1. Call `app.removeAsDefaultProtocolClient('co-interview')` before setting it.
+2. Explicitly register with `process.execPath` and `process.argv[1]` in development mode.
+3. Added `processPendingAuthUrl` queue for URLs handled before `mainWindow` is ready.
+**Prevention:** Always force re-register custom protocols with explicit paths in development mode to override stale system registrations.
+
 ---
 
 ## 📝 Notes
