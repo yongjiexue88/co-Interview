@@ -801,7 +801,7 @@ export class OnboardingView extends LitElement {
                 [40, 30, 45], // Muted purple
                 [15, 5, 20], // Almost black
             ],
-            // Slide 4 - Context (Dark neutral)
+            // Slide 6 - Context (Dark neutral)
             [
                 [25, 25, 25], // Neutral dark
                 [20, 20, 20], // Darker neutral
@@ -810,16 +810,7 @@ export class OnboardingView extends LitElement {
                 [35, 35, 35], // Lighter dark
                 [10, 10, 10], // Almost black
             ],
-            // Slide 5 - Features (Dark green-gray)
-            [
-                [20, 30, 25], // Dark green-gray
-                [15, 25, 20], // Darker green-gray
-                [25, 35, 30], // Slightly green
-                [10, 20, 15], // Very dark green
-                [30, 40, 35], // Muted green
-                [5, 15, 10], // Almost black
-            ],
-            // Slide 6 - Complete (Dark warm gray)
+            // Slide 7 - Complete (Dark warm gray)
             [
                 [30, 25, 20], // Dark warm gray
                 [25, 20, 15], // Darker warm
@@ -944,7 +935,7 @@ export class OnboardingView extends LitElement {
             // Skip not allowed for sign-in unless explicitly clicked
             return;
         }
-        if (this.currentSlide < 8) {
+        if (this.currentSlide < 7) {
             this.startColorTransition(this.currentSlide + 1);
         } else {
             this.completeOnboarding();
@@ -961,7 +952,7 @@ export class OnboardingView extends LitElement {
         this.previousColorScheme = [...this.colorSchemes[this.currentSlide]];
 
         // Track slide view
-        const slideNames = ['sign_in', 'welcome', 'persona', 'tell_more', 'privacy', 'tailor', 'context', 'features', 'complete'];
+        const slideNames = ['sign_in', 'welcome', 'persona', 'tell_more', 'privacy', 'tailor', 'context', 'complete'];
         if (slideNames[newSlide]) {
             trackEvent('onboarding_slide_view', {
                 slide_number: newSlide,
@@ -1306,20 +1297,14 @@ Onboarding preferences collected: {
             },
             {
                 icon: this.getAssetPath('assets/onboarding/context.svg'),
-                title: 'Add Your Context',
+                title: 'Add Your Context (Optional)',
                 content: 'Share relevant information to help the AI provide better, more personalized assistance.',
                 showTextarea: true,
             },
             {
-                icon: this.getAssetPath('assets/onboarding/customize.svg'),
-                title: 'Additional Features',
-                content: '',
-                showFeatures: true,
-            },
-            {
                 icon: this.getAssetPath('assets/onboarding/ready.svg'),
                 title: 'Ready to Go',
-                content: 'Add your Gemini API key in settings and start getting AI-powered assistance in real-time.',
+                content: "You're all set! Start using your AI assistant immediately.",
             },
         ];
 
@@ -1640,8 +1625,8 @@ Onboarding preferences collected: {
                     </button>
 
                     <div class="progress-dots">
-                        ${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(
-                    index => html`
+                        ${Array.from({ length: 8 }).map(
+                    (_, index) => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
@@ -1655,7 +1640,7 @@ Onboarding preferences collected: {
                     </div>
 
                     <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
-                        ${this.currentSlide === 8
+                        ${this.currentSlide === 7
                 ? 'Get Started'
                 : this.currentSlide === 0
                     ? 'Skip'

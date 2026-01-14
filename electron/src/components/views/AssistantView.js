@@ -22,7 +22,7 @@ export class AssistantView extends LitElement {
             overflow-y: auto;
             font-size: var(--response-font-size, 16px);
             line-height: 1.6;
-            background: var(--bg-primary);
+            background: transparent;
             padding: 12px;
             scroll-behavior: smooth;
             user-select: text;
@@ -349,7 +349,7 @@ export class AssistantView extends LitElement {
         this.responses = [];
         this.currentResponseIndex = -1;
         this.selectedProfile = 'interview';
-        this.onSendText = () => {};
+        this.onSendText = () => { };
         this.flashCount = 0;
         this.flashLiteCount = 0;
     }

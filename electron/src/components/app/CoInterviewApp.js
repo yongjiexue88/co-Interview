@@ -8,7 +8,7 @@ import '../views/AssistantView.js';
 import '../views/OnboardingView.js';
 
 // Import analytics for tracking
-let trackEvent = () => {};
+let trackEvent = () => { };
 if (typeof window !== 'undefined' && window.require) {
     try {
         const { fileURLToPath } = window.require('url');
@@ -46,7 +46,7 @@ export class CoInterviewApp extends LitElement {
         .window-container {
             height: 100vh;
             overflow: hidden;
-            background: var(--bg-primary);
+            background: transparent;
         }
 
         .container {
@@ -183,7 +183,7 @@ export class CoInterviewApp extends LitElement {
             this.currentView = isDev || !config?.onboardingComplete ? 'onboarding' : 'assistant';
 
             // Apply background appearance (color + transparency)
-            this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.8);
+            this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.2);
 
             // Load preferences
             this.selectedProfile = prefs.selectedProfile || 'interview';
@@ -214,10 +214,10 @@ export class CoInterviewApp extends LitElement {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result
             ? {
-                  r: parseInt(result[1], 16),
-                  g: parseInt(result[2], 16),
-                  b: parseInt(result[3], 16),
-              }
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16),
+            }
             : { r: 30, g: 30, b: 30 };
     }
 
@@ -350,14 +350,13 @@ export class CoInterviewApp extends LitElement {
                 window.coInterview.stopCapture();
             }
 
-            // Close the session
+            // Close the session and quit application
             if (window.require) {
                 const { ipcRenderer } = window.require('electron');
                 await ipcRenderer.invoke('close-session');
+                await ipcRenderer.invoke('quit-application');
             }
             this.sessionActive = false;
-            // Stay on assistant view but in "ready" state - don't go to removed main page
-            console.log('Session closed - ready for new session');
         } else {
             // Quit the entire application
             if (window.require) {
@@ -580,11 +579,11 @@ export class CoInterviewApp extends LitElement {
                         .shouldAnimateResponse=${this.shouldAnimateResponse}
                         @response-index-changed=${this.handleResponseIndexChanged}
                         @response-animation-complete=${() => {
-                            this.shouldAnimateResponse = false;
-                            this._currentResponseIsComplete = true;
-                            console.log('[response-animation-complete] Marked current response as complete');
-                            this.requestUpdate();
-                        }}
+                        this.shouldAnimateResponse = false;
+                        this._currentResponseIsComplete = true;
+                        console.log('[response-animation-complete] Marked current response as complete');
+                        this.requestUpdate();
+                    }}
                     ></assistant-view>
                 `;
 

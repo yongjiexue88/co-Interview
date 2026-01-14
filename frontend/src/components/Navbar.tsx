@@ -137,20 +137,20 @@ const Navbar: React.FC = () => {
                                         <Link
                                             to="/dashboard"
                                             onClick={() => setDropdownOpen(false)}
-                                            className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 transition-colors"
+                                            className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:bg-[#FACC15] hover:text-black transition-colors"
                                         >
                                             Dashboard
                                         </Link>
                                         <Link
                                             to="/still_working"
                                             onClick={() => setDropdownOpen(false)}
-                                            className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 transition-colors"
+                                            className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:bg-[#FACC15] hover:text-black transition-colors"
                                         >
                                             Help
                                         </Link>
                                         <button
                                             onClick={handleLogout}
-                                            className="w-full flex items-center gap-2 px-4 py-3 text-sm text-[#FACC15] hover:bg-white/5 transition-colors"
+                                            className="w-full flex items-center gap-2 px-4 py-3 text-sm text-[#FACC15] hover:bg-[#FACC15] hover:text-black transition-colors"
                                         >
                                             Log out
                                         </button>
@@ -261,19 +261,19 @@ const Navbar: React.FC = () => {
                                     </div>
                                     <Link
                                         to="/dashboard"
-                                        className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all"
+                                        className="w-full text-left py-2 px-3 text-gray-400 hover:text-black hover:bg-[#FACC15] rounded-md transition-all"
                                     >
                                         Dashboard
                                     </Link>
                                     <Link
                                         to="/still_working"
-                                        className="w-full text-left py-2 px-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-all"
+                                        className="w-full text-left py-2 px-3 text-gray-400 hover:text-black hover:bg-[#FACC15] rounded-md transition-all"
                                     >
                                         Help
                                     </Link>
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full text-left py-2 px-3 text-[#FACC15] hover:bg-white/5 rounded-md transition-all"
+                                        className="w-full text-left py-2 px-3 text-[#FACC15] hover:bg-[#FACC15] hover:text-black rounded-md transition-all"
                                     >
                                         Log out
                                     </button>

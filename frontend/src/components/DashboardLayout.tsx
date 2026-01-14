@@ -8,7 +8,6 @@ import { Home, FileText, History, DollarSign, Clock, User, LogOut, Loader2 } fro
 const sidebarItems = [
     { name: 'Home', icon: Home, href: '/dashboard' },
     { name: 'Real Interview Examples', icon: FileText, href: '/still_working' },
-    { name: 'Previous Versions', icon: History, href: '/dashboard/previous-versions' },
     { name: 'Pricing', icon: DollarSign, href: '/dashboard/pricing' },
     { name: 'Changelog', icon: Clock, href: '/dashboard/changelog' },
     { name: 'Profile', icon: User, href: '/dashboard/profile' },
@@ -88,9 +87,8 @@ const DashboardLayout: React.FC = () => {
                         <Link
                             key={item.name}
                             to={item.href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors mb-1 ${
-                                isActiveRoute(item.href) ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors mb-1 ${isActiveRoute(item.href) ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                }`}
                         >
                             <item.icon className="w-5 h-5" />
                             {item.name}
