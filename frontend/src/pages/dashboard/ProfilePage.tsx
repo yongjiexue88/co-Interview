@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../lib/api';
-import { Lock, Trash2, LogOut } from 'lucide-react';
-import { signOut } from 'firebase/auth';
-import { auth } from '../../lib/firebase';
+import { Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 type TabType = 'account' | 'billing' | 'affiliate';
@@ -37,14 +35,7 @@ const ProfilePage: React.FC = () => {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            await signOut(auth);
-            navigate('/');
-        } catch (error) {
-            console.error('Logout failed:', error);
-        }
-    };
+    const isPasswordUser = user?.providerData?.some(p => p.providerId === 'password');
 
     return (
         <div className="max-w-4xl mx-auto px-8 py-12">
@@ -98,18 +89,12 @@ const ProfilePage: React.FC = () => {
 
                     {/* Actions */}
                     <div className="space-y-3 pt-4">
-                        <button className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors">
-                            <Lock className="w-4 h-4" />
-                            <span className="text-sm">Change Password</span>
-                        </button>
-                        <button className="flex items-center gap-3 text-red-500 hover:text-red-400 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                            <span className="text-sm">Delete Account</span>
-                        </button>
-                        <button onClick={handleLogout} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors">
-                            <LogOut className="w-4 h-4" />
-                            <span className="text-sm">Log Out</span>
-                        </button>
+                        {isPasswordUser && (
+                            <button className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors">
+                                <Lock className="w-4 h-4" />
+                                <span className="text-sm">Change Password</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
