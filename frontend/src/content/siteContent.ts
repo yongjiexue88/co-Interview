@@ -126,7 +126,6 @@ export const footerLinks = {
         { name: 'Contact Support', href: '/help?section=contact' },
         { name: 'Create account', href: '/signup' },
         { name: 'Login to account', href: '/signin' },
-        { name: 'Affiliate Program', href: 'https://interviewcoder.tolt.io/' },
         { name: 'Leetcode Problems', href: '/leetcode-problems' },
         { name: 'Compare Offers', href: '/compare-offers' },
         { name: 'Software Engineer Salaries', href: '/software-engineer-salaries' },

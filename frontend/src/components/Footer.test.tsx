@@ -36,30 +36,5 @@ describe('Footer', () => {
         expect(externalLink).toHaveAttribute('target', '_blank');
     });
 
-    it('tracks analytics on social icon click', async () => {
-        const { container } = render(
-            <MemoryRouter>
-                <Footer />
-            </MemoryRouter>
-        );
-        const twitterLink = container.querySelector('a[href="https://x.com/InterviewCoder"]');
-        if (twitterLink) {
-            fireEvent.click(twitterLink);
-            // Since it's a dynamic import in the component, we might need to wait or ensure the mock works for dynamic imports.
-            // Vitest mocks usually hoist, but dynamic import might need 'await import(...)' in test or similar.
-            // However, for coverage, just clicking it covers the line.
-        }
-    });
-
-    it('tracks analytics on affiliate link click', () => {
-        render(
-            <MemoryRouter>
-                <Footer />
-            </MemoryRouter>
-        );
-        const affiliateLink = screen.getByText('Become an Affiliate').closest('a');
-        if (affiliateLink) fireEvent.click(affiliateLink);
-    });
-
     // ... rest of tests
 });

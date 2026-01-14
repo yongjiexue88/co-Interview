@@ -1,19 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Twitter, Instagram, Youtube } from 'lucide-react';
 import { footerLinks } from '../content/siteContent';
-
-const SocialIcon = ({ Icon, href, platform }: { Icon: any; href: string; platform: string }) => (
-    <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => import('../lib/analytics').then(m => m.trackEvent('footer_social_click', { platform }))}
-        className="text-neutral-500 hover:text-neutral-300 transition-colors"
-    >
-        <Icon className="w-5 h-5" />
-    </a>
-);
 
 const Footer: React.FC = () => {
     return (
@@ -34,22 +21,6 @@ const Footer: React.FC = () => {
                             Co-Interview is a desktop app designed to help job seekers ace technical interviews by providing real-time assistance with
                             coding questions.
                         </p>
-                        <div className="flex gap-4 pt-4 mb-6">
-                            <SocialIcon Icon={Twitter} href="https://x.com/InterviewCoder" platform="twitter" />
-                            <SocialIcon Icon={Instagram} href="https://www.instagram.com/interviewcoder/" platform="instagram" />
-                            <SocialIcon Icon={Youtube} href="https://www.youtube.com/@InterviewCoder-official" platform="youtube" />
-                        </div>
-
-                        <a
-                            href="https://interviewcoder.tolt.io/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => import('../lib/analytics').then(m => m.trackEvent('footer_affiliate_click'))}
-                            className="group flex items-center gap-2 bg-neutral-900/80 border border-neutral-700/50 hover:border-neutral-600 rounded-lg px-4 py-3 w-fit transition-all duration-300"
-                        >
-                            <span className="text-neutral-200 text-sm font-medium">Become an Affiliate</span>
-                            <span className="text-neutral-500 text-xs">Earn 40% commission</span>
-                        </a>
 
                         <div className="mt-7 bg-neutral-900 border border-neutral-800 rounded-full px-3 py-1 flex items-center gap-2 w-fit select-none">
                             <div className="relative">

@@ -7,7 +7,6 @@ export const generateOrganizationSchema = () => ({
     name: 'Co-Interview',
     url: 'https://co-interview.com',
     logo: 'https://co-interview.com/logo.png', // Update with actual logo path if available
-    sameAs: ['https://x.com/InterviewCoder', 'https://www.instagram.com/interviewcoder/', 'https://www.youtube.com/@InterviewCoder-official'],
 });
 
 export const generateWebSiteSchema = () => ({
