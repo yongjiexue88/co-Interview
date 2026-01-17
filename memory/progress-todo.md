@@ -163,6 +163,16 @@
 - **Enhancement:** Added `setWindowOpenHandler` to prevent any future popups
 - Verified end-to-end: Login flow completes in existing window, no extra window spawns
 
+### Stripe Payment Flow Fixes (2026-01-17)
+- Fixed 400 Bad Request error on Pro plan checkout (recurring price used in payment mode)
+- Created new one-time Stripe price for Pro plan ($19.99 for 14 days)
+- Renamed env var `STRIPE_PRICE_SPRINT_30D` → `STRIPE_PRICE_PRO` across codebase
+- Updated `.github/workflows/deploy-backend.yml` with new secret name
+- Updated `backend/src/config/stripe.js` to use `STRIPE_PRICE_PRO`
+- Fixed cancel URL to use `/#pricing` hash anchor for SPA routing
+- Added marketing features and descriptions to Stripe products
+- Updated frontend pricing to $19.99
+
 ---
 
 ## 🚧 Remaining TODO Items

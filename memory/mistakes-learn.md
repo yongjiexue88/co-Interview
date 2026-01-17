@@ -66,6 +66,12 @@
 **Solution:** Switched to `.set(..., { merge: true })` in `webhooks.js` to ensure upsert behavior.
 **Prevention:** Always use upsert logic for critical webhook handlers dealing with potentially missing records.
 
+### 2026-01-17 - Stripe Checkout 400 Error: Mode Mismatch
+**Problem:** Stripe Checkout returned 400 Bad Request with "You specified `payment` mode but passed a recurring price"
+**Root Cause:** The Pro plan's Stripe Price was configured as "recurring" (subscription), but `billing.js` hardcoded `mode: 'payment'` for all plans.
+**Solution:** Created a new one-time Price in Stripe Dashboard for Pro plan and updated `STRIPE_PRICE_SPRINT_30D` env var. Also renamed to `STRIPE_PRICE_PRO` for clarity.
+**Prevention:** When configuring Stripe products, verify Price type (one-time vs recurring) matches the intended checkout mode in code. Use `stripe.prices.retrieve()` to programmatically check if needed.
+
 ---
 
 ## 🔴 Code Quality
