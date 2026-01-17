@@ -133,8 +133,8 @@ async function handleCheckoutComplete(session) {
 
             // If currentEnd is in the past, treat as now. If future, start from there.
             const startPoint = Math.max(now, currentEnd);
-            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-            currentPeriodEnd = new Date(startPoint + thirtyDaysMs);
+            const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+            currentPeriodEnd = new Date(startPoint + fourteenDaysMs);
         }
     }
 

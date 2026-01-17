@@ -45,22 +45,25 @@ const ProfilePage: React.FC = () => {
             <div className="flex gap-6 border-b border-white/10 mb-8">
                 <button
                     onClick={() => setActiveTab('account')}
-                    className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'account' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
-                        }`}
+                    className={`pb-3 text-sm font-medium transition-colors ${
+                        activeTab === 'account' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
+                    }`}
                 >
                     Your Account
                 </button>
                 <button
                     onClick={() => setActiveTab('billing')}
-                    className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'billing' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
-                        }`}
+                    className={`pb-3 text-sm font-medium transition-colors ${
+                        activeTab === 'billing' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
+                    }`}
                 >
                     Billing
                 </button>
                 <button
                     onClick={() => setActiveTab('affiliate')}
-                    className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'affiliate' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
-                        }`}
+                    className={`pb-3 text-sm font-medium transition-colors ${
+                        activeTab === 'affiliate' ? 'text-white border-b-2 border-white' : 'text-gray-400 hover:text-white'
+                    }`}
                 >
                     Affiliate
                 </button>

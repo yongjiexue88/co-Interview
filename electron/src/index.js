@@ -133,6 +133,18 @@ async function refreshAuthToken() {
             try {
                 const profile = await Api.fetchUserProfile();
                 const currentAuth = storage.getAuthData();
+
+                // Log detailed plan and quota info on startup
+                console.log('=== USER PLAN & QUOTA INFO (Startup) ===');
+                console.log('Plan ID:', profile.plan.id);
+                console.log('Plan Name:', profile.plan.name);
+                console.log('Plan Status:', profile.plan.status);
+                console.log('Quota Limit (seconds):', profile.quota.limit);
+                console.log('Quota Used (seconds):', profile.quota.used);
+                console.log('Quota Remaining (seconds):', profile.quota.remaining);
+                console.log('Features:', profile.plan.features);
+                console.log('=========================================');
+
                 storage.setAuthData({
                     ...currentAuth,
                     plan: profile.plan.id,
@@ -312,6 +324,18 @@ async function handleAuthCallback(url) {
                     try {
                         console.log('Fetching full user profile...');
                         const profile = await Api.fetchUserProfile();
+
+                        // Log detailed plan and quota info
+                        console.log('=== USER PLAN & QUOTA INFO ===');
+                        console.log('Plan ID:', profile.plan.id);
+                        console.log('Plan Name:', profile.plan.name);
+                        console.log('Plan Status:', profile.plan.status);
+                        console.log('Quota Limit (seconds):', profile.quota.limit);
+                        console.log('Quota Used (seconds):', profile.quota.used);
+                        console.log('Quota Remaining (seconds):', profile.quota.remaining);
+                        console.log('Features:', profile.plan.features);
+                        console.log('==============================');
+
                         authData = {
                             ...authData,
                             plan: profile.plan.id,

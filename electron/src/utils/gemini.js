@@ -252,7 +252,7 @@ async function initializeGeminiSession(firebaseToken, preferences = {}, profile 
     try {
         // Exchange Credentials for Session Token & Limits via Backend
         const sessionResult = await Api.startSession({
-            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+            model: 'gemini-2.0-flash-exp',
         });
         const { token: geminiToken, session_id: serverSessionId } = sessionResult;
         currentGeminiToken = geminiToken;
@@ -280,8 +280,9 @@ async function initializeGeminiSession(firebaseToken, preferences = {}, profile 
             initializeNewSession(profile, preferences.customPrompt);
         }
 
+        console.log('Connecting to Gemini Live with model: gemini-2.0-flash-exp');
         const session = await client.live.connect({
-            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+            model: 'gemini-2.0-flash-exp',
             callbacks: {
                 onopen: function () {
                     sendToRenderer('update-status', 'Live session connected');
@@ -294,6 +295,22 @@ async function initializeGeminiSession(firebaseToken, preferences = {}, profile 
                     // But I need to wrap the whole connection logic.
                     // I will re-implement the message handling callback precisely as it was.
                     console.log('----------------', message);
+                    try {
+                        // Debug: Log potentially relevant parts of the message structure
+                        if (message.serverContent) {
+                            if (message.serverContent.modelTurn) {
+                                console.log('Received modelTurn:', JSON.stringify(message.serverContent.modelTurn).substring(0, 200) + '...');
+                            } else if (message.serverContent.turnComplete) {
+                                console.log('Received turnComplete');
+                            } else if (message.serverContent.interrupted) {
+                                console.log('Received interrupted');
+                            }
+                        } else if (message.toolCall) {
+                            console.log('Received toolCall');
+                        }
+                    } catch (e) {
+                        /* ignore log errors */
+                    }
 
                     // Handle input transcription (what was spoken)
                     if (message.serverContent?.inputTranscription?.results) {
@@ -373,12 +390,14 @@ async function initializeGeminiSession(firebaseToken, preferences = {}, profile 
         return session;
     } catch (error) {
         console.error('Failed to initialize Gemini session:', error);
+        console.error('Error stack:', error.stack);
         stopHeartbeat();
         isInitializingSession = false;
         if (!isReconnect) {
             sendToRenderer('session-initializing', false);
         }
-        sendToRenderer('update-status', 'Error: ' + (error.message || 'Access Forbidden'));
+        const errorMessage = error.message || 'Unknown error during session init';
+        sendToRenderer('update-status', 'Error: ' + errorMessage);
         return null;
     }
 }
@@ -493,7 +512,10 @@ function setupGeminiIpcHandlers(geminiSessionRef) {
     });
 
     ipcMain.handle('send-text-message', async (event, text) => {
-        if (!geminiSessionRef.current) return { success: false, error: 'No active Gemini session' };
+        if (!geminiSessionRef.current) {
+            console.error('send-text-message failed: geminiSessionRef.current is null. (Session not active)');
+            return { success: false, error: 'No active Gemini session. Please check your connection or restart.' };
+        }
 
         try {
             if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -732,12 +754,13 @@ async function sendAudioToGemini(base64Data, geminiSessionRef) {
 
     try {
         process.stdout.write('.');
-        await geminiSessionRef.current.sendRealtimeInput({
-            audio: {
-                data: base64Data,
-                mimeType: 'audio/pcm;rate=24000',
-            },
-        });
+        // await geminiSessionRef.current.sendRealtimeInput({
+        //     audio: {
+        //         data: base64Data,
+        //         mimeType: 'audio/pcm;rate=24000',
+        //     },
+        // });
+        process.stdout.write('(Audio Disabled)');
     } catch (error) {
         console.error('Error sending audio to Gemini:', error);
     }

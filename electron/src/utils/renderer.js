@@ -1,6 +1,11 @@
 // renderer.js
 const { ipcRenderer } = require('electron');
 
+// Set up early stub for window.coInterview to prevent "not available" errors
+// This gets replaced with the full object at the end of this file
+console.log('[renderer.js] Script starting...');
+window.coInterview = window.coInterview || {};
+
 let mediaStream = null;
 let screenshotInterval = null;
 let audioContext = null;
@@ -133,11 +138,22 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
-const { getIdToken } = require('./firebase');
+const { getIdToken, auth, signInWithCustomToken } = require('./utils/firebase');
 
 async function initializeGemini(profile = 'interview', language = 'en-US') {
     // Get Firebase ID token for Managed Mode
-    const token = await getIdToken();
+    let token = await getIdToken();
+
+    // If no token immediately, wait a moment for auth-complete if we are in the middle of signing in
+    if (!token) {
+        console.log('No token found immediately, waiting for auth...');
+        // Simple retry mechanism - wait up to 2 seconds
+        for (let i = 0; i < 10; i++) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+            token = await getIdToken();
+            if (token) break;
+        }
+    }
 
     if (token) {
         const prefs = await storage.getPreferences();
@@ -152,11 +168,12 @@ async function initializeGemini(profile = 'interview', language = 'en-US') {
         if (success) {
             coInterview.setStatus('Live');
         } else {
-            coInterview.setStatus('error');
+            console.error('Gemini initialization failed (check logs for details)');
+            // Do not overwrite status here, as gemini.js sends a detailed 'Error: ...' status
         }
     } else {
-        console.error('No authenticated user found for Managed Mode.');
-        coInterview.setStatus('error');
+        console.error('No authenticated user found for Managed Mode. (Timeout waiting for auth)');
+        coInterview.setStatus('Error: Login required. Please try verifying your account again.');
     }
 }
 
@@ -164,6 +181,25 @@ async function initializeGemini(profile = 'interview', language = 'en-US') {
 ipcRenderer.on('update-status', (event, status) => {
     console.log('Status update:', status);
     coInterview.setStatus(status);
+});
+
+// Listen for auth completion to sign in renderer process
+ipcRenderer.on('auth-complete', async (event, data) => {
+    if (data.success && data.token) {
+        try {
+            console.log('Renderer received auth token, signing in...');
+            await signInWithCustomToken(auth, data.token);
+            console.log('Renderer signed in successfully');
+            // Optional: Trigger any UI updates or auto-initialization here if needed
+            // The CoInterviewApp component might already be waiting or user will click start
+        } catch (error) {
+            console.error('Renderer sign-in failed:', error);
+            coInterview.setStatus('Error: Authentication failed');
+        }
+    } else if (!data.success) {
+        console.error('Auth failed:', data.error);
+        coInterview.setStatus('Error: ' + data.error);
+    }
 });
 
 async function startCapture(screenshotIntervalSeconds = 5, imageQuality = 'medium') {
@@ -531,7 +567,16 @@ async function captureManualScreenshot(imageQuality = null) {
     const quality = imageQuality || currentImageQuality;
 
     if (!mediaStream) {
-        console.error('No media stream available');
+        console.error('No media stream available - screen sharing may not be active');
+        // Notify the user via the coInterview API if available
+        if (window.coInterview && window.coInterview.setStatus) {
+            window.coInterview.setStatus('Error: Screen sharing not active. Please restart the session.');
+        }
+        if (window.coInterview && window.coInterview.addNewResponse) {
+            window.coInterview.addNewResponse(
+                '**Error:** Screen sharing is not active. Please go to Settings and restart the session to enable screen capture.'
+            );
+        }
         return;
     }
 
@@ -738,9 +783,6 @@ function handleShortcut(shortcutKey) {
         }
     }
 }
-
-// Create reference to the main app element
-const coInterviewApp = document.querySelector('co-interview-app');
 
 // ============ THEME SYSTEM ============
 const theme = {
@@ -975,22 +1017,23 @@ const theme = {
 };
 
 // Consolidated coInterview object - all functions in one place
+// Note: element functions use lazy evaluation to handle async custom element loading
 const coInterview = {
     // App version
     getVersion: async () => ipcRenderer.invoke('get-app-version'),
 
-    // Element access
-    element: () => coInterviewApp,
-    e: () => coInterviewApp,
+    // Element access (lazy - gets element when called)
+    element: () => document.querySelector('#app'),
+    e: () => document.querySelector('#app'),
 
     // App state functions - access properties directly from the app element
-    getCurrentView: () => coInterviewApp.currentView,
-    getLayoutMode: () => coInterviewApp.layoutMode,
+    getCurrentView: () => document.querySelector('#app')?.currentView || 'main',
+    getLayoutMode: () => document.querySelector('#app')?.layoutMode || 'normal',
 
     // Status and response functions
-    setStatus: text => coInterviewApp.setStatus(text),
-    addNewResponse: response => coInterviewApp.addNewResponse(response),
-    updateCurrentResponse: response => coInterviewApp.updateCurrentResponse(response),
+    setStatus: text => document.querySelector('#app')?.setStatus?.(text),
+    addNewResponse: response => document.querySelector('#app')?.addNewResponse?.(response),
+    updateCurrentResponse: response => document.querySelector('#app')?.updateCurrentResponse?.(response),
 
     // Core functionality
     initializeGemini,
@@ -1013,8 +1056,9 @@ const coInterview = {
     isMacOS: isMacOS,
 };
 
-// Make it globally available
+// Make it globally available immediately
 window.coInterview = coInterview;
+console.log('[renderer.js] window.coInterview initialized with methods:', Object.keys(coInterview));
 
 // Load theme after DOM is ready
 if (document.readyState === 'loading') {

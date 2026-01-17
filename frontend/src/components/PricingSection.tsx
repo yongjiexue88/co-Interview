@@ -3,9 +3,13 @@ import Button from './ui/Button';
 import { trackEvent } from '../lib/analytics';
 import { Check } from 'lucide-react';
 import { pricingTiers } from '../content/pricing';
+import { useAuth } from '../hooks/useAuth';
+import { api } from '../lib/api';
 
 const PricingSection: React.FC = () => {
+    const { user } = useAuth();
     const [countdown, setCountdown] = useState({ hours: 19, minutes: 13, seconds: 33 });
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -28,7 +32,7 @@ const PricingSection: React.FC = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const handlePurchaseClick = (tierId: string, price: number, paymentLink?: string) => {
+    const handlePurchaseClick = async (tierId: string, price: number) => {
         trackEvent('pricing_tier_click', {
             tier_id: tierId,
             price_displayed: `$${price}`,
@@ -40,10 +44,33 @@ const PricingSection: React.FC = () => {
             return;
         }
 
-        if (paymentLink) {
-            window.open(paymentLink, '_blank');
-        } else {
-            alert("Thanks for your interest! We'll notify you when this option opens.");
+        // For paid plans, check if user is logged in
+        if (!user) {
+            // Store the intended plan in sessionStorage for redirect after login
+            sessionStorage.setItem('pendingCheckoutPlan', tierId);
+            window.location.href = '/signin';
+            return;
+        }
+
+        // User is logged in, initiate Stripe Checkout
+        try {
+            setLoadingPlan(tierId);
+
+            trackEvent('begin_checkout', {
+                currency: 'USD',
+                value: price,
+                items: [{ item_id: tierId, item_name: tierId }],
+            });
+
+            const res = await api.post('/billing/checkout', { plan: tierId });
+            if (res.data.checkout_url) {
+                window.location.href = res.data.checkout_url;
+            }
+        } catch (error) {
+            console.error('Checkout error:', error);
+            alert('Something went wrong. Please try again or contact support.');
+        } finally {
+            setLoadingPlan(null);
         }
     };
 
@@ -103,7 +130,7 @@ const PricingSection: React.FC = () => {
                                 <h3 className="text-xl font-semibold text-white mb-2">{proTier.name}</h3>
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-4xl font-bold text-white">${proTier.price}</span>
-                                    <span className="text-gray-500">/ 30 days</span>
+                                    <span className="text-gray-500">/ 14 days</span>
                                 </div>
                                 <p className="text-sm text-gray-400 mt-2">{proTier.description}</p>
                             </div>
@@ -120,9 +147,10 @@ const PricingSection: React.FC = () => {
                             <Button
                                 variant="primary"
                                 className="w-full justify-center"
-                                onClick={() => handlePurchaseClick(proTier.id, proTier.price, proTier.paymentLink)}
+                                onClick={() => handlePurchaseClick(proTier.id, proTier.price)}
+                                disabled={!!loadingPlan}
                             >
-                                Get Started
+                                {loadingPlan === 'pro' ? 'Processing...' : 'Get Instant Access'}
                             </Button>
                         </div>
                     )}
@@ -159,9 +187,10 @@ const PricingSection: React.FC = () => {
                             <Button
                                 variant="outline"
                                 className="w-full justify-center group-hover:bg-[#FACC15] group-hover:text-black group-hover:border-[#FACC15]"
-                                onClick={() => handlePurchaseClick(lifetime.id, lifetime.price, lifetime.paymentLink)}
+                                onClick={() => handlePurchaseClick(lifetime.id, lifetime.price)}
+                                disabled={!!loadingPlan}
                             >
-                                Get Lifetime Access
+                                {loadingPlan === 'lifetime' ? 'Processing...' : 'Get Lifetime Access'}
                             </Button>
                         </div>
                     )}

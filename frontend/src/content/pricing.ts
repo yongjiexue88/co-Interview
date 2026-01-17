@@ -2,7 +2,7 @@ export interface PricingTier {
     id: string;
     name: string;
     price: number;
-    period: 'free' | '30-days' | 'lifetime';
+    period: 'free' | '14-days' | 'lifetime';
     description: string;
     features: string[];
     popular?: boolean;
@@ -21,20 +21,20 @@ export const pricingTiers: PricingTier[] = [
     },
     {
         id: 'pro',
-        name: 'Pro',
-        price: 29,
-        period: '30-days',
-        description: '30 days of managed access',
+        name: '14-Day Interview Pass',
+        price: 19.99,
+        period: '14-days',
+        description: 'Ace your upcoming interviews',
         features: ['Unlimited Interview Support', 'Real-time Audio & Screen Analysis', 'All Languages Supported', 'Undetectable Mode'],
         popular: true,
         // paymentLink removed in favor of direct API integration
     },
     {
         id: 'lifetime',
-        name: 'Lifetime',
+        name: 'Lifetime Access',
         price: 99,
         period: 'lifetime',
-        description: 'One-time payment, forever access',
-        features: ['Everything in Interview Sprint', 'Priority Support', 'New Features Early Access', 'Lifetime Updates', 'No recurring fees'],
+        description: 'Never worry about expiration',
+        features: ['Everything in Pro', 'Priority Support', 'New Features Early Access', 'Lifetime Updates', 'No recurring fees'],
     },
 ];

@@ -138,6 +138,8 @@ export class AppHeader extends LitElement {
         onHideToggleClick: { type: Function },
         isClickThrough: { type: Boolean, reflect: true },
         updateAvailable: { type: Boolean },
+        quotaPercent: { type: Number },
+        planId: { type: String },
     };
 
     constructor() {
@@ -154,12 +156,51 @@ export class AppHeader extends LitElement {
         this.isClickThrough = false;
         this.updateAvailable = false;
         this._timerInterval = null;
+        this.quotaPercent = null;
+        this.planId = 'free';
     }
 
     connectedCallback() {
         super.connectedCallback();
         this._startTimer();
         this._checkForUpdates();
+        this._loadQuotaInfo();
+    }
+
+    async _loadQuotaInfo() {
+        try {
+            const { ipcRenderer } = require('electron');
+            const result = await ipcRenderer.invoke('auth:get-data');
+            if (result.success && result.data) {
+                const authData = result.data;
+                this.planId = authData.plan || 'free';
+
+                // Calculate quota percentage if we have the data
+                if (authData.quotaRemainingSeconds !== null && authData.quotaRemainingSeconds !== undefined) {
+                    // Get plan limits based on plan ID
+                    const planLimits = {
+                        free: 60 * 60, // 1 hour
+                        pro: 20 * 60 * 60, // 20 hours
+                        lifetime: 1000000000 * 60, // Unlimited
+                    };
+                    const totalQuota = planLimits[this.planId] || planLimits.free;
+                    const remaining = authData.quotaRemainingSeconds;
+                    this.quotaPercent = Math.min(100, Math.round((remaining / totalQuota) * 100));
+
+                    // Log plan and quota info
+                    console.log('[AppHeader] Plan Info:', {
+                        plan: this.planId,
+                        quotaRemainingSeconds: remaining,
+                        quotaTotalSeconds: totalQuota,
+                        quotaPercent: this.quotaPercent,
+                    });
+                } else {
+                    console.log('[AppHeader] No quota info available yet');
+                }
+            }
+        } catch (error) {
+            console.error('[AppHeader] Error loading quota info:', error);
+        }
     }
 
     async _checkForUpdates() {
@@ -257,15 +298,24 @@ export class AppHeader extends LitElement {
         return titles[this.currentView] || 'Co-Interview';
     }
 
-    getElapsedTime() {
-        if (this.currentView === 'assistant' && this.startTime) {
-            const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-            if (elapsed >= 60) {
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                return `${minutes}m ${seconds}s`;
+    getQuotaDisplay() {
+        if (this.currentView === 'assistant') {
+            if (this.planId === 'lifetime') {
+                return '∞ Unlimited';
             }
-            return `${elapsed}s`;
+            if (this.quotaPercent !== null) {
+                return `${this.quotaPercent}% remaining`;
+            }
+            // Fallback to elapsed time if quota not loaded
+            if (this.startTime) {
+                const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                if (elapsed >= 60) {
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    return `${minutes}m ${seconds}s`;
+                }
+                return `${elapsed}s`;
+            }
         }
         return '';
     }
@@ -276,7 +326,7 @@ export class AppHeader extends LitElement {
     }
 
     render() {
-        const elapsedTime = this.getElapsedTime();
+        const quotaDisplay = this.getQuotaDisplay();
 
         return html`
             <div class="header">
@@ -284,7 +334,7 @@ export class AppHeader extends LitElement {
                 <div class="header-actions">
                     ${this.currentView === 'assistant'
                         ? html`
-                              <span>${elapsedTime}</span>
+                              <span>${quotaDisplay}</span>
                               <span>${this.statusText}</span>
                               ${this.isClickThrough ? html`<span class="click-through-indicator">click-through</span>` : ''}
                           `

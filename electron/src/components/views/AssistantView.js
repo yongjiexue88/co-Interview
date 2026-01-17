@@ -349,7 +349,7 @@ export class AssistantView extends LitElement {
         this.responses = [];
         this.currentResponseIndex = -1;
         this.selectedProfile = 'interview';
-        this.onSendText = () => { };
+        this.onSendText = () => {};
         this.flashCount = 0;
         this.flashLiteCount = 0;
     }

@@ -34,7 +34,7 @@ app.use(
 
 // Parse JSON (except for webhooks which need raw body)
 app.use('/api/webhooks', express.raw({ type: 'application/json' }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Routes - all under /api prefix for Firebase Hosting rewrite
 app.use('/api/health', healthRoutes);

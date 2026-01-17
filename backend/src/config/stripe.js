@@ -5,11 +5,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 // Price IDs for subscription plans
+// Price IDs for subscription plans
 const PRICES = {
-    pro: process.env.STRIPE_PRICE_SPRINT_30D,
+    pro: process.env.STRIPE_PRICE_PRO,
     lifetime: process.env.STRIPE_PRICE_LIFETIME,
-    // Legacy alias
-    sprint_30d: process.env.STRIPE_PRICE_SPRINT_30D,
 };
 
 // Plan configurations
@@ -25,11 +24,11 @@ const PLANS = {
     },
     pro: {
         name: 'Pro',
-        quotaSecondsMonth: 40 * 60 * 60, // 40 hours (flexible, based on user requirements "low quota or ...") - attempting to match "40 hours" from user request example? Actually user example said "quotaSecondsTotal: 40 * 60 * 60"
+        quotaSecondsMonth: 20 * 60 * 60, // 20 hours
         sessionMaxDuration: 60 * 60, // 60 minutes
         concurrencyLimit: 2,
         features: ['audio', 'all_languages', 'undetectable'],
-        duration: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
+        duration: 14 * 24 * 60 * 60 * 1000, // 14 days in milliseconds
         kind: 'time_pass',
         enabled: true,
     },
@@ -44,9 +43,6 @@ const PLANS = {
         enabled: true,
     },
 };
-
-// Legacy plan alias for backward compatibility
-PLANS.sprint_30d = PLANS.pro;
 
 const PLAN_ALIASES = {
     sprint_30d: 'pro',

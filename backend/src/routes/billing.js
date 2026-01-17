@@ -92,8 +92,10 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
 
         // Create checkout session
         // Create checkout session
-        const isSubscription = false; // For now, all our plans (pro, lifetime) are one-time payments.
-        // If you re-introduce subscriptions, add logic here: const isSubscription = plan === 'some_sub_plan';
+        // Determine mode based on plan
+        // Pro plan is a recurring subscription in Stripe (even if treated as a pass)
+        // Lifetime is a one-time payment
+        const isSubscription = false;
 
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
@@ -106,16 +108,17 @@ router.post('/checkout', authMiddleware, async (req, res, next) => {
             ],
             mode: isSubscription ? 'subscription' : 'payment',
             success_url: success_url || `${process.env.FRONTEND_URL}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: cancel_url || `${process.env.FRONTEND_URL}/pricing`,
+            cancel_url: cancel_url || `${process.env.FRONTEND_URL}/#pricing`,
             metadata: {
                 firebase_uid: uid,
                 plan: normalizedPlan,
             },
-            client_reference_id: uid, // Helpful for reconciling if metadata is lost (rare) or using standard integrations
+            client_reference_id: uid,
         });
 
         res.json({ checkout_url: session.url });
     } catch (error) {
+        console.error('Stripe Checkout Error:', error);
         next(error);
     }
 });

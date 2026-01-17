@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { GoogleGenAI } = require('@google/genai');
 const authMiddleware = require('../middleware/auth');
-const { db } = require('../config/firebase');
+const { admin, db } = require('../config/firebase');
 const { PLANS } = require('../config/stripe');
 
 // Initialize Gemini client with master key (server-side only)
@@ -14,6 +14,7 @@ const SCREENSHOT_COST_SECONDS = 30;
 /**
  * POST /v1/analyze/screenshot
  * Proxy screenshot analysis through backend (master key stays server-side)
+ * Tracks token usage from Gemini response
  */
 router.post('/screenshot', authMiddleware, async (req, res, next) => {
     try {
@@ -64,18 +65,32 @@ router.post('/screenshot', authMiddleware, async (req, res, next) => {
 
         const text = response.text || '';
 
-        // 3. Deduct usage (fixed cost per screenshot)
+        // 3. Extract token usage from response
+        const usageMetadata = response.usageMetadata || {};
+        const tokensUsed = {
+            promptTokens: usageMetadata.promptTokenCount || 0,
+            candidatesTokens: usageMetadata.candidatesTokenCount || 0,
+            totalTokens: usageMetadata.totalTokenCount || 0,
+        };
+
+        // 4. Update usage: deduct seconds AND track tokens
         await userRef.update({
             'usage.quotaSecondsUsed': quotaSecondsUsed + SCREENSHOT_COST_SECONDS,
+            // Increment total tokens used (atomic increment)
+            'usage.tokensUsed': admin.firestore.FieldValue.increment(tokensUsed.totalTokens),
+            'usage.promptTokensUsed': admin.firestore.FieldValue.increment(tokensUsed.promptTokens),
+            'usage.completionTokensUsed': admin.firestore.FieldValue.increment(tokensUsed.candidatesTokens),
+            'usage.lastTokenUpdate': admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        // 4. Return result
+        // 5. Return result with token info
         res.json({
             success: true,
             text: text,
             model: model,
             quota_charged_seconds: SCREENSHOT_COST_SECONDS,
             quota_remaining_seconds: quotaRemaining - SCREENSHOT_COST_SECONDS,
+            tokens_used: tokensUsed,
         });
     } catch (error) {
         console.error('Screenshot analysis error:', error);

@@ -447,6 +447,8 @@ const AdminDashboard: React.FC = () => {
                                 <tr>
                                     <th className="px-6 py-4">User</th>
                                     <th className="px-6 py-4">Plan</th>
+                                    <th className="px-6 py-4">Quota</th>
+                                    <th className="px-6 py-4">Tokens</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4">Joined</th>
                                     <th className="px-6 py-4 text-right">Actions</th>
@@ -455,16 +457,25 @@ const AdminDashboard: React.FC = () => {
                             <tbody className="divide-y divide-white/5">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                                             Loading users...
                                         </td>
                                     </tr>
                                 ) : filteredUsers.length > 0 ? (
                                     filteredUsers.map(user => {
                                         // Resolution logic for V2/V1 fields
-                                        const plan = user.access?.planId || user.plan || 'free';
-                                        const status = user.access?.accessStatus || user.status || 'active';
-                                        const created = user.profile?.createdAt || user.createdAt;
+                                        const plan = user.planId || user.access?.planId || user.plan || 'free';
+                                        const status = user.status || user.access?.accessStatus || 'active';
+                                        const created = user.createdAt || user.profile?.createdAt;
+                                        const quotaPercent = user.quotaPercent || 0;
+                                        const tokensUsed = user.tokensUsed || 0;
+
+                                        // Format token count (e.g., 1.2M, 500K)
+                                        const formatTokens = (num: number) => {
+                                            if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+                                            if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+                                            return num.toString();
+                                        };
 
                                         return (
                                             <tr key={user.id} className="hover:bg-white/5 transition-colors">
@@ -494,6 +505,28 @@ const AdminDashboard: React.FC = () => {
                                                             {plan.toUpperCase()}
                                                         </span>
                                                     )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="w-20">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className={`h-full transition-all ${
+                                                                        quotaPercent >= 90
+                                                                            ? 'bg-red-500'
+                                                                            : quotaPercent >= 70
+                                                                              ? 'bg-yellow-500'
+                                                                              : 'bg-green-500'
+                                                                    }`}
+                                                                    style={{ width: `${Math.min(quotaPercent, 100)}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-xs text-gray-400 w-10 text-right">{quotaPercent}%</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-xs font-mono text-gray-300">{formatTokens(tokensUsed)}</span>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span
@@ -565,7 +598,7 @@ const AdminDashboard: React.FC = () => {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                                             No users found.
                                         </td>
                                     </tr>

@@ -34,7 +34,24 @@ export interface UserData {
         quotaSecondsMonth: number;
         quotaSecondsUsed: number;
         quotaResetAt: string;
+        // Token tracking
+        tokensUsed?: number;
+        promptTokensUsed?: number;
+        completionTokensUsed?: number;
+        lastTokenUpdate?: string;
     };
+
+    // Admin API response fields (flattened for display)
+    planId?: 'free' | 'pro' | 'lifetime';
+    displayName?: string;
+    quotaUsedSeconds?: number;
+    quotaLimitSeconds?: number;
+    quotaPercent?: number;
+    tokensUsed?: number;
+    promptTokensUsed?: number;
+    completionTokensUsed?: number;
+    quotaResetAt?: string;
+    lastTokenUpdate?: string;
     billing?: {
         stripeCustomerId?: string;
         subscriptionId?: string;

@@ -38,12 +38,30 @@ router.get('/users', async (req, res) => {
             if (search && !data.email?.toLowerCase().includes(search.toLowerCase())) {
                 return;
             }
+            const planId = data.access?.planId || data.plan || 'free';
+            const planConfig = PLANS[planId] || PLANS.free;
+            const quotaUsed = data.usage?.quotaSecondsUsed || data.quotaSecondsUsed || 0;
+            const quotaLimit = planConfig.quotaSecondsMonth;
+            const quotaPercent = quotaLimit > 0 ? Math.round((quotaUsed / quotaLimit) * 100) : 0;
+
             users.push({
                 id: doc.id,
-                ...data,
-                // Convert timestamps to ISO strings
-                createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-                quotaResetAt: data.quotaResetAt?.toDate?.()?.toISOString() || data.quotaResetAt,
+                email: data.profile?.email || data.email,
+                displayName: data.profile?.displayName || data.displayName,
+                planId,
+                status: data.access?.accessStatus || data.status || 'active',
+                // Quota info
+                quotaUsedSeconds: quotaUsed,
+                quotaLimitSeconds: quotaLimit,
+                quotaPercent,
+                // Token usage
+                tokensUsed: data.usage?.tokensUsed || 0,
+                promptTokensUsed: data.usage?.promptTokensUsed || 0,
+                completionTokensUsed: data.usage?.completionTokensUsed || 0,
+                // Timestamps
+                createdAt: data.createdAt?.toDate?.()?.toISOString() || data.profile?.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+                quotaResetAt: data.usage?.quotaResetAt?.toDate?.()?.toISOString() || data.quotaResetAt?.toDate?.()?.toISOString() || null,
+                lastTokenUpdate: data.usage?.lastTokenUpdate?.toDate?.()?.toISOString() || null,
             });
         });
 

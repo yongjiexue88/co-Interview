@@ -20,21 +20,26 @@ const geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_MASTER_API_KEY
 async function mintEphemeralToken(model, ttlSeconds) {
     const expireTime = new Date(Date.now() + ttlSeconds * 1000).toISOString();
 
-    const tokenResponse = await geminiClient.authTokens.create({
-        config: {
-            uses: 1,
-            expireTime: expireTime,
-            liveConnectConstraints: {
-                model: model,
+    try {
+        const tokenResponse = await geminiClient.authTokens.create({
+            config: {
+                uses: 1,
+                expireTime: expireTime,
+                liveConnectConstraints: {
+                    model: model,
+                },
+                httpOptions: { apiVersion: 'v1alpha' },
             },
-            httpOptions: { apiVersion: 'v1alpha' },
-        },
-    });
+        });
 
-    return {
-        token: tokenResponse.name, // The ephemeral token string
-        expiresAt: new Date(expireTime),
-    };
+        return {
+            token: tokenResponse.name, // The ephemeral token string
+            expiresAt: new Date(expireTime),
+        };
+    } catch (error) {
+        console.error('Error minting ephemeral token:', error);
+        throw error;
+    }
 }
 
 // Helper to get next month start for reset
@@ -138,8 +143,8 @@ router.post('/session', authMiddleware, async (req, res, next) => {
         const session = {
             userId: uid,
             model,
-            clientVersion: client_version,
-            platform,
+            clientVersion: client_version || null,
+            platform: platform || null,
             // SERVER-SIDE TRUTH: We set the start time here.
             startedAt: admin.firestore.FieldValue.serverTimestamp(),
             lastHeartbeatAt: admin.firestore.FieldValue.serverTimestamp(),

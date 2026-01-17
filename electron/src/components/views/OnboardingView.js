@@ -1,7 +1,7 @@
 import { html, css, LitElement } from '../../assets/lit-core-2.7.4.min.js';
 
 // Import analytics for tracking
-let trackEvent = () => { };
+let trackEvent = () => {};
 if (typeof window !== 'undefined' && window.require) {
     try {
         const { fileURLToPath } = window.require('url');
@@ -720,8 +720,8 @@ export class OnboardingView extends LitElement {
         super();
         this.currentSlide = 0;
         this.contextText = '';
-        this.onComplete = () => { };
-        this.onClose = () => { };
+        this.onComplete = () => {};
+        this.onClose = () => {};
         // Auth state
         this.authEmail = '';
         this.authPassword = '';
@@ -1330,7 +1330,7 @@ Onboarding preferences collected: {
                     ${slide.title ? html`<div class="slide-title">${slide.title}</div>` : ''}
                     ${slide.content ? html`<div class="slide-content">${slide.content}</div>` : ''}
                     ${slide.showSuggestions
-                ? html`
+                        ? html`
                               <div class="tailor-form">
                                   <div class="form-group">
                                       <label class="form-label">Output language</label>
@@ -1401,9 +1401,9 @@ Onboarding preferences collected: {
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                     ${slide.showTextarea
-                ? html`
+                        ? html`
                               <textarea
                                   class="context-textarea"
                                   placeholder="Paste your resume, job description, or any relevant context here..."
@@ -1411,9 +1411,9 @@ Onboarding preferences collected: {
                                   @input=${this.handleContextInput}
                               ></textarea>
                           `
-                : ''}
+                        : ''}
                     ${slide.showFeatures
-                ? html`
+                        ? html`
                               <div class="feature-list">
                                   <div class="feature-item">
                                       <span class="feature-icon">-</span>
@@ -1429,13 +1429,17 @@ Onboarding preferences collected: {
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                     ${slide.showAuth
-                ? html`
+                        ? html`
                               <div class="auth-container">
                                   <!-- Logo -->
                                   <div class="auth-logo">
-                                      <img src="${this.getAssetPath('assets/logo.png')}" alt="Co-Interview" style="width: 64px; height: 64px; border-radius: 12px;" />
+                                      <img
+                                          src="${this.getAssetPath('assets/logo.png')}"
+                                          alt="Co-Interview"
+                                          style="width: 64px; height: 64px; border-radius: 12px;"
+                                      />
                                   </div>
 
                                   <!-- Title -->
@@ -1493,26 +1497,26 @@ Onboarding preferences collected: {
                                       <a
                                           href="#"
                                           @click=${e => {
-                        e.preventDefault();
-                        this.openExternal('https://co-interview.com/policies/terms');
-                    }}
+                                              e.preventDefault();
+                                              this.openExternal('https://co-interview.com/policies/terms');
+                                          }}
                                           >Terms of Service</a
                                       >
                                       and
                                       <a
                                           href="#"
                                           @click=${e => {
-                        e.preventDefault();
-                        this.openExternal('https://co-interview.com/policies/privacy');
-                    }}
+                                              e.preventDefault();
+                                              this.openExternal('https://co-interview.com/policies/privacy');
+                                          }}
                                           >Privacy Policy</a
                                       >
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                     ${slide.showPersona
-                ? html`
+                        ? html`
                               <div class="persona-grid">
                                   <div
                                       class="persona-card persona-card-0 ${this.userPersona === 'Job Seeker' ? 'active' : ''}"
@@ -1544,30 +1548,30 @@ Onboarding preferences collected: {
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                     ${slide.showTellMore
-                ? html`
+                        ? html`
                               <div class="tell-more-container">
                                   <!-- ROLES SECTION -->
                                   <div class="pd-section ${this.userRole ? 'dimmed' : 'active'}">
                                       <div class="pd-label">What role are you interviewing for?</div>
                                       <div class="pills-grid">
                                           ${[
-                        'Software Engineer',
-                        'Product Manager',
-                        'Data Scientist',
-                        'Data Analyst',
-                        'Product Designer',
-                        'UX Designer',
-                        'Business Analyst',
-                        'Consultant',
-                        'Finance / Investment Banking',
-                        'Marketing Manager',
-                        'Sales / Account Executive',
-                        'Engineering Manager',
-                        'Other',
-                    ].map(
-                        role => html`
+                                              'Software Engineer',
+                                              'Product Manager',
+                                              'Data Scientist',
+                                              'Data Analyst',
+                                              'Product Designer',
+                                              'UX Designer',
+                                              'Business Analyst',
+                                              'Consultant',
+                                              'Finance / Investment Banking',
+                                              'Marketing Manager',
+                                              'Sales / Account Executive',
+                                              'Engineering Manager',
+                                              'Other',
+                                          ].map(
+                                              role => html`
                                                   <div
                                                       class="pill ${this.userRole === role ? 'selected' : ''}"
                                                       @click=${() => this.handleRoleSelect(role)}
@@ -1575,7 +1579,7 @@ Onboarding preferences collected: {
                                                       ${role}
                                                   </div>
                                               `
-                    )}
+                                          )}
                                       </div>
                                   </div>
 
@@ -1584,7 +1588,7 @@ Onboarding preferences collected: {
                                       <div class="pd-label">How many years of experience do you have?</div>
                                       <div class="pills-flex">
                                           ${['0-1 years', '1-3 years', '3-5 years', '5-8 years', '8-12 years', '12+ years', 'Other'].map(
-                        exp => html`
+                                              exp => html`
                                                   <div
                                                       class="pill ${this.userExperience === exp ? 'selected' : ''}"
                                                       @click=${() => this.handleExperienceSelect(exp)}
@@ -1592,7 +1596,7 @@ Onboarding preferences collected: {
                                                       ${exp}
                                                   </div>
                                               `
-                    )}
+                                          )}
                                       </div>
                                   </div>
 
@@ -1601,7 +1605,7 @@ Onboarding preferences collected: {
                                       <div class="pd-label">Where did you hear from us?</div>
                                       <div class="pills-flex">
                                           ${this.referralOptions.map(
-                        ref => html`
+                                              ref => html`
                                                   <div
                                                       class="pill ${this.userReferral === ref ? 'selected' : ''}"
                                                       @click=${() => this.handleReferralSelect(ref)}
@@ -1609,12 +1613,12 @@ Onboarding preferences collected: {
                                                       ${ref}
                                                   </div>
                                               `
-                    )}
+                                          )}
                                       </div>
                                   </div>
                               </div>
                           `
-                : ''}
+                        : ''}
                 </div>
 
                 <div class="navigation">
@@ -1626,25 +1630,25 @@ Onboarding preferences collected: {
 
                     <div class="progress-dots">
                         ${Array.from({ length: 8 }).map(
-                    (_, index) => html`
+                            (_, index) => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
-                            if (index !== this.currentSlide && index !== 0) {
-                                this.startColorTransition(index);
-                            }
-                        }}
+                                        if (index !== this.currentSlide && index !== 0) {
+                                            this.startColorTransition(index);
+                                        }
+                                    }}
                                 ></div>
                             `
-                )}
+                        )}
                     </div>
 
                     <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
                         ${this.currentSlide === 7
-                ? 'Get Started'
-                : this.currentSlide === 0
-                    ? 'Skip'
-                    : html`
+                            ? 'Get Started'
+                            : this.currentSlide === 0
+                              ? 'Skip'
+                              : html`
                                     <svg
                                         width="16px"
                                         height="16px"
