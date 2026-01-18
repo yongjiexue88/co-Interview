@@ -251,8 +251,10 @@ async function initializeGeminiSession(firebaseToken, preferences = {}, profile 
 
     try {
         // Exchange Credentials for Session Token & Limits via Backend
+        // Use Gemini 2.0 Flash Exp for real-time audio conversations
+        const LIVE_MODEL = 'gemini-2.0-flash-exp';
         const sessionResult = await Api.startSession({
-            model: 'gemini-2.0-flash-exp',
+            model: LIVE_MODEL,
         });
         const { token: geminiToken, session_id: serverSessionId } = sessionResult;
         currentGeminiToken = geminiToken;
@@ -280,9 +282,9 @@ async function initializeGeminiSession(firebaseToken, preferences = {}, profile 
             initializeNewSession(profile, preferences.customPrompt);
         }
 
-        console.log('Connecting to Gemini Live with model: gemini-2.0-flash-exp');
+        console.log('Connecting to Gemini Live with model:', LIVE_MODEL);
         const session = await client.live.connect({
-            model: 'gemini-2.0-flash-exp',
+            model: LIVE_MODEL,
             callbacks: {
                 onopen: function () {
                     sendToRenderer('update-status', 'Live session connected');
@@ -367,16 +369,11 @@ async function initializeGeminiSession(firebaseToken, preferences = {}, profile 
             },
             config: {
                 responseModalities: [Modality.AUDIO],
-                proactivity: { proactiveAudio: true },
-                outputAudioTranscription: {},
                 tools: enabledTools,
-                inputAudioTranscription: {
-                    enableSpeakerDiarization: true,
-                    minSpeakerCount: 2,
-                    maxSpeakerCount: 2,
+                speechConfig: {
+                    languageCode: preferences.outputLanguage || 'en-US',
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } },
                 },
-                contextWindowCompression: { slidingWindow: {} },
-                speechConfig: { languageCode: preferences.outputLanguage || 'en-US' },
                 systemInstruction: {
                     parts: [{ text: systemPrompt }],
                 },
@@ -682,7 +679,7 @@ async function startMacOSAudioCapture(geminiSessionRef) {
     let audioBuffer = Buffer.alloc(0);
 
     systemAudioProc.stdout.on('data', data => {
-        console.log('DEBUG: Received data chunk size:', data.length);
+        // console.log('DEBUG: Received data chunk size:', data.length);
         audioBuffer = Buffer.concat([audioBuffer, data]);
 
         while (audioBuffer.length >= CHUNK_SIZE) {
@@ -691,7 +688,6 @@ async function startMacOSAudioCapture(geminiSessionRef) {
 
             const monoChunk = CHANNELS === 2 ? convertStereoToMono(chunk) : chunk;
             const base64Data = monoChunk.toString('base64');
-            console.log('DEBUG: Calling sendAudioToGemini');
             sendAudioToGemini(base64Data, geminiSessionRef);
 
             if (process.env.DEBUG_AUDIO) {
@@ -744,23 +740,16 @@ function stopMacOSAudioCapture() {
 }
 
 async function sendAudioToGemini(base64Data, geminiSessionRef) {
-    if (geminiSessionRef && geminiSessionRef.current) {
-        console.log('DEBUG: Session Keys:', Object.keys(geminiSessionRef.current));
-        if (geminiSessionRef.current.sendRealtimeInput) {
-            console.log('DEBUG: Mock ID:', geminiSessionRef.current.sendRealtimeInput.id);
-        }
-    }
     if (!geminiSessionRef.current) return;
 
     try {
         process.stdout.write('.');
-        // await geminiSessionRef.current.sendRealtimeInput({
-        //     audio: {
-        //         data: base64Data,
-        //         mimeType: 'audio/pcm;rate=24000',
-        //     },
-        // });
-        process.stdout.write('(Audio Disabled)');
+        await geminiSessionRef.current.sendRealtimeInput({
+            audio: {
+                data: base64Data,
+                mimeType: 'audio/pcm;rate=24000',
+            },
+        });
     } catch (error) {
         console.error('Error sending audio to Gemini:', error);
     }

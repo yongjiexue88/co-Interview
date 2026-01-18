@@ -57,7 +57,8 @@ const getNextMonthStart = date => {
 router.post('/session', authMiddleware, async (req, res, next) => {
     try {
         const { uid } = req.user;
-        const { model = 'gemini-2.5-flash-native-audio-preview', client_version, platform } = req.body;
+        // Default to Gemini 2.0 Flash Exp for Live API compatibility
+        const { model = 'gemini-2.0-flash-exp', client_version, platform } = req.body;
 
         // 1. Rate limit check (prevents abusive spamming of start button)
         const allowed = await rateLimiter.checkLimit(`rate:session_mint:${uid}`, 10, 60);
