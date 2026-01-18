@@ -174,4 +174,53 @@ module.exports = {
     sendHeartbeat,
     endSession,
     analyzeScreenshot,
+    getPreferences,
+    updatePreferences,
 };
+
+/**
+ * Get user preferences from cloud for sync
+ * Called on login to sync preferences across devices.
+ */
+async function getPreferences() {
+    try {
+        const response = await fetch(`${getBaseUrl()}/api/v1/auth/preferences`, {
+            method: 'GET',
+            headers: getHeaders(),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Preferences fetch failed: ${response.status} ${errorText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Error (getPreferences):', error);
+        throw error;
+    }
+}
+
+/**
+ * Update user preferences in cloud
+ * Called when user changes preferences locally to sync to cloud.
+ */
+async function updatePreferences(preferences) {
+    try {
+        const response = await fetch(`${getBaseUrl()}/api/v1/auth/profile`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(preferences),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Preferences update failed: ${response.status} ${errorText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Error (updatePreferences):', error);
+        throw error;
+    }
+}

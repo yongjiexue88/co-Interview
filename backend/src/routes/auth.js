@@ -32,6 +32,17 @@ router.post('/verify', authMiddleware, async (req, res, next) => {
                 preferences: {
                     onboarding: { userPersona: null, userRole: null, userExperience: null, userReferral: null },
                     tailor: { outputLanguage: 'English', programmingLanguage: 'Python', audioLanguage: 'en', customPrompt: null },
+                    core: {
+                        audioMode: 'speaker_only',
+                        selectedProfile: 'interview',
+                        selectedLanguage: 'en-US',
+                        selectedScreenshotInterval: '5',
+                        selectedImageQuality: 'medium',
+                        advancedMode: false,
+                        fontSize: 'medium',
+                        backgroundTransparency: 0.8,
+                        googleSearchEnabled: false,
+                    },
                 },
                 access: {
                     planId: 'free',
@@ -99,6 +110,32 @@ router.post('/verify', authMiddleware, async (req, res, next) => {
 });
 
 /**
+ * GET /v1/auth/preferences
+ * Fetch all user preferences for syncing across devices
+ */
+router.get('/preferences', authMiddleware, async (req, res, next) => {
+    try {
+        const { uid } = req.user;
+        const userDoc = await db.collection('users').doc(uid).get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userData = userDoc.data();
+        const preferences = userData.preferences || {};
+
+        res.json({
+            onboarding: preferences.onboarding || {},
+            tailor: preferences.tailor || {},
+            core: preferences.core || {},
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
  * PUT /v1/auth/profile
  * Update user profile preferences
  */
@@ -109,14 +146,26 @@ router.put('/profile', authMiddleware, async (req, res, next) => {
 
         // Map input fields to V2 nested structure
         const mapping = {
+            // Tailor preferences
             outputLanguage: 'preferences.tailor.outputLanguage',
             programmingLanguage: 'preferences.tailor.programmingLanguage',
             audioLanguage: 'preferences.tailor.audioLanguage',
             customPrompt: 'preferences.tailor.customPrompt',
+            // Onboarding preferences
             userPersona: 'preferences.onboarding.userPersona',
             userRole: 'preferences.onboarding.userRole',
             userExperience: 'preferences.onboarding.userExperience',
             userReferral: 'preferences.onboarding.userReferral',
+            // Core preferences (NEW)
+            audioMode: 'preferences.core.audioMode',
+            selectedProfile: 'preferences.core.selectedProfile',
+            selectedLanguage: 'preferences.core.selectedLanguage',
+            selectedScreenshotInterval: 'preferences.core.selectedScreenshotInterval',
+            selectedImageQuality: 'preferences.core.selectedImageQuality',
+            advancedMode: 'preferences.core.advancedMode',
+            fontSize: 'preferences.core.fontSize',
+            backgroundTransparency: 'preferences.core.backgroundTransparency',
+            googleSearchEnabled: 'preferences.core.googleSearchEnabled',
         };
 
         Object.keys(req.body).forEach(key => {
@@ -275,6 +324,17 @@ router.get('/google/callback', async (req, res, _next) => {
                 preferences: {
                     onboarding: { userPersona: null, userRole: null, userExperience: null, userReferral: null },
                     tailor: { outputLanguage: 'English', programmingLanguage: 'Python', audioLanguage: 'en', customPrompt: null },
+                    core: {
+                        audioMode: 'speaker_only',
+                        selectedProfile: 'interview',
+                        selectedLanguage: 'en-US',
+                        selectedScreenshotInterval: '5',
+                        selectedImageQuality: 'medium',
+                        advancedMode: false,
+                        fontSize: 'medium',
+                        backgroundTransparency: 0.8,
+                        googleSearchEnabled: false,
+                    },
                 },
                 access: {
                     planId: 'free',

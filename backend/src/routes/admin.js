@@ -62,6 +62,11 @@ router.get('/users', async (req, res) => {
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || data.profile?.createdAt?.toDate?.()?.toISOString() || data.createdAt,
                 quotaResetAt: data.usage?.quotaResetAt?.toDate?.()?.toISOString() || data.quotaResetAt?.toDate?.()?.toISOString() || null,
                 lastTokenUpdate: data.usage?.lastTokenUpdate?.toDate?.()?.toISOString() || null,
+                // Preferences (NEW)
+                preferences: {
+                    tailor: data.preferences?.tailor || {},
+                    core: data.preferences?.core || {},
+                },
             });
         });
 

@@ -243,6 +243,95 @@ function updatePreference(key, value) {
     return writeJsonFile(getPreferencesPath(), preferences);
 }
 
+/**
+ * Sync preferences from cloud after login
+ * Merges cloud preferences with local defaults.
+ * Cloud values take precedence over local values.
+ * @param {object} cloudPrefs - Preferences object from GET /auth/preferences
+ * @returns {object} The merged preferences that were saved locally
+ */
+function syncPreferencesFromCloud(cloudPrefs) {
+    try {
+        const localPrefs = getPreferences();
+
+        // Flatten cloud preferences (they come nested as tailor/core/onboarding)
+        const flatCloudPrefs = {
+            // Tailor preferences
+            outputLanguage: cloudPrefs.tailor?.outputLanguage,
+            programmingLanguage: cloudPrefs.tailor?.programmingLanguage,
+            audioLanguage: cloudPrefs.tailor?.audioLanguage,
+            customPrompt: cloudPrefs.tailor?.customPrompt,
+            // Onboarding preferences
+            userPersona: cloudPrefs.onboarding?.userPersona,
+            userRole: cloudPrefs.onboarding?.userRole,
+            userExperience: cloudPrefs.onboarding?.userExperience,
+            userReferral: cloudPrefs.onboarding?.userReferral,
+            // Core preferences
+            audioMode: cloudPrefs.core?.audioMode,
+            selectedProfile: cloudPrefs.core?.selectedProfile,
+            selectedLanguage: cloudPrefs.core?.selectedLanguage,
+            selectedScreenshotInterval: cloudPrefs.core?.selectedScreenshotInterval,
+            selectedImageQuality: cloudPrefs.core?.selectedImageQuality,
+            advancedMode: cloudPrefs.core?.advancedMode,
+            fontSize: cloudPrefs.core?.fontSize,
+            backgroundTransparency: cloudPrefs.core?.backgroundTransparency,
+            googleSearchEnabled: cloudPrefs.core?.googleSearchEnabled,
+        };
+
+        // Remove undefined values (cloud didn't have this field)
+        Object.keys(flatCloudPrefs).forEach(key => {
+            if (flatCloudPrefs[key] === undefined) {
+                delete flatCloudPrefs[key];
+            }
+        });
+
+        // Merge: defaults -> local -> cloud
+        const merged = {
+            ...DEFAULT_PREFERENCES,
+            ...localPrefs,
+            ...flatCloudPrefs,
+        };
+
+        setPreferences(merged);
+        console.log('Preferences synced from cloud');
+        return merged;
+    } catch (error) {
+        console.error('Failed to sync preferences from cloud:', error);
+        return getPreferences(); // Return local preferences on error
+    }
+}
+
+/**
+ * Get preferences formatted for cloud sync (PUT /auth/profile)
+ * Converts flat local preferences to the format expected by the backend.
+ * @returns {object} Preferences object ready to send to backend
+ */
+function getPreferencesForCloudSync() {
+    const prefs = getPreferences();
+    return {
+        // Tailor preferences
+        outputLanguage: prefs.outputLanguage,
+        programmingLanguage: prefs.programmingLanguage,
+        audioLanguage: prefs.audioLanguage,
+        customPrompt: prefs.customPrompt,
+        // Onboarding preferences
+        userPersona: prefs.userPersona,
+        userRole: prefs.userRole,
+        userExperience: prefs.userExperience,
+        userReferral: prefs.userReferral,
+        // Core preferences
+        audioMode: prefs.audioMode,
+        selectedProfile: prefs.selectedProfile,
+        selectedLanguage: prefs.selectedLanguage,
+        selectedScreenshotInterval: prefs.selectedScreenshotInterval,
+        selectedImageQuality: prefs.selectedImageQuality,
+        advancedMode: prefs.advancedMode,
+        fontSize: prefs.fontSize,
+        backgroundTransparency: prefs.backgroundTransparency,
+        googleSearchEnabled: prefs.googleSearchEnabled,
+    };
+}
+
 // ============ KEYBINDS ============
 
 function getKeybinds() {
@@ -486,6 +575,8 @@ module.exports = {
     getPreferences,
     setPreferences,
     updatePreference,
+    syncPreferencesFromCloud,
+    getPreferencesForCloudSync,
 
     // Keybinds
     getKeybinds,

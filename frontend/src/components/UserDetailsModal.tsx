@@ -232,6 +232,60 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, us
                                                 </div>
                                             </div>
                                         </section>
+
+                                        {/* Core Preferences */}
+                                        <section className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                            <h4 className="flex items-center gap-2 text-cyan-400 font-semibold mb-3">
+                                                <Smartphone className="w-4 h-4" /> Core Preferences
+                                            </h4>
+                                            <div className="space-y-2 text-sm">
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <div className="text-xs text-gray-500 mb-0.5">Audio Mode</div>
+                                                        <div className="text-white capitalize">
+                                                            {(user.preferences?.core?.audioMode || 'speaker_only').replace('_', ' ')}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs text-gray-500 mb-0.5">Font Size</div>
+                                                        <div className="text-white capitalize">{getVal(user.preferences?.core?.fontSize)}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs text-gray-500 mb-0.5">Google Search</div>
+                                                        <div
+                                                            className={`text-sm ${user.preferences?.core?.googleSearchEnabled ? 'text-green-400' : 'text-gray-500'}`}
+                                                        >
+                                                            {user.preferences?.core?.googleSearchEnabled ? 'Enabled' : 'Disabled'}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs text-gray-500 mb-0.5">Advanced Mode</div>
+                                                        <div
+                                                            className={`text-sm ${user.preferences?.core?.advancedMode ? 'text-green-400' : 'text-gray-500'}`}
+                                                        >
+                                                            {user.preferences?.core?.advancedMode ? 'On' : 'Off'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <hr className="border-white/10 my-2" />
+                                                <div className="grid grid-cols-3 gap-2 text-xs">
+                                                    <div>
+                                                        <div className="text-gray-500 mb-0.5">Profile</div>
+                                                        <div className="text-white">{getVal(user.preferences?.core?.selectedProfile)}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-gray-500 mb-0.5">Image Quality</div>
+                                                        <div className="text-white">{getVal(user.preferences?.core?.selectedImageQuality)}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-gray-500 mb-0.5">Screenshot Int.</div>
+                                                        <div className="text-white">
+                                                            {getVal(user.preferences?.core?.selectedScreenshotInterval)}s
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
                                     </div>
 
                                     {/* Column 2 */}
