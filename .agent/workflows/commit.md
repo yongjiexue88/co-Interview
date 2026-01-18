@@ -23,19 +23,40 @@ cd backend && npm run lint && npm run format:check
 cd electron && npm run lint && npm run format:check
 ```
 
-## Phase 2: Test Coverage (from /verify-app)
+## Phase 1.5: CI-Mode Tests (Match GitHub Actions)
 
-4. Run Frontend Tests with Coverage
+Run tests exactly as CI does to catch failures early:
+
+4. Run Frontend Tests (CI Mode)
+```bash
+cd frontend && npm test -- --run
+```
+
+5. Run Backend Tests (CI Mode)
+```bash
+cd backend && npm test
+```
+
+6. Run Electron Tests (CI Mode)
+```bash
+cd electron && npm test
+```
+
+**If any test fails here, fix the issue before proceeding.**
+
+## Phase 2: Test Coverage
+
+7. Run Frontend Tests with Coverage
 ```bash
 cd frontend && npm run test:coverage
 ```
 
-5. Run Backend Tests with Coverage
+8. Run Backend Tests with Coverage
 ```bash
 cd backend && npm run test:coverage
 ```
 
-6. Run Electron Tests with Coverage
+9. Run Electron Tests with Coverage
 ```bash
 cd electron && npm run test:coverage
 ```
@@ -57,7 +78,7 @@ Invoke `/test-author` workflow with coverage details before proceeding.
 
 After all coverage requirements are met (≥95%), update the comprehensive test report:
 
-7. Update Test Coverage Report
+10. Update Test Coverage Report
 Capture the final coverage percentages from the previous test runs and update `memory/test_coverage_report.md` with:
 - Current line coverage percentages for Backend, Frontend, and Electron
 - Overall status (All tests passing / X failing tests)
@@ -73,29 +94,29 @@ Update the report to reflect the current state of the test suite.
 
 ## Phase 3: Auto-fix & Build
 
-8. Frontend format fix, lint fix, and build
+11. Frontend format fix, lint fix, and build
 ```bash
 cd frontend && npm run format:fix && npm run lint:fix && npm run build
 ```
 
-9. Backend format fix and lint fix
+12. Backend format fix and lint fix
 ```bash
 cd backend && npm run format:fix && npm run lint:fix
 ```
 
-10. Electron format fix and lint fix
+13. Electron format fix and lint fix
 ```bash
 cd electron && npm run format:fix && npm run lint:fix
 ```
 
 ## Phase 4: Commit
 
-11. Stage all changes
+14. Stage all changes
 ```bash
 git add .
 ```
 
-12. Commit changes
+15. Commit changes
 Generate a conventional commit message based on the changes made (e.g., feat:, fix:, chore:, refactor:, docs:, test:).
 Analyze staged files with `git diff --cached --stat` to determine the appropriate type and scope.
 ```bash
