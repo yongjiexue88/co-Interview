@@ -413,6 +413,21 @@ router.get('/google/callback', async (req, res, _next) => {
         .hint {
             font-size: 14px;
             color: #6b7280;
+            margin-top: 24px;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+            color: #1a1a1a;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: transform 0.2s;
+            margin-top: 16px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -425,15 +440,35 @@ router.get('/google/callback', async (req, res, _next) => {
         </div>
         <h1>✓ Login Successful!</h1>
         <p>You can now return to the Co-Interview app.</p>
+        
+        <!-- Manual trigger for when auto-redirect fails -->
+        <a id="openAppBtn" href="${redirectUrl.toString()}" class="btn">
+            Open App
+        </a>
+
         <p class="hint">This tab will close automatically...</p>
     </div>
     <script>
-        // Redirect to Electron app
-        window.location.href = '${redirectUrl.toString()}';
-        // Try to close the tab after a short delay
+        // Store the redirect URL
+        const redirectUrl = '${redirectUrl.toString()}';
+        
+        // Function to attempt redirect
+        function attemptRedirect() {
+            window.location.href = redirectUrl;
+        }
+
+        // 1. Try automatic redirect immediately
+        attemptRedirect();
+
+        // 2. Also attach to button click (already handled by href, but good for tracking if needed)
+        document.getElementById('openAppBtn').addEventListener('click', function(e) {
+            // Allow default href action
+        });
+
+        // 3. Try to close the tab after a delay
         setTimeout(function() {
             window.close();
-        }, 2000);
+        }, 5000); // Increased to 5s to give user time to click if needed
     </script>
 </body>
 </html>
