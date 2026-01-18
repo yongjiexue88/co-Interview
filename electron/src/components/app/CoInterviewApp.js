@@ -5,6 +5,7 @@ import '../views/CustomizeView.js';
 import '../views/HelpView.js';
 import '../views/HistoryView.js';
 import '../views/AssistantView.js';
+import '../views/LoginView.js';
 import '../views/OnboardingView.js';
 
 // Import analytics for tracking
@@ -180,7 +181,24 @@ export class CoInterviewApp extends LitElement {
             // In development mode, always show onboarding for testing
             // In production, skip onboarding if already completed
             const isDev = ipcRenderer.sendSync('is-dev');
-            this.currentView = isDev || !config?.onboardingComplete ? 'onboarding' : 'assistant';
+            const isOnboarded = config?.onboardingComplete;
+
+            // Check auth status
+            const authResult = await ipcRenderer.invoke('auth:is-logged-in');
+            const isLoggedIn = authResult.success && authResult.data;
+
+            if (!isLoggedIn) {
+                // Not logged in: Show Login Screen FIRST
+                this.currentView = 'login';
+            } else if (!isOnboarded) {
+                // Logged in but not onboarded: Show Onboarding (Survey)
+                this.currentView = 'onboarding';
+            } else {
+                // Logged in and onboarded: Show Assistant
+                this.currentView = 'assistant';
+                // Initialize session (Gemini + Capture)
+                setTimeout(() => this.handleStart(), 100);
+            }
 
             // Apply background appearance (color + transparency)
             this.applyBackgroundAppearance(prefs.backgroundColor ?? '#1e1e1e', prefs.backgroundTransparency ?? 0.2);
@@ -486,6 +504,27 @@ export class CoInterviewApp extends LitElement {
     }
 
     // Onboarding event handlers
+    async handleLoginSuccess() {
+        // User just logged in
+        // Check if they need onboarding
+        const electron = window.require ? window.require('electron') : require('electron');
+        const { data: config } = await electron.ipcRenderer.invoke('storage:get-config');
+
+        if (!config?.onboardingComplete) {
+            this.currentView = 'onboarding';
+        } else {
+            // Already onboarded, go to assistant
+            this.handleOnboardingComplete(); // This method initializes session and sets view to assistant
+        }
+    }
+
+    async handleLoginSkip() {
+        // User skipped login (Guest mode)
+        // Check if they used it before/completed onboarding?
+        // Assuming skip means "I am a new user but want to skip login" -> Go to Onboarding
+        this.currentView = 'onboarding';
+    }
+
     async handleOnboardingComplete() {
         // With managed quota system, go directly to assistant (listening) view
         // Backend handles ephemeral tokens - no need for API key entry
@@ -546,6 +585,9 @@ export class CoInterviewApp extends LitElement {
         // Only re-render the view if it hasn't been cached or if critical properties changed
 
         switch (this.currentView) {
+            case 'login':
+                return html` <login-view .onLoginSuccess=${() => this.handleLoginSuccess()} .onSkip=${() => this.handleLoginSkip()}></login-view> `;
+
             case 'onboarding':
                 return html`
                     <onboarding-view .onComplete=${() => this.handleOnboardingComplete()} .onClose=${() => this.handleClose()}></onboarding-view>

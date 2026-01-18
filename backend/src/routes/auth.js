@@ -441,12 +441,7 @@ router.get('/google/callback', async (req, res, _next) => {
         <h1>✓ Login Successful!</h1>
         <p>You can now return to the Co-Interview app.</p>
         
-        <!-- Manual trigger for when auto-redirect fails -->
-        <a id="openAppBtn" href="${redirectUrl.toString()}" class="btn">
-            Open App
-        </a>
-
-        <p class="hint">This tab will close automatically...</p>
+        <p class="hint">Redirecting to the app...</p>
     </div>
     <script>
         // Store the redirect URL
@@ -460,15 +455,10 @@ router.get('/google/callback', async (req, res, _next) => {
         // 1. Try automatic redirect immediately
         attemptRedirect();
 
-        // 2. Also attach to button click (already handled by href, but good for tracking if needed)
-        document.getElementById('openAppBtn').addEventListener('click', function(e) {
-            // Allow default href action
-        });
-
-        // 3. Try to close the tab after a delay
+        // 2. Try to close the tab after a short delay
         setTimeout(function() {
             window.close();
-        }, 5000); // Increased to 5s to give user time to click if needed
+        }, 2000);
     </script>
 </body>
 </html>

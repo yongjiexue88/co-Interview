@@ -734,6 +734,7 @@ export class OnboardingView extends LitElement {
         this.userPersona = '';
         this.userRole = '';
         this.userExperience = '';
+        this.userExperience = '';
         this.userReferral = '';
         this.canvas = null;
         this.ctx = null;
@@ -745,18 +746,8 @@ export class OnboardingView extends LitElement {
         this.transitionDuration = 800; // 800ms fade duration
         this.previousColorScheme = null;
 
-        // Subtle dark color schemes for each slide (7 slides now)
         this.colorSchemes = [
-            // Slide 0 - Sign In (Dark blue accent)
-            [
-                [15, 20, 35], // Dark blue
-                [10, 15, 30], // Darker blue
-                [20, 25, 40], // Slightly lighter
-                [5, 10, 25], // Very dark blue
-                [25, 30, 45], // Muted blue
-                [5, 5, 15], // Almost black
-            ],
-            // Slide 1 - Welcome (Very dark purple/gray)
+            // Slide 0 - Welcome (Very dark purple/gray)
             [
                 [25, 25, 35], // Dark gray-purple
                 [20, 20, 30], // Darker gray
@@ -930,12 +921,7 @@ export class OnboardingView extends LitElement {
     }
 
     nextSlide() {
-        // Slide 0 is sign-in, don't auto-advance from it
-        if (this.currentSlide === 0) {
-            // Skip not allowed for sign-in unless explicitly clicked
-            return;
-        }
-        if (this.currentSlide < 7) {
+        if (this.currentSlide < 6) {
             this.startColorTransition(this.currentSlide + 1);
         } else {
             this.completeOnboarding();
@@ -952,7 +938,7 @@ export class OnboardingView extends LitElement {
         this.previousColorScheme = [...this.colorSchemes[this.currentSlide]];
 
         // Track slide view
-        const slideNames = ['sign_in', 'welcome', 'persona', 'tell_more', 'privacy', 'tailor', 'context', 'complete'];
+        const slideNames = ['welcome', 'persona', 'tell_more', 'privacy', 'tailor', 'context', 'complete'];
         if (slideNames[newSlide]) {
             trackEvent('onboarding_slide_view', {
                 slide_number: newSlide,
@@ -1137,116 +1123,6 @@ Onboarding preferences collected: {
         setTimeout(() => this.nextSlide(), 300);
     }
 
-    // Auth handlers
-    handleEmailInput(e) {
-        this.authEmail = e.target.value;
-    }
-
-    handlePasswordInput(e) {
-        this.authPassword = e.target.value;
-    }
-
-    async handleGoogleSignIn() {
-        if (window.require) {
-            const { ipcRenderer } = window.require('electron');
-            this.authError = '';
-
-            // Track Google sign-in attempt
-            trackEvent('onboarding_auth_google');
-
-            // Do not set authLoading = true to avoid locking UI
-            try {
-                // Call new Google Auth handler (Server-Side Flow)
-                await ipcRenderer.invoke('auth:open-google');
-            } catch (error) {
-                this.authError = 'Failed to open sign-in. Please try again.';
-                // No need to reset authLoading as we didn't set it
-            }
-        }
-    }
-
-    async handleEmailSignIn() {
-        if (window.require) {
-            const { ipcRenderer } = window.require('electron');
-            this.authError = '';
-
-            // Track email sign-in attempt
-            trackEvent('onboarding_auth_email');
-
-            try {
-                // Call new Login Page handler (Email/Password Flow)
-                await ipcRenderer.invoke('auth:open-login');
-            } catch (error) {
-                this.authError = 'Failed to open login page. Please try again.';
-            }
-        }
-    }
-
-    handleSignUp() {
-        if (window.require) {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.invoke('auth:open-signup');
-        }
-    }
-
-    handleSkipAuth() {
-        // Track skip auth
-        trackEvent('onboarding_auth_skip');
-
-        // Skip auth and go to welcome slide
-        this.startColorTransition(1);
-    }
-
-    openExternal(url) {
-        if (window.require) {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.invoke('open-external', url);
-        }
-    }
-
-    // Listen for auth complete from main process
-    firstUpdated() {
-        this.canvas = this.shadowRoot.querySelector('.gradient-canvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.resizeCanvas();
-        this.startGradientAnimation();
-
-        window.addEventListener('resize', () => this.resizeCanvas());
-
-        if (window.require) {
-            const { ipcRenderer } = window.require('electron');
-
-            // Check if already logged in
-            // ipcRenderer.invoke('auth:is-logged-in').then(result => {
-            //     if (result && result.success && result.data === true) {
-            //         console.log('OnboardingView: User already logged in, auto-advancing to welcome slide');
-            //         // Skip sign-in slide
-            //         this.startColorTransition(1);
-            //     } else {
-            //         console.log('OnboardingView: User not logged in, staying on sign-in slide');
-            //     }
-            // });
-
-            console.log('OnboardingView: Setting up auth-complete listener');
-            ipcRenderer.on('auth-complete', (event, data) => {
-                console.log('OnboardingView: Received auth-complete event:', data);
-                this.authLoading = false;
-                if (data.success) {
-                    console.log('OnboardingView: Auth successful, transitioning to slide 1');
-                    // Move to welcome slide on successful auth
-                    this.startColorTransition(1);
-                } else {
-                    console.log('OnboardingView: Auth failed:', data.error);
-                    this.authError = data.error || 'Authentication failed.';
-                }
-                this.requestUpdate();
-            });
-            console.log('OnboardingView: auth-complete listener set up');
-        } else {
-            console.warn('OnboardingView: window.require not available');
-        }
-    }
-
     // Helper to get absolute asset path for packaged app
     getAssetPath(relativePath) {
         try {
@@ -1259,13 +1135,6 @@ Onboarding preferences collected: {
 
     getSlideContent() {
         const slides = [
-            {
-                // Auth slide has its own logo/title - hide default ones
-                icon: null,
-                title: '',
-                content: '',
-                showAuth: true,
-            },
             {
                 icon: this.getAssetPath('assets/onboarding/welcome.svg'),
                 title: 'Welcome to Co-Interview',
@@ -1622,19 +1491,23 @@ Onboarding preferences collected: {
                 </div>
 
                 <div class="navigation">
-                    <button class="nav-button" @click=${this.prevSlide} ?disabled=${this.currentSlide === 0}>
-                        <svg width="16px" height="16px" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                    </button>
+                    ${this.currentSlide > 0
+                        ? html`
+                              <button class="nav-button" @click=${this.prevSlide}>
+                                  <svg width="16px" height="16px" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  </svg>
+                              </button>
+                          `
+                        : html`<div style="width: 40px;"></div>`}
 
                     <div class="progress-dots">
-                        ${Array.from({ length: 8 }).map(
+                        ${Array.from({ length: 7 }).map(
                             (_, index) => html`
                                 <div
                                     class="dot ${index === this.currentSlide ? 'active' : ''}"
                                     @click=${() => {
-                                        if (index !== this.currentSlide && index !== 0) {
+                                        if (index !== this.currentSlide) {
                                             this.startColorTransition(index);
                                         }
                                     }}
@@ -1643,23 +1516,14 @@ Onboarding preferences collected: {
                         )}
                     </div>
 
-                    <button class="nav-button" @click=${() => (this.currentSlide === 0 ? this.handleSkipAuth() : this.nextSlide())}>
-                        ${this.currentSlide === 7
+                    <button class="nav-button" @click=${this.nextSlide}>
+                        ${this.currentSlide === 6
                             ? 'Get Started'
-                            : this.currentSlide === 0
-                              ? 'Skip'
-                              : html`
-                                    <svg
-                                        width="16px"
-                                        height="16px"
-                                        stroke-width="2"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                `}
+                            : html`
+                                  <svg width="16px" height="16px" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  </svg>
+                              `}
                     </button>
                 </div>
             </div>
