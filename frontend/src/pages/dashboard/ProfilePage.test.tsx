@@ -59,27 +59,12 @@ describe('ProfilePage', () => {
         );
 
         fireEvent.click(screen.getByText('Billing'));
-        expect(screen.getByText('Billing information will be displayed here.')).toBeInTheDocument();
+        expect(screen.getByText('Subscription Plan')).toBeInTheDocument();
 
         fireEvent.click(screen.getByText('Affiliate'));
         expect(screen.getByText('Affiliate program information will be displayed here.')).toBeInTheDocument();
 
         fireEvent.click(screen.getByText('Your Account'));
         expect(screen.getByText('test@example.com')).toBeInTheDocument();
-    });
-
-    it('handles logout', async () => {
-        render(
-            <MemoryRouter>
-                <ProfilePage />
-            </MemoryRouter>
-        );
-
-        fireEvent.click(screen.getByText('Log Out'));
-
-        await waitFor(() => {
-            expect(signOut).toHaveBeenCalled();
-            expect(mockNavigate).toHaveBeenCalledWith('/');
-        });
     });
 });

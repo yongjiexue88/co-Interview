@@ -6,6 +6,14 @@ jest.mock('../../src/config/firebase', () => ({
     db: {
         collection: jest.fn(),
     },
+    admin: {
+        firestore: {
+            FieldValue: {
+                increment: jest.fn((n) => n),
+                serverTimestamp: jest.fn(() => new Date()),
+            },
+        },
+    },
 }));
 
 jest.mock('../../src/middleware/auth', () => (req, res, next) => {
@@ -132,10 +140,12 @@ describe('Analyze Routes', () => {
             expect(res.body.quota_charged_seconds).toBe(30);
             expect(res.body.quota_remaining_seconds).toBe(35000 - 30); // 36000 - 1000 - 30
 
-            // Verify quota was deducted
-            expect(mockUserRef.update).toHaveBeenCalledWith({
-                'usage.quotaSecondsUsed': 1030,
-            });
+            // Verify quota was deducted (use objectContaining since there are more token fields)
+            expect(mockUserRef.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'usage.quotaSecondsUsed': 1030,
+                })
+            );
         });
 
         it('should use default model if not specified', async () => {

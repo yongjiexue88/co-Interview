@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const { db } = require('../config/firebase');
-const { PLANS } = require('../config/stripe');
+const { PLANS, getPlanConfig } = require('../config/stripe');
 
 /**
  * GET /v1/users/me
@@ -26,7 +26,8 @@ router.get('/me', authMiddleware, async (req, res, next) => {
         const planId = userData.access?.planId || userData.plan || 'free';
         const usageUsed = userData.usage?.quotaSecondsUsed || userData.quotaSecondsUsed || 0;
 
-        const planConfig = PLANS[planId] || PLANS.free;
+        // Use getPlanConfig to properly resolve aliases (e.g., sprint_30d -> pro)
+        const planConfig = getPlanConfig(planId);
 
         const quotaLimit = planConfig.quotaSecondsMonth;
         // Remaining cannot be negative

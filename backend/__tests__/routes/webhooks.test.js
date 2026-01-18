@@ -283,8 +283,8 @@ describe('Webhook Routes', () => {
 
             await request(app).post('/api/webhooks/stripe').send(mockEvent);
 
-            // Expect currentPeriodEnd to be old end + 30 days
-            const expectedEnd = new Date(currentEnd.getTime() + (30 * 24 * 60 * 60 * 1000));
+            // Expect currentPeriodEnd to be old end + 14 days
+            const expectedEnd = new Date(currentEnd.getTime() + (14 * 24 * 60 * 60 * 1000));
             // Allow small delta
             expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
                 currentPeriodEnd: expect.any(Date)

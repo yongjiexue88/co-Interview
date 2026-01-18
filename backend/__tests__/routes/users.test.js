@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../../src/index');
 const { auth: adminAuth, db } = require('../../src/config/firebase');
-const { PLANS } = require('../../src/config/stripe');
+const { PLANS, getPlanConfig } = require('../../src/config/stripe');
 
 jest.mock('../../src/config/firebase', () => ({
     auth: {
@@ -42,9 +42,9 @@ describe('GET /api/v1/users/me', () => {
 
         expect(res.statusCode).toEqual(200);
         expect(res.body.plan.id).toBe('sprint_30d');
-        expect(res.body.quota.limit).toBe(PLANS.sprint_30d.quotaSecondsMonth);
+        expect(res.body.quota.limit).toBe(getPlanConfig('sprint_30d').quotaSecondsMonth);
         expect(res.body.quota.used).toBe(1000);
-        expect(res.body.quota.remaining).toBe(PLANS.sprint_30d.quotaSecondsMonth - 1000);
+        expect(res.body.quota.remaining).toBe(getPlanConfig('sprint_30d').quotaSecondsMonth - 1000);
     });
 
     it('should fallback correctly for Schema V1 user', async () => {
