@@ -163,6 +163,15 @@
 - **Enhancement:** Added `setWindowOpenHandler` to prevent any future popups
 - Verified end-to-end: Login flow completes in existing window, no extra window spawns
 
+### Dashboard Link Fixes (2026-01-18)
+- Updated "Get Lifetime package" button on Dashboard Home to redirect to Internal Pricing page
+- Updated Sidebar "Get Lifetime package" button to redirect to Internal Pricing page
+- Verified navigation with tests
+
+### Google Login Account Selection Fix (2026-01-18)
+- Configured Google Auth Provider to force account selection popup
+- Added `prompt: 'select_account'` to `firebase.ts`
+
 ### Stripe Payment Flow Fixes (2026-01-17)
 - Fixed 400 Bad Request error on Pro plan checkout (recurring price used in payment mode)
 - Created new one-time Stripe price for Pro plan ($19.99 for 14 days)

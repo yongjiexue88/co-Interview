@@ -33,6 +33,12 @@
 **Solution:** Added anti-prefetch headers and checks in `backend/src/routes/auth.js` callback handler
 **Prevention:** Always add cache-control headers and prefetch detection to OAuth callback endpoints
 
+### 2026-01-18 - Google Login Skips Account Selection
+**Problem:** Users couldn't switch Google accounts because the popup automatically signed in the previous user.
+**Root Cause:** The `GoogleAuthProvider` defaults to `prompt: 'none'` or auto-select behaviour if not configured.
+**Solution:** Added `googleProvider.setCustomParameters({ prompt: 'select_account' })` in `firebase.ts`.
+**Prevention:** Explicitly configure auth parameters for desired user experience (e.g. forced re-auth).
+
 ---
 
 ## 🔴 Build & Configuration
