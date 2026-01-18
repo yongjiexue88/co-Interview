@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 const BillingSuccessPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const sessionId = searchParams.get('session_id');
 
     const [status, setStatus] = useState<'loading' | 'success' | 'processing' | 'error'>('loading');
@@ -15,6 +15,14 @@ const BillingSuccessPage: React.FC = () => {
     const [attempts, setAttempts] = useState(0);
 
     useEffect(() => {
+        if (authLoading) return;
+
+        if (!user) {
+            setStatus('error');
+            setErrorMsg('You must be logged in to verify payment.');
+            return;
+        }
+
         if (!sessionId) {
             setStatus('error');
             setErrorMsg('No session ID found.');
@@ -78,7 +86,7 @@ const BillingSuccessPage: React.FC = () => {
         checkStatus();
 
         return () => clearInterval(pollInterval);
-    }, [sessionId, navigate, user]);
+    }, [sessionId, navigate, user, authLoading]);
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center p-4">

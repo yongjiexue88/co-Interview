@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserBubbleDiagram, CannotSeeDiagram, WebEnvDiagram, AudioFlowDiagram, TaskManagerDiagram } from './Diagrams';
+// Diagrams were replaced by static images
 
 const CodeBlock = ({ children }: { children?: React.ReactNode }) => (
     <div className="bg-[#1d1f21] rounded-lg p-4 font-mono text-sm md:text-base text-[#c5c8c6] overflow-x-auto my-8 border border-white/5 shadow-inner">
@@ -54,7 +54,7 @@ const Article: React.FC = () => {
                     walled off from the rest of your computer. It simply doesn't have permission to peek at other apps you might be running.
                 </Paragraph>
 
-                <BrowserBubbleDiagram />
+                <img src="/visual-one.png" alt="Browser Sandbox" className="w-full h-auto rounded-lg shadow-2xl border border-white/10 my-10" />
 
                 <SectionTitle>What Interview Platforms *Can* See (Inside the Bubble)</SectionTitle>
                 <Paragraph>Within their own tab, interview platforms *can* use browser features to monitor some things:</Paragraph>
@@ -131,7 +131,11 @@ if (getRunningApps().includes('SomeApp.exe')) {
                     </li>
                 </ul>
 
-                <CannotSeeDiagram />
+                <img
+                    src="/visual-two.png"
+                    alt="What Platforms Cannot See"
+                    className="w-full h-auto rounded-lg shadow-2xl border border-white/10 my-10"
+                />
 
                 <SectionTitle>Why Co-Interview is Different & How It Counters Detection</SectionTitle>
                 <Paragraph>
@@ -198,7 +202,11 @@ if (getRunningApps().includes('SomeApp.exe')) {
                     interviews, Co-Interview will work.
                 </Paragraph>
 
-                <WebEnvDiagram />
+                <img
+                    src="/visual-three.png"
+                    alt="Co-Interview Web Environment"
+                    className="w-full h-auto rounded-lg shadow-2xl border border-white/10 my-10"
+                />
 
                 <div className="border-t border-zinc-800 my-16 pt-16">
                     <header className="mb-12 text-center flex flex-col items-center">
@@ -294,7 +302,11 @@ if (getRunningApps().includes('SomeApp.exe')) {
                         explanations in real-time without needing to switch contexts.
                     </Paragraph>
 
-                    <AudioFlowDiagram />
+                    <img
+                        src="/visual-four.png"
+                        alt="Audio Flow Diagram"
+                        className="w-full h-auto rounded-lg shadow-2xl border border-white/10 my-10"
+                    />
 
                     <SectionTitle>Invisible to Task Manager</SectionTitle>
 
@@ -343,7 +355,11 @@ if (getRunningApps().includes('SomeApp.exe')) {
                         use it without worry about being detected.
                     </Paragraph>
 
-                    <TaskManagerDiagram />
+                    <img
+                        src="/visual-five.png"
+                        alt="Task Manager Diagram"
+                        className="w-full h-auto rounded-lg shadow-2xl border border-white/10 my-10"
+                    />
                 </div>
 
                 <div className="mt-16 pt-12 border-t border-zinc-800 text-center">

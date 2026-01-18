@@ -3,6 +3,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import DashboardHomePage from './DashboardHomePage';
 import { MemoryRouter } from 'react-router-dom';
 
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async importOriginal => {
+    const actual = await importOriginal<typeof import('react-router-dom')>();
+    return {
+        ...actual,
+        useNavigate: () => mockNavigate,
+    };
+});
+
 // Mock useAuth hook
 const mockUseAuth = vi.fn();
 vi.mock('../../hooks/useAuth', () => ({
@@ -55,10 +64,10 @@ describe('DashboardHomePage', () => {
             </MemoryRouter>
         );
 
-        const lifetimeButton = screen.getByText(/Get Lifetime package/i);
+        const lifetimeButton = screen.getByText(/Get Access Now/i);
         fireEvent.click(lifetimeButton);
 
-        expect(window.open).toHaveBeenCalledWith(expect.stringContaining('stripe.com/lifetime?client_reference_id=user123'), '_blank');
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard/pricing');
     });
 
     it('toggles platform expansion', () => {
@@ -175,8 +184,8 @@ describe('DashboardHomePage', () => {
         expect(screen.getByText(/Welcome USER/i)).toBeInTheDocument();
     });
 
-    it('does not open window if no payment link', () => {
-        // Change mock
+    it('still navigates even if no external payment link', () => {
+        // change mock
         const originalTiers = [...mockPricingTiers];
         mockPricingTiers = [];
 
@@ -186,9 +195,9 @@ describe('DashboardHomePage', () => {
             </MemoryRouter>
         );
 
-        const lifetimeButton = screen.getByText(/Get Lifetime package/i);
+        const lifetimeButton = screen.getByText(/Get Access Now/i);
         fireEvent.click(lifetimeButton);
-        expect(window.open).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard/pricing');
 
         // Restore
         mockPricingTiers = originalTiers;

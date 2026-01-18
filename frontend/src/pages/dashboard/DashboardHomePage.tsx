@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Download, Play, ChevronDown, ChevronUp } from 'lucide-react';
 import { pricingTiers } from '../../content/pricing';
@@ -19,8 +19,12 @@ const platforms = [
 
 const DashboardHomePage: React.FC = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [countdown, setCountdown] = useState({ hours: 19, minutes: 28, seconds: 0 });
     const [expandedPlatform, setExpandedPlatform] = useState<number | null>(null);
+
+    const proTier = pricingTiers.find(t => t.id === 'pro');
+    const lifetimeTier = pricingTiers.find(t => t.id === 'lifetime');
 
     // Countdown timer effect
     useEffect(() => {
@@ -47,12 +51,7 @@ const DashboardHomePage: React.FC = () => {
     const userName = user?.displayName || user?.email?.split('@')[0] || 'User';
 
     const handleLifetimeClick = () => {
-        const lifetimeTier = pricingTiers.find(t => t.id === 'lifetime');
-        if (lifetimeTier?.paymentLink && user) {
-            const separator = lifetimeTier.paymentLink.includes('?') ? '&' : '?';
-            const finalLink = `${lifetimeTier.paymentLink}${separator}client_reference_id=${user.uid}&prefilled_email=${encodeURIComponent(user.email || '')}`;
-            window.open(finalLink, '_blank');
-        }
+        navigate('/dashboard/pricing');
     };
 
     return (
@@ -66,12 +65,15 @@ const DashboardHomePage: React.FC = () => {
             {/* Upgrade Banner */}
             <div className="mb-8">
                 <p className="text-center text-gray-400 mb-4">
-                    Or upgrade now and get <span className="text-[#FACC15] font-bold">10%</span> for lifetime package
+                    Or upgrade now to get <span className="text-[#FACC15] font-bold">UNLIMITED</span> access
                 </p>
                 <div className="bg-[#1a1a1a] border border-[#FACC15]/30 rounded-xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <img src="/favicon.png" alt="Pro" className="w-8 h-8" />
-                        <span className="text-white font-semibold">Co-Interview Pro</span>
+                        <div>
+                            <span className="text-white font-semibold block">{proTier?.name || 'Co-Interview Pro'}</span>
+                            <span className="text-[#FACC15] text-sm font-bold">${proTier?.price || '19.99'} / 14 days</span>
+                        </div>
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="flex gap-2 text-white font-mono text-lg">
@@ -90,7 +92,7 @@ const DashboardHomePage: React.FC = () => {
                             onClick={handleLifetimeClick}
                             className="bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg text-sm hover:brightness-110 transition-all"
                         >
-                            ✦ Get Lifetime package
+                            ✦ Get Access Now
                         </button>
                     </div>
                 </div>

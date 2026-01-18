@@ -83,10 +83,11 @@ const PricingSection: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-                        Invest in Your <span className="text-[#FACC15]">Career</span>
+                        Your Next Interview Is Worth $150,000+ — <span className="text-[#FACC15]">Don’t Leave It to Chance</span>
                     </h2>
                     <p className="text-gray-400 max-w-2xl mx-auto">
-                        A Senior Engineer salary is $150k+. Interview Coder costs less than a single rejected interview.
+                        Most candidates fail not from lack of skill, but from pressure. Interview Coder gives you real-time confidence when it matters
+                        most.
                     </p>
                 </div>
 

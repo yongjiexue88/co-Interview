@@ -24,7 +24,7 @@ export const pricingTiers: PricingTier[] = [
         name: '14-Day Interview Pass',
         price: 19.99,
         period: '14-days',
-        description: 'Ace your upcoming interviews',
+        description: 'Everything you need for your next interview',
         features: ['Unlimited Interview Support', 'Real-time Audio & Screen Analysis', 'All Languages Supported', 'Undetectable Mode'],
         popular: true,
         // paymentLink removed in favor of direct API integration
@@ -34,7 +34,7 @@ export const pricingTiers: PricingTier[] = [
         name: 'Lifetime Access',
         price: 99,
         period: 'lifetime',
-        description: 'Never worry about expiration',
+        description: 'Never stress about interviews again. Ever.',
         features: ['Everything in Pro', 'Priority Support', 'New Features Early Access', 'Lifetime Updates', 'No recurring fees'],
     },
 ];

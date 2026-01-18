@@ -27,6 +27,7 @@ export const analytics = isSupported().then(yes => (yes ? getAnalytics(app) : nu
 // Initialize Auth
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 // Initialize Storage
 export const storage = getStorage(app);

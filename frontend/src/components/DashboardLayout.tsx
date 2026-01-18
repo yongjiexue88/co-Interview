@@ -13,11 +13,15 @@ const sidebarItems = [
     { name: 'Profile', icon: User, href: '/dashboard/profile' },
 ];
 
+import { pricingTiers } from '../content/pricing';
+
 const DashboardLayout: React.FC = () => {
     const { user, loading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [countdown, setCountdown] = useState({ hours: 19, minutes: 28, seconds: 0 });
+
+    const proTier = pricingTiers.find(t => t.id === 'pro');
 
     useEffect(() => {
         if (!loading && !user) {
@@ -101,11 +105,14 @@ const DashboardLayout: React.FC = () => {
                 <div className="p-4">
                     <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
                         <p className="text-sm text-gray-400 mb-2">
-                            Get <span className="text-[#FACC15] font-bold">10%</span> off on
+                            Get <span className="text-[#FACC15] font-bold">UNLIMITED</span> access
                         </p>
                         <div className="flex items-center gap-2 mb-3">
                             <img src="/favicon.png" alt="Pro" className="w-6 h-6" />
-                            <span className="text-white font-semibold text-sm">Interview Coder Pro</span>
+                            <div>
+                                <span className="text-white font-semibold text-sm block">{proTier?.name || 'Interview Coder Pro'}</span>
+                                <span className="text-[#FACC15] text-xs font-bold">${proTier?.price || '19.99'} / 14 days</span>
+                            </div>
                         </div>
                         <div className="flex justify-center gap-2 mb-3 text-white font-mono">
                             <div className="text-center">
@@ -123,8 +130,11 @@ const DashboardLayout: React.FC = () => {
                                 <div className="text-[10px] text-gray-500">Sec</div>
                             </div>
                         </div>
-                        <button className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg text-sm hover:brightness-110 transition-all">
-                            ✦ Get Lifetime package
+                        <button
+                            onClick={() => navigate('/dashboard/pricing')}
+                            className="w-full bg-gradient-to-b from-[#EFCC3A] to-[#EFB63A] text-black font-semibold py-2 px-4 rounded-lg text-sm hover:brightness-110 transition-all"
+                        >
+                            ✦ Get Access Now
                         </button>
                     </div>
                 </div>
