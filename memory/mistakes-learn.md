@@ -183,6 +183,17 @@
 3. Added `processPendingAuthUrl` queue for URLs handled before `mainWindow` is ready.
 **Prevention:** Always force re-register custom protocols with explicit paths in development mode to override stale system registrations.
 
+### 2026-01-21 - Protocol Handler Hijacked by Disabled App
+**Problem:** After Google OAuth login, the Electron app showed the default Electron welcome page instead of the onboarding view.
+**Root Cause:** The `co-interview://` custom protocol was registered to a disabled project (`cheating-daddy-master-DISABLED`) instead of the active `co-interview` app. macOS Launch Services still remembered the old app's protocol registration.
+**Solution:** 
+1. Unregistered the old app using `lsregister -u <path>`
+2. Renamed the old project's `node_modules` folder to prevent future re-registration
+**Prevention:** When disabling or archiving old Electron projects that share custom protocols, always:
+- Remove their `node_modules` folder
+- Unregister them from Launch Services with `lsregister -u`
+- Consider using unique protocol names per project version
+
 ---
 
 ## 📝 Notes
