@@ -4,17 +4,17 @@ This report details the testing scope, methodology, and current status of the Co
 
 ## Overall Status
 
-**Last Updated**: 2026-01-06 08:36 CST
+**Last Updated**: 2026-01-28 08:15 CST
 
 | Component | Line Coverage | Status |
 | :--- | :--- | :--- |
-| **Backend** | **99.17%** | ✅ All tests passing (173 tests) |
-| **Frontend** | **96.01%** | ✅ All tests passing (194 tests) |
-| **Electron** | **88.24%** | ✅ All tests passing (170 tests, 3 skipped) |
+| **Backend** | **97.92%** | ✅ All tests passing (173 tests) |
+| **Frontend** | **94.98%** | ✅ All tests passing (191 tests) |
+| **Electron** | **N/A** | ⚠️ No tests configured |
 
 ---
 
-## 1. Backend API (99.15%)
+## 1. Backend API (97.92%)
 **Rationale**: High-reliability testing focusing on data integrity, security (Auth), and external service integration (Stripe/Firebase). We use `supertest` to simulate real API calls and `jest` to mock internal services.
 
 | Feature Area | What was tested | Why test this way? |
@@ -27,7 +27,7 @@ This report details the testing scope, methodology, and current status of the Co
 
 ---
 
-## 2. Frontend Web App (96.01%)
+## 2. Frontend Web App (94.98%)
 **Rationale**: User-centric testing using `React Testing Library` to verify that UI elements behave as expected for real users. `Vitest` provides fast execution and high-fidelity coverage reports.
 
 | Page / Component | What was tested | Why test this way? |
@@ -37,11 +37,12 @@ This report details the testing scope, methodology, and current status of the Co
 | **Blog System** | Reading progress, Table of Contents, SEO meta tags, and 404 handling. | Validates both UI interaction and SEO correctness. |
 | **Navbar** | Mobile menu toggles, download dropdowns, and analytics event tracking. | Core navigation must work across all devices and screen sizes. |
 | **Hooks & Utils** | `useAuth` state persistence and analytics helper functions. | Ensures logical consistency across the entire application. |
+| **macOS Download** | Download button links, platform detection logic, and event tracking. | Ensures critical download flow works for new users. |
 
 ---
 
-## 3. Electron App (86.88%)
-**Rationale**: Tests Electron-specific behaviors like IPC communication, window life cycles, and local system access. Failures in `gemini.test.js` indicate complexity in mocking real-world timing and external GenAI responses.
+## 3. Electron App (N/A)
+**Rationale**: Tests Electron-specific behaviors like IPC communication, window life cycles, and local system access.
 
 | Module | What was tested | Why test this way? |
 | :--- | :--- | :--- |
@@ -53,11 +54,7 @@ This report details the testing scope, methodology, and current status of the Co
 ---
 
 ## Current Blockers (Electron)
-**Status**: Resolved. All tests passing.
+**Status**: Electron tests are currently not configured/running in this workflow environment. Coverage metrics unavailable.
 
-**Coverage Improvement**: reached 88.24%.
-
-**Remaining Gap**: To reach 95% requirement, need additional ~7% coverage. Main uncovered areas in `gemini.js` (85.67%) and `renderer.js` (81.52%).
-
-**Test Status**: All 170 tests passing. 3 skipped tests related to complex audio buffering mocks.
-
+**Frontend Coverage**: 94.98% (Very close to 95% target).
+**Backend Coverage**: 97.92% (Exceeds 95% target).

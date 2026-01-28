@@ -19,13 +19,14 @@ const SimpleHero: React.FC = () => {
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
                     <a
-                        href="#download"
+                        href="https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fmac-arm64.dmg?alt=media"
+                        download
                         className="px-8 py-4 bg-black text-white font-semibold rounded-full hover:bg-gray-800 transition-colors shadow-lg"
                     >
                         Download for macOS
                     </a>
                     <a
-                        href="https://github.com"
+                        href="https://github.com/yongjiexue88/co-Interview"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-8 py-4 bg-white text-gray-900 font-semibold rounded-full border-2 border-gray-200 hover:border-gray-400 transition-colors"

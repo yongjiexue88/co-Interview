@@ -24,19 +24,19 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-          cache-dependency-path: electron/package-lock.json
+          cache-dependency-path: co-interview-electron/package-lock.json
 
       - name: Install dependencies
-        working-directory: electron
+        working-directory: co-interview-electron
         run: npm ci
 
       - name: Build for macOS ARM64
-        working-directory: electron
+        working-directory: co-interview-electron
         run: npm run make -- --arch=arm64 --platform=darwin
 
       - name: Find and rename DMG
         id: find-dmg
-        working-directory: electron
+        working-directory: co-interview-electron
         run: |
           DMG_PATH=$(find out/make -name "*.dmg" | head -1)
           echo "Original DMG: $DMG_PATH"
@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mac-arm64-dmg
-          path: electron/Co-Interview-mac-arm64.dmg
+          path: co-interview-electron/Co-Interview-mac-arm64.dmg
           retention-days: 7
 
   # ============================================
@@ -65,19 +65,19 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-          cache-dependency-path: electron/package-lock.json
+          cache-dependency-path: co-interview-electron/package-lock.json
 
       - name: Install dependencies
-        working-directory: electron
+        working-directory: co-interview-electron
         run: npm ci
 
       - name: Build for macOS x64
-        working-directory: electron
+        working-directory: co-interview-electron
         run: npm run make -- --arch=x64 --platform=darwin
 
       - name: Find and rename DMG
         id: find-dmg
-        working-directory: electron
+        working-directory: co-interview-electron
         run: |
           DMG_PATH=$(find out/make -name "*.dmg" | head -1)
           echo "Original DMG: $DMG_PATH"
@@ -89,7 +89,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mac-x64-dmg
-          path: electron/Co-Interview-mac-x64.dmg
+          path: co-interview-electron/Co-Interview-mac-x64.dmg
           retention-days: 7
 
   # ============================================
@@ -106,19 +106,19 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-          cache-dependency-path: electron/package-lock.json
+          cache-dependency-path: co-interview-electron/package-lock.json
 
       - name: Install dependencies
-        working-directory: electron
+        working-directory: co-interview-electron
         run: npm ci
 
       - name: Build for Windows
-        working-directory: electron
+        working-directory: co-interview-electron
         run: npm run make -- --platform=win32
 
       - name: Find and rename Windows build
         id: find-exe
-        working-directory: electron
+        working-directory: co-interview-electron
         shell: powershell
         run: |
           # Look for squirrel installer or zip
@@ -142,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: electron/Co-Interview-windows.exe
+          path: co-interview-electron/Co-Interview-windows.exe
           retention-days: 7
 
       - name: Upload artifact (zip)
@@ -150,7 +150,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: electron/Co-Interview-windows.zip
+          path: co-interview-electron/Co-Interview-windows.zip
           retention-days: 7
 
   # ============================================

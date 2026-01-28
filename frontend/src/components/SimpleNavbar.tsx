@@ -16,9 +16,9 @@ const SimpleNavbar: React.FC = () => {
 
                     {/* Navigation Links */}
                     <nav className="flex items-center space-x-6">
-                        <a href="#faq" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                        <Link to="/help" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                             Help
-                        </a>
+                        </Link>
                         <a
                             href="https://github.com"
                             target="_blank"
@@ -27,9 +27,12 @@ const SimpleNavbar: React.FC = () => {
                         >
                             GitHub
                         </a>
-                        <a href="#download" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                        <Link
+                            to="/download"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                        >
                             Download
-                        </a>
+                        </Link>
                     </nav>
                 </div>
             </div>
