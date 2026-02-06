@@ -7,7 +7,7 @@ const faqs = [
         answer: (
             <>
                 Follow{' '}
-                <a href="/help#api-key" className="underline hover:text-gray-900">
+                <a href="/help/api-key" className="underline hover:text-gray-900">
                     this tutorial
                 </a>{' '}
                 to get a free API key.
@@ -19,7 +19,7 @@ const faqs = [
         answer: (
             <>
                 Check{' '}
-                <a href="/help#audio-permissions" className="underline hover:text-gray-900">
+                <a href="/help/audio-permissions" className="underline hover:text-gray-900">
                     macOS audio permissions
                 </a>{' '}
                 for step-by-step instructions.
@@ -31,15 +31,20 @@ const faqs = [
         answer: (
             <>
                 macOS users:{' '}
-                <a href="/help#installation-warning" className="underline hover:text-gray-900">
+                <a href="/help/installation-warning" className="underline hover:text-gray-900">
                     Follow this tutorial
                 </a>
                 <br />
                 <br />
                 The app is not code signed because I don't have a developer ID. This triggers security warnings but the app is safe. If you can help
-                with code signing, join{' '}
-                <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-900">
-                    Discord
+                with code signing,{' '}
+                <a
+                    href="https://github.com/yongjiexue88/co-Interview/issues"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-gray-900"
+                >
+                    submit on GitHub
                 </a>
                 .
             </>
@@ -57,12 +62,8 @@ const faqs = [
                     className="underline hover:text-gray-900"
                 >
                     GitHub
-                </a>{' '}
-                or join{' '}
-                <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-900">
-                    Discord
-                </a>{' '}
-                for help.
+                </a>
+                .
             </>
         ),
     },
@@ -118,19 +119,18 @@ const DownloadPage: React.FC = () => {
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Latest Release</h2>
                     <div className="flex flex-wrap gap-4 mb-4">
                         <a
-                            href="https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fwindows.exe?alt=media"
-                            download
-                            className="px-8 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
-                        >
-                            Windows
-                        </a>
-                        <a
                             href="https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fmac-arm64.dmg?alt=media"
                             download
                             className="px-8 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
                         >
                             macOS
                         </a>
+                        <div className="relative group">
+                            <div className="px-8 py-3 bg-gray-200 text-gray-500 font-medium rounded-lg cursor-not-allowed flex items-center gap-2">
+                                <span>Windows</span>
+                                <span className="text-xs bg-gray-300 text-gray-600 px-2 py-0.5 rounded-full">Coming Soon</span>
+                            </div>
+                        </div>
                     </div>
                     <p className="text-sm text-gray-500">
                         Older releases available on{' '}
@@ -166,48 +166,6 @@ const DownloadPage: React.FC = () => {
             <footer className="bg-white py-12 border-t border-gray-100">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     {/* Social Links */}
-                    <nav className="flex flex-wrap items-center justify-center gap-6 mb-6">
-                        <a
-                            href="https://github.com/yongjiexue88/co-Interview"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                        >
-                            GitHub
-                        </a>
-                        <a
-                            href="https://discord.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                        >
-                            Discord
-                        </a>
-                        <a
-                            href="https://x.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                        >
-                            X
-                        </a>
-                        <a
-                            href="https://instagram.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                        >
-                            Instagram
-                        </a>
-                        <a
-                            href="https://tiktok.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                        >
-                            TikTok
-                        </a>
-                    </nav>
 
                     {/* Made by */}
                     <p className="text-sm text-gray-400">

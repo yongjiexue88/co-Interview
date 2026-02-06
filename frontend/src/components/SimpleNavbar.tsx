@@ -27,10 +27,7 @@ const SimpleNavbar: React.FC = () => {
                         >
                             GitHub
                         </a>
-                        <Link
-                            to="/download"
-                            className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-                        >
+                        <Link to="/download" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
                             Download
                         </Link>
                     </nav>

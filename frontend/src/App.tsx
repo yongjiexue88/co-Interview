@@ -23,6 +23,10 @@ import PrivacyPage from './pages/policies/PrivacyPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import HelpPage from './pages/HelpPage';
+import ApiKeyPage from './pages/help/ApiKeyPage';
+import AudioPermissionsPage from './pages/help/AudioPermissionsPage';
+import InstallationWarningPage from './pages/help/InstallationWarningPage';
+import ClearStoragePage from './pages/help/ClearStoragePage';
 import DownloadPage from './pages/DownloadPage';
 import ElectronAuthPage from './pages/ElectronAuthPage';
 import { usePageTracking } from './hooks/usePageTracking';
@@ -57,6 +61,10 @@ function App() {
                     <Route path="/policies/refund" element={<RefundPage />} />
                     <Route path="/policies/privacy" element={<PrivacyPage />} />
                     <Route path="/help" element={<HelpPage />} />
+                    <Route path="/help/api-key" element={<ApiKeyPage />} />
+                    <Route path="/help/audio-permissions" element={<AudioPermissionsPage />} />
+                    <Route path="/help/installation-warning" element={<InstallationWarningPage />} />
+                    <Route path="/help/clear-storage" element={<ClearStoragePage />} />
                     <Route path="/download" element={<DownloadPage />} />
 
                     {/* Dashboard Routes with shared layout */}
