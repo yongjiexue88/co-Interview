@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AdminLoginPage from './AdminLoginPage';
 import { MemoryRouter } from 'react-router-dom';
 import { signInWithPopup } from 'firebase/auth';
-import { useAuth } from '../hooks/useAuth';
 
 // Mock dependencies
 const mockUseAuth = vi.fn();

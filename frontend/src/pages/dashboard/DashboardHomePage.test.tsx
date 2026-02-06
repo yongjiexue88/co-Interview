@@ -161,7 +161,7 @@ describe('DashboardHomePage', () => {
         });
 
         // Need to rerender
-        const { unmount } = render(
+        render(
             <MemoryRouter>
                 <DashboardHomePage />
             </MemoryRouter>

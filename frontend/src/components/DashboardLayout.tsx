@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
-import { Home, FileText, History, DollarSign, Clock, User, LogOut, Loader2 } from 'lucide-react';
+import { Home, FileText, DollarSign, Clock, User, LogOut, Loader2 } from 'lucide-react';
 
 const sidebarItems = [
     { name: 'Home', icon: Home, href: '/dashboard' },

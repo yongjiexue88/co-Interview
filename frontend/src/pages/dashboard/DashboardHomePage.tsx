@@ -24,7 +24,6 @@ const DashboardHomePage: React.FC = () => {
     const [expandedPlatform, setExpandedPlatform] = useState<number | null>(null);
 
     const proTier = pricingTiers.find(t => t.id === 'pro');
-    const lifetimeTier = pricingTiers.find(t => t.id === 'lifetime');
 
     // Countdown timer effect
     useEffect(() => {

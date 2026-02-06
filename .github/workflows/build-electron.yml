@@ -124,8 +124,8 @@ jobs:
           # Look for squirrel installer or zip
           $setupExe = Get-ChildItem -Path out/make -Recurse -Filter "*.exe" | Select-Object -First 1
           if ($setupExe) {
-            Copy-Item $setupExe.FullName -Destination "Co-Interview-windows.exe"
-            echo "build_path=Co-Interview-windows.exe" >> $env:GITHUB_OUTPUT
+            Copy-Item $setupExe.FullName -Destination "co-interview.exe"
+            echo "build_path=co-interview.exe" >> $env:GITHUB_OUTPUT
             echo "build_type=exe" >> $env:GITHUB_OUTPUT
           } else {
             # Fallback: create a zip of the packaged app
@@ -142,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: co-interview-electron/Co-Interview-windows.exe
+          path: co-interview-electron/co-interview.exe
           retention-days: 7
 
       - name: Upload artifact (zip)
@@ -203,10 +203,10 @@ jobs:
           fi
 
           # Upload Windows build (exe or zip)
-          if [ -f "artifacts/windows-build/Co-Interview-windows.exe" ]; then
-            gcloud storage cp "artifacts/windows-build/Co-Interview-windows.exe" \
-              "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/windows.exe"
-            echo "✅ Uploaded windows.exe"
+          if [ -f "artifacts/windows-build/co-interview.exe" ]; then
+            gcloud storage cp "artifacts/windows-build/co-interview.exe" \
+              "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/co-interview.exe"
+            echo "✅ Uploaded co-interview.exe"
           elif [ -f "artifacts/windows-build/Co-Interview-windows.zip" ]; then
             gcloud storage cp "artifacts/windows-build/Co-Interview-windows.zip" \
               "gs://${{ env.FIREBASE_STORAGE_BUCKET }}/releases/windows.zip"
@@ -225,7 +225,7 @@ jobs:
           echo "Download URLs:"
           echo "  macOS (Apple Silicon): https://firebasestorage.googleapis.com/v0/b/${{ env.FIREBASE_STORAGE_BUCKET }}/o/releases%2Fco-interview.dmg?alt=media"
           echo "  macOS (Intel): https://firebasestorage.googleapis.com/v0/b/${{ env.FIREBASE_STORAGE_BUCKET }}/o/releases%2Fmac-x64.dmg?alt=media"
-          echo "  Windows: https://firebasestorage.googleapis.com/v0/b/${{ env.FIREBASE_STORAGE_BUCKET }}/o/releases%2Fwindows.zip?alt=media"
+          echo "  Windows: https://firebasestorage.googleapis.com/v0/b/${{ env.FIREBASE_STORAGE_BUCKET }}/o/releases%2Fco-interview.exe?alt=media"
 
   # ============================================
   # Create GitHub Release (optional)
@@ -259,7 +259,7 @@ jobs:
             |----------|----------|
             | macOS (Apple Silicon) | [co-interview.dmg](https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fco-interview.dmg?alt=media) |
             | macOS (Intel) | [Co-Interview-mac-x64.dmg](https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fmac-x64.dmg?alt=media) |
-            | Windows | [Co-Interview-windows.zip](https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fwindows.zip?alt=media) |
+            | Windows | [co-interview.exe](https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fco-interview.exe?alt=media) |
 
             > ⚠️ **Note:** These builds are not code-signed. 
             > - **macOS users:** Right-click the app and select "Open" to bypass Gatekeeper.

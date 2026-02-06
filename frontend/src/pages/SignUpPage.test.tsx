@@ -175,7 +175,6 @@ describe('SignUpPage', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
     it('handles weak password error', async () => {
-        const mockUser = { email: 'test@example.com' };
         vi.mocked(createUserWithEmailAndPassword).mockRejectedValueOnce({ code: 'auth/weak-password' });
 
         render(

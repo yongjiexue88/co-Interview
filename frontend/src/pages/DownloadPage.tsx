@@ -143,12 +143,22 @@ const DownloadPage: React.FC = () => {
                         >
                             macOS
                         </a>
-                        <div className="relative group">
-                            <div className="px-8 py-3 bg-gray-200 text-gray-500 font-medium rounded-lg cursor-not-allowed flex items-center gap-2">
-                                <span>Windows</span>
-                                <span className="text-xs bg-gray-300 text-gray-600 px-2 py-0.5 rounded-full">Coming Soon</span>
-                            </div>
-                        </div>
+                        <a
+                            href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fco-interview.exe?alt=media`}
+                            download
+                            onClick={() => {
+                                import('../lib/analytics').then(({ trackEvent }) => {
+                                    trackEvent('download_click', {
+                                        platform: 'Windows',
+                                        location: 'download_page',
+                                        file_type: 'exe',
+                                    });
+                                });
+                            }}
+                            className="px-8 py-3 bg-white text-gray-900 font-medium rounded-lg border-2 border-gray-200 hover:border-gray-400 transition-colors"
+                        >
+                            Windows
+                        </a>
                     </div>
                     <p className="text-sm text-gray-500">
                         Older releases available on{' '}
