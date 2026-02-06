@@ -10,16 +10,16 @@ export class MainView extends LitElement {
         }
 
         .welcome {
-            font-size: 20px;
-            margin-bottom: 6px;
-            font-weight: 500;
+            font-size: 22px;
+            margin-bottom: 8px;
+            font-weight: 600;
             color: var(--text-color);
             margin-top: auto;
         }
 
         .input-group {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 16px;
         }
 
@@ -31,16 +31,18 @@ export class MainView extends LitElement {
             background: var(--input-background);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 10px 12px;
+            padding: 12px 14px;
             width: 100%;
-            border-radius: 3px;
+            border-radius: var(--border-radius);
             font-size: 13px;
-            transition: border-color 0.1s ease;
+            transition: all 0.15s ease;
         }
 
         input:focus {
             outline: none;
-            border-color: var(--border-default);
+            border-color: var(--focus-border-color);
+            background: var(--input-focus-background);
+            box-shadow: 0 0 0 3px var(--focus-box-shadow);
         }
 
         input::placeholder {
@@ -59,7 +61,7 @@ export class MainView extends LitElement {
             }
             50% {
                 border-color: var(--error-color);
-                background: rgba(241, 76, 76, 0.1);
+                background: rgba(239, 68, 68, 0.08);
             }
         }
 
@@ -67,33 +69,36 @@ export class MainView extends LitElement {
             background: var(--start-button-background);
             color: var(--start-button-color);
             border: none;
-            padding: 10px 16px;
-            border-radius: 3px;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             white-space: nowrap;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: background 0.1s ease;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .start-button:hover {
             background: var(--start-button-hover-background);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .start-button.initializing {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
         }
 
         .start-button.initializing:hover {
             background: var(--start-button-background);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .shortcut-hint {
             font-size: 11px;
-            color: var(--text-muted);
+            color: rgba(255, 255, 255, 0.7);
             font-family: 'SF Mono', Monaco, monospace;
         }
 
@@ -105,14 +110,15 @@ export class MainView extends LitElement {
         }
 
         .link {
-            color: var(--text-color);
-            text-decoration: underline;
+            color: var(--link-color);
+            text-decoration: none;
             cursor: pointer;
-            text-underline-offset: 2px;
+            font-weight: 500;
         }
 
         .link:hover {
-            color: var(--text-color);
+            text-decoration: underline;
+            text-underline-offset: 2px;
         }
 
         :host {

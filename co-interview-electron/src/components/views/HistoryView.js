@@ -28,10 +28,11 @@ export class HistoryView extends LitElement {
         }
 
         .session-item {
-            padding: 12px;
+            padding: 14px;
             border-bottom: 1px solid var(--border-color);
             cursor: pointer;
-            transition: background 0.1s ease;
+            transition: all 0.15s ease;
+            border-radius: 0;
         }
 
         .session-item:hover {
@@ -110,19 +111,20 @@ export class HistoryView extends LitElement {
             background: transparent;
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 3px;
+            padding: 8px 14px;
+            border-radius: var(--border-radius);
             font-size: 11px;
             font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: background 0.1s ease;
+            transition: all 0.15s ease;
         }
 
         .back-button:hover {
             background: var(--hover-background);
+            border-color: var(--border-default);
         }
 
         .legend {
@@ -202,13 +204,13 @@ export class HistoryView extends LitElement {
             background: transparent;
             color: var(--text-muted);
             border: none;
-            padding: 8px 16px;
+            padding: 10px 18px;
             font-size: 11px;
             font-weight: 500;
             cursor: pointer;
             border-bottom: 2px solid transparent;
             margin-bottom: -1px;
-            transition: color 0.1s ease;
+            transition: all 0.15s ease;
         }
 
         .view-tab:hover {
@@ -216,8 +218,8 @@ export class HistoryView extends LitElement {
         }
 
         .view-tab.active {
-            color: var(--text-color);
-            border-bottom-color: var(--text-color);
+            color: var(--link-color);
+            border-bottom-color: var(--link-color);
         }
 
         .message.screen {
@@ -298,8 +300,8 @@ export class HistoryView extends LitElement {
         }
 
         .tab.active {
-            color: var(--text-color);
-            border-bottom-color: var(--text-color);
+            color: var(--link-color);
+            border-bottom-color: var(--link-color);
         }
 
         .saved-response-item {
@@ -340,13 +342,13 @@ export class HistoryView extends LitElement {
             color: var(--text-muted);
             border: none;
             padding: 4px;
-            border-radius: 3px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.1s ease;
+            transition: all 0.15s ease;
         }
 
         .delete-button:hover {
-            background: rgba(241, 76, 76, 0.1);
+            background: rgba(239, 68, 68, 0.08);
             color: var(--error-color);
         }
     `;
