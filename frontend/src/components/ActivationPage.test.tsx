@@ -4,7 +4,6 @@ import ActivationPage from './ActivationPage';
 import { MemoryRouter } from 'react-router-dom';
 import * as analytics from '../lib/analytics';
 
-// Mock navigation
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual('react-router-dom');
@@ -14,12 +13,10 @@ vi.mock('react-router-dom', async () => {
     };
 });
 
-// Mock analytics
 vi.mock('../lib/analytics', () => ({
     trackEvent: vi.fn(),
 }));
 
-// Mock components
 vi.mock('./Navbar', () => ({
     default: () => <div data-testid="navbar" />,
 }));
