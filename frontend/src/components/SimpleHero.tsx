@@ -19,7 +19,7 @@ const SimpleHero: React.FC = () => {
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
                     <a
-                        href="https://firebasestorage.googleapis.com/v0/b/co-interview-481814.firebasestorage.app/o/releases%2Fmac-arm64.dmg?alt=media"
+                        href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-arm64.dmg?alt=media`}
                         download
                         className="px-8 py-4 bg-black text-white font-semibold rounded-full hover:bg-gray-800 transition-colors shadow-lg"
                     >
