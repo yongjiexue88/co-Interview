@@ -87,6 +87,8 @@ const BlogPage: React.FC = () => {
             <SEO
                 title="Blog — Co-Interview"
                 description="Tips, strategies, and insights for acing your technical interviews with AI-powered assistance."
+                canonicalUrl="https://co-interview.com/blog"
+                keywords={['technical interview blog', 'coding interview tips', 'software engineer interview guide', 'interview preparation strategies']}
             />
             <Banner />
             <Navbar />

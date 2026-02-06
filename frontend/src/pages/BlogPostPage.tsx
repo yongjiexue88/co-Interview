@@ -83,7 +83,14 @@ const BlogPostPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#000000] text-white selection:bg-[#EFCC3A]/30">
-            <SEO title={`${post.title} — Co-Interview Blog`} description={post.description || post.title} />
+            <SEO
+                title={`${post.title} — Co-Interview Blog`}
+                description={post.description || post.title}
+                canonicalUrl={`https://co-interview.com/blog/${slug}`}
+                image={post.imageUrl}
+                keywords={['technical interview', 'coding interview', 'software engineering', ...((post.tags || []) as string[])]}
+                type="article"
+            />
             <Banner />
             <Navbar />
 
