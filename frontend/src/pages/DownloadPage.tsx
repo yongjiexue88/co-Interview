@@ -94,6 +94,15 @@ const DownloadPage: React.FC = () => {
                                 href="https://github.com/yongjiexue88/co-Interview"
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => {
+                                    import('../lib/analytics').then(({ trackEvent }) => {
+                                        trackEvent('external_link_click', {
+                                            destination: 'github',
+                                            location: 'download_header',
+                                            url: 'https://github.com/yongjiexue88/co-Interview',
+                                        });
+                                    });
+                                }}
                                 className="text-sm font-medium text-gray-600 hover:text-gray-900"
                             >
                                 GitHub
@@ -121,6 +130,15 @@ const DownloadPage: React.FC = () => {
                         <a
                             href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-arm64.dmg?alt=media`}
                             download
+                            onClick={() => {
+                                import('../lib/analytics').then(({ trackEvent }) => {
+                                    trackEvent('download_click', {
+                                        platform: 'macOS',
+                                        location: 'download_page',
+                                        file_type: 'dmg',
+                                    });
+                                });
+                            }}
                             className="px-8 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
                         >
                             macOS
@@ -138,6 +156,15 @@ const DownloadPage: React.FC = () => {
                             href="https://github.com/yongjiexue88/co-Interview/releases"
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => {
+                                import('../lib/analytics').then(({ trackEvent }) => {
+                                    trackEvent('external_link_click', {
+                                        destination: 'github_releases',
+                                        location: 'download_page',
+                                        url: 'https://github.com/yongjiexue88/co-Interview/releases',
+                                    });
+                                });
+                            }}
                             className="underline hover:text-gray-900"
                         >
                             GitHub Releases

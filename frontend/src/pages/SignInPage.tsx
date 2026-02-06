@@ -77,6 +77,10 @@ const SignInPage: React.FC = () => {
             // Web Context: Use Popup
             setIsSubmitting(true);
             const result = await signInWithPopup(auth, googleProvider);
+            // Track login
+            import('../lib/analytics').then(({ trackEvent }) => {
+                trackEvent('login', { method: 'google' });
+            });
             await handleElectronRedirect(result.user);
         } catch (error: any) {
             console.error('Login failed details:', {
@@ -157,6 +161,10 @@ const SignInPage: React.FC = () => {
 
         try {
             const result = await signInWithEmailAndPassword(auth, email, password);
+            // Track login
+            import('../lib/analytics').then(({ trackEvent }) => {
+                trackEvent('login', { method: 'email' });
+            });
             await handleElectronRedirect(result.user);
         } catch (error: any) {
             console.error('Login failed:', error);

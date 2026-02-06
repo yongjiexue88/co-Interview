@@ -21,6 +21,15 @@ const SimpleHero: React.FC = () => {
                     <a
                         href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-arm64.dmg?alt=media`}
                         download
+                        onClick={() => {
+                            import('../lib/analytics').then(({ trackEvent }) => {
+                                trackEvent('download_click', {
+                                    platform: 'macOS',
+                                    location: 'hero',
+                                    file_type: 'dmg',
+                                });
+                            });
+                        }}
                         className="px-8 py-4 bg-black text-white font-semibold rounded-full hover:bg-gray-800 transition-colors shadow-lg"
                     >
                         Download for macOS
@@ -29,6 +38,15 @@ const SimpleHero: React.FC = () => {
                         href="https://github.com/yongjiexue88/co-Interview"
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => {
+                            import('../lib/analytics').then(({ trackEvent }) => {
+                                trackEvent('external_link_click', {
+                                    destination: 'github',
+                                    location: 'hero',
+                                    url: 'https://github.com/yongjiexue88/co-Interview',
+                                });
+                            });
+                        }}
                         className="px-8 py-4 bg-white text-gray-900 font-semibold rounded-full border-2 border-gray-200 hover:border-gray-400 transition-colors"
                     >
                         View on GitHub

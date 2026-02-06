@@ -9,6 +9,8 @@ export const usePageTracking = () => {
         // Track page view on route change
         trackEvent('page_view', {
             page_path: location.pathname + location.search,
+            page_title: document.title,
+            page_location: window.location.href,
         });
     }, [location]);
 };
