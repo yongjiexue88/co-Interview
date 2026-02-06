@@ -34,13 +34,13 @@ export class CustomizeView extends LitElement {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 14px;
+            padding: 8px 12px;
             margin: 0 8px;
-            border-radius: var(--border-radius);
+            border-radius: 3px;
             font-size: 12px;
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.1s ease;
             border: none;
             background: transparent;
             text-align: left;
@@ -178,16 +178,15 @@ export class CustomizeView extends LitElement {
             background: var(--input-background);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 10px 12px;
-            border-radius: var(--border-radius);
+            padding: 8px 10px;
+            border-radius: 3px;
             font-size: 12px;
-            transition: all 0.15s ease;
+            transition: border-color 0.1s ease;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: var(--focus-border-color);
-            box-shadow: 0 0 0 3px var(--focus-box-shadow);
+            border-color: var(--border-default);
         }
 
         .form-control:hover:not(:focus) {
@@ -197,11 +196,11 @@ export class CustomizeView extends LitElement {
         select.form-control {
             cursor: pointer;
             appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 10px center;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b6b6b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
             background-repeat: no-repeat;
-            background-size: 14px;
-            padding-right: 32px;
+            background-size: 12px;
+            padding-right: 28px;
         }
 
         textarea.form-control {
@@ -271,17 +270,16 @@ export class CustomizeView extends LitElement {
             background: transparent;
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: var(--border-radius);
+            padding: 6px 10px;
+            border-radius: 3px;
             font-size: 11px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: background 0.1s ease;
         }
 
         .reset-keybinds-button:hover {
             background: var(--hover-background);
-            border-color: var(--border-default);
         }
 
         .keybinds-table {
@@ -418,23 +416,21 @@ export class CustomizeView extends LitElement {
         .slider-input::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: var(--start-button-background);
+            background: var(--text-color);
             cursor: pointer;
             border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .slider-input::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: var(--start-button-background);
+            background: var(--text-color);
             cursor: pointer;
             border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .slider-labels {
@@ -501,16 +497,16 @@ export class CustomizeView extends LitElement {
             background: transparent;
             color: var(--error-color);
             border: 1px solid var(--error-color);
-            padding: 10px 16px;
-            border-radius: var(--border-radius);
+            padding: 8px 14px;
+            border-radius: 3px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: background 0.1s ease;
         }
 
         .danger-button:hover {
-            background: rgba(239, 68, 68, 0.08);
+            background: rgba(241, 76, 76, 0.1);
         }
 
         .danger-button:disabled {

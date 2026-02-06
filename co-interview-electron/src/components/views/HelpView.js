@@ -51,23 +51,18 @@ export class HelpView extends LitElement {
         }
 
         .link {
-            color: var(--link-color);
-            text-decoration: none;
-            font-weight: 500;
+            color: var(--text-color);
+            text-decoration: underline;
+            text-underline-offset: 2px;
             cursor: pointer;
         }
 
-        .link:hover {
-            text-decoration: underline;
-            text-underline-offset: 2px;
-        }
-
         .key {
-            background: var(--key-background);
-            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 3px 8px;
-            border-radius: 6px;
+            padding: 2px 6px;
+            border-radius: 3px;
             font-size: 10px;
             font-family: 'SF Mono', Monaco, monospace;
             font-weight: 500;

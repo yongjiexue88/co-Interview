@@ -30,6 +30,7 @@ function createWindow(sendToRenderer, geminiSessionRef) {
             allowRunningInsecureContent: false,
         },
         backgroundColor: '#00000000',
+        icon: path.join(__dirname, '../assets/favicon.png'),
     });
 
     const { session, desktopCapturer } = require('electron');

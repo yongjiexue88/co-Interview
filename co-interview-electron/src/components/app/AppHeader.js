@@ -28,11 +28,10 @@ export class AppHeader extends LitElement {
             gap: 8px;
         }
 
-        .header-logo {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            object-fit: cover;
+        .app-icon {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
         }
 
         .header-actions {
@@ -52,10 +51,10 @@ export class AppHeader extends LitElement {
             color: var(--text-color);
             border: 1px solid var(--border-color);
             padding: var(--header-button-padding);
-            border-radius: var(--border-radius);
+            border-radius: 3px;
             font-size: var(--header-font-size-small);
             font-weight: 500;
-            transition: all 0.15s ease;
+            transition: background 0.1s ease;
         }
 
         .button:hover {
@@ -67,13 +66,13 @@ export class AppHeader extends LitElement {
             color: var(--text-secondary);
             border: none;
             padding: var(--header-icon-padding);
-            border-radius: var(--border-radius);
+            border-radius: 3px;
             font-size: var(--header-font-size-small);
             font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s ease;
+            transition: all 0.1s ease;
         }
 
         .icon-button svg {
@@ -93,12 +92,10 @@ export class AppHeader extends LitElement {
 
         .key {
             background: var(--key-background);
-            color: var(--text-secondary);
-            padding: 3px 8px;
-            border-radius: 6px;
+            padding: 2px 6px;
+            border-radius: 3px;
             font-size: 11px;
             font-family: 'SF Mono', Monaco, monospace;
-            border: 1px solid var(--border-color);
         }
 
         .click-through-indicator {
@@ -112,16 +109,16 @@ export class AppHeader extends LitElement {
 
         .update-button {
             background: transparent;
-            color: var(--error-color);
-            border: 1px solid var(--error-color);
+            color: #f14c4c;
+            border: 1px solid #f14c4c;
             padding: var(--header-button-padding);
-            border-radius: var(--border-radius);
+            border-radius: 3px;
             font-size: var(--header-font-size-small);
             font-weight: 500;
             display: flex;
             align-items: center;
             gap: 4px;
-            transition: all 0.15s ease;
+            transition: all 0.1s ease;
         }
 
         .update-button svg {
@@ -289,7 +286,7 @@ export class AppHeader extends LitElement {
         return html`
             <div class="header">
                 <div class="header-title">
-                    <img src="assets/favicon.png" alt="logo" class="header-logo" />
+                    <img class="app-icon" src="assets/favicon.png" alt="App Icon" draggable="false" />
                     ${this.getViewTitle()}
                 </div>
                 <div class="header-actions">

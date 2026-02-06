@@ -90,10 +90,10 @@ export class AssistantView extends LitElement {
         }
 
         .response-container pre {
-            background: var(--bg-tertiary);
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            padding: 14px;
+            border-radius: 3px;
+            padding: 12px;
             overflow-x: auto;
             margin: 0.8em 0;
         }
@@ -164,19 +164,18 @@ export class AssistantView extends LitElement {
 
         .text-input-container input {
             flex: 1;
-            background: var(--input-background);
+            background: transparent;
             color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 10px 12px;
-            border-radius: var(--border-radius);
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 4px;
+            border-radius: 0;
             font-size: 13px;
-            transition: all 0.15s ease;
         }
 
         .text-input-container input:focus {
             outline: none;
-            border-color: var(--focus-border-color);
-            box-shadow: 0 0 0 3px var(--focus-box-shadow);
+            border-bottom-color: var(--text-color);
         }
 
         .text-input-container input::placeholder {
@@ -186,14 +185,14 @@ export class AssistantView extends LitElement {
         .nav-button {
             background: transparent;
             color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            border-radius: var(--border-radius);
+            border: none;
+            padding: 6px;
+            border-radius: 3px;
             font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s ease;
+            transition: all 0.1s ease;
         }
 
         .nav-button:hover {
@@ -224,22 +223,20 @@ export class AssistantView extends LitElement {
             display: flex;
             align-items: center;
             gap: 6px;
-            background: var(--start-button-background);
-            color: var(--start-button-color);
+            background: var(--btn-primary-bg, #ffffff);
+            color: var(--btn-primary-text, #000000);
             border: none;
-            padding: 8px 14px;
-            border-radius: var(--border-radius);
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .screen-answer-btn:hover {
-            background: var(--start-button-hover-background);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: var(--btn-primary-hover, #f0f0f0);
         }
 
         .screen-answer-btn svg {
@@ -263,17 +260,17 @@ export class AssistantView extends LitElement {
             bottom: 100%;
             right: 0;
             margin-bottom: 8px;
-            background: var(--text-color);
-            color: #ffffff;
-            padding: 10px 14px;
-            border-radius: var(--border-radius);
+            background: var(--tooltip-bg, #1a1a1a);
+            color: var(--tooltip-text, #ffffff);
+            padding: 8px 12px;
+            border-radius: 6px;
             font-size: 11px;
             white-space: nowrap;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.15s ease, visibility 0.15s ease;
             pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 100;
         }
 
@@ -283,7 +280,7 @@ export class AssistantView extends LitElement {
             top: 100%;
             right: 16px;
             border: 6px solid transparent;
-            border-top-color: var(--text-color);
+            border-top-color: var(--tooltip-bg, #1a1a1a);
         }
 
         .screen-answer-btn-wrapper:hover .tooltip {
