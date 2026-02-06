@@ -128,7 +128,7 @@ const DownloadPage: React.FC = () => {
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Latest Release</h2>
                     <div className="flex flex-wrap gap-4 mb-4">
                         <a
-                            href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fmac-arm64.dmg?alt=media`}
+                            href={`https://firebasestorage.googleapis.com/v0/b/${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET}/o/releases%2Fco-interview.dmg?alt=media`}
                             download
                             onClick={() => {
                                 import('../lib/analytics').then(({ trackEvent }) => {
