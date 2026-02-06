@@ -161,7 +161,7 @@ export class AppHeader extends LitElement {
     async _checkForUpdates() {
         try {
             const currentVersion = await coInterview.getVersion();
-            const response = await fetch('https://raw.githubusercontent.com/sohzm/co-interview/refs/heads/master/package.json');
+            const response = await fetch('https://raw.githubusercontent.com/yongjiexue88/co-Interview/refs/heads/master/package.json');
             if (!response.ok) return;
 
             const remotePackage = await response.json();
