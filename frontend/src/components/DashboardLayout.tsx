@@ -91,9 +91,16 @@ const DashboardLayout: React.FC = () => {
                         <Link
                             key={item.name}
                             to={item.href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors mb-1 ${
-                                isActiveRoute(item.href) ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`}
+                            onClick={() => {
+                                import('../lib/analytics').then(({ trackEvent }) => {
+                                    trackEvent('dashboard_nav_click', {
+                                        section: item.name.toLowerCase().replace(/\s+/g, '_'),
+                                        destination: item.href,
+                                    });
+                                });
+                            }}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors mb-1 ${isActiveRoute(item.href) ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                }`}
                         >
                             <item.icon className="w-5 h-5" />
                             {item.name}

@@ -70,7 +70,19 @@ const HelpPage: React.FC = () => {
                     <h2 className="text-2xl font-bold text-gray-900 mb-8">Guides</h2>
                     <div className="space-y-8">
                         {guides.map((guide, index) => (
-                            <Link key={index} to={guide.href} className="block group">
+                            <Link
+                                key={index}
+                                to={guide.href}
+                                onClick={() => {
+                                    import('../lib/analytics').then(({ trackEvent }) => {
+                                        trackEvent('help_topic_click', {
+                                            topic: guide.title.toLowerCase().replace(/\s+/g, '_'),
+                                            destination: guide.href,
+                                        });
+                                    });
+                                }}
+                                className="block group"
+                            >
                                 <h3 className="text-base font-medium text-gray-900 underline group-hover:text-gray-600 mb-1">{guide.title}</h3>
                                 <p className="text-sm text-gray-500">{guide.description}</p>
                             </Link>

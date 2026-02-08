@@ -24,6 +24,12 @@ const ForgotPasswordPage: React.FC = () => {
 
         try {
             await sendPasswordResetEmail(auth, email);
+            // Track password reset request
+            import('../lib/analytics').then(({ trackEvent }) => {
+                trackEvent('password_reset_request', {
+                    email_domain: email.split('@')[1] || 'unknown',
+                });
+            });
             setIsSuccess(true);
         } catch (error: any) {
             console.error('Password reset failed:', error);

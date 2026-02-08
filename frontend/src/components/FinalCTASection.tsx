@@ -11,6 +11,14 @@ const FinalCTASection: React.FC = () => {
                 <p className="text-lg text-gray-600 mb-10">Join 60,000+ users.</p>
                 <a
                     href="#download"
+                    onClick={() => {
+                        import('../lib/analytics').then(({ trackEvent }) => {
+                            trackEvent('cta_click', {
+                                location: 'final_cta_section',
+                                button_text: 'Download for macOS',
+                            });
+                        });
+                    }}
                     className="inline-block px-10 py-4 bg-black text-white font-semibold rounded-full hover:bg-gray-800 transition-colors shadow-lg"
                 >
                     Download for macOS

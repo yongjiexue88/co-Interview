@@ -14,18 +14,39 @@ const SimpleNavbar: React.FC = () => {
 
                     {/* Navigation Links */}
                     <nav className="flex items-center space-x-6">
-                        <Link to="/help" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                        <Link
+                            to="/help"
+                            onClick={() => {
+                                import('../lib/analytics').then(({ trackEvent }) => {
+                                    trackEvent('nav_click', { item: 'help', destination: '/help' });
+                                });
+                            }}
+                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                        >
                             Help
                         </Link>
                         <a
                             href="https://github.com"
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => {
+                                import('../lib/analytics').then(({ trackEvent }) => {
+                                    trackEvent('nav_click', { item: 'github', destination: 'https://github.com' });
+                                });
+                            }}
                             className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                         >
                             GitHub
                         </a>
-                        <Link to="/download" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                        <Link
+                            to="/download"
+                            onClick={() => {
+                                import('../lib/analytics').then(({ trackEvent }) => {
+                                    trackEvent('nav_click', { item: 'download', destination: '/download' });
+                                });
+                            }}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                        >
                             Download
                         </Link>
                     </nav>
